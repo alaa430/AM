@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="../style.css">
 <script src="exploit.js"></script>
 </head>
-<body onload="if(localStorage.cached505=='yes')setTimeout(exploit, 50);">
+<body onload="if(localStorage.cached505=='yes')setTimeout(exploit, 10);">
 <script>
 window.applicationCache.onprogress=function(a){document.getElementById("msgs2").innerHTML="Installing Offline Cache: "+(Math.round(100*(a.loaded/a.total)))+"%"};
 window.applicationCache.oncached=function(){setTimeout(function(){document.getElementById("msgs2").innerHTML="Cache Installed Successfully ✔";},1500);setTimeout(function(){document.getElementById("msgs2").innerHTML="Now Close And Re-Open Your Browser ..."; },3500);localStorage.cached505="yes";};
@@ -15,7 +15,7 @@ window.applicationCache.onerror=function(){localStorage.cached505="yes";};
 <h1 id="msgs">PS4 5.05 FW GoldHEN ALAA MOHAMED 01001550618</h1>
 <hr>
 <br>
-<h1 id="msgs2" style="font-size: 30px;margin-top: 20px;margin-bottom: 455px;">Loading GoldHEN v2.4b17.3... انتظر شويه</h1>
+<h1 id="msgs2" style="font-size: 30px;margin-top: 15px;margin-bottom: 455px;">Loading GoldHEN v2.4b17.3... انتظر شويه</h1>
 <script>
 function allset(){
 msgs2.innerHTML = LoadedMSG
@@ -45,7 +45,7 @@ req1.send();
 	p.write8(code_addr1.add32(x),0);}
 	};
 	allset();
-   setTimeout(runPAYLOAD1,100);
+   setTimeout(runPAYLOAD1,10);
   }
  };
 }
