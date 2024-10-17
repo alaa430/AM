@@ -1,3 +1,15 @@
+html {
+    background-image: url('img.jpg');
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-color: #24272b;
+    color: white;
+    text-align: center;
+    overflow: hidden;
+}
+
 .lds-ellipsis {
     display: inline-block;
     position: relative;
@@ -82,13 +94,7 @@
     background-color: inherit;
 }
 
-body {
-    user-select: none;
-    -webkit-user-select: none;
-    background-color: rgb(14, 14, 20);
-    color: white;
-    /* font-family: Calibri, Helvetica, 'Sans-Serif'; */
-    font-family: Arial;
+
 }
 
 input:focus {
