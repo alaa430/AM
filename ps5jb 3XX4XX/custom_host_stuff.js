@@ -10,7 +10,7 @@ async function runJailbreak() {
 
     setTimeout(() => {
         poc();
-    }, 100);
+    }, 10);
 }
 
 async function switch_to_post_jb_view() {
