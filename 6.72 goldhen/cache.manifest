@@ -1,10 +1,7 @@
 CACHE MANIFEST 
 
-CACHE: 
-exp_loader.js
+../img.jpg
+../style.css
+exploit.js
 goldhen_2.4b17.3.bin
 index.html
-jb.js
-
-NETWORK: 
-* 
