@@ -8,11 +8,10 @@ html {
     color: white;
     text-align: center;
     overflow: hidden;
-}
 
 h1 {
     text-shadow: 0.1em 0.1em 0.2em black;
-    font-size: 25px;
+    font-size: 20px;
     color: white;
 }
 
@@ -45,21 +44,21 @@ a {
 }
 
 .btn {
-    background-color: #003263;
+    background-color: #003270;
     color: white;
-    width: 227px;
-    height: 46px;
-    padding-bottom: 5px;
+    width: 150px;
+    height: 42px;
+    padding-bottom: 1px;
     text-align: center;
-    font-size: 20px;
-    margin-top: 8px;
-    margin-bottom: 8px;
-    margin-left: 5px;
-    margin-right: 5px;
+    font-size: 15px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+    margin-left: 1px;
+    margin-right: 1px;
     border-style: none;
     transition-duration: 0.4s;
-    cursor: pointer;
-    border-radius: 4px;
+    cursor: pointer; 1px;
+    border-radius: 1px;
 }
 
 .btn:hover {
@@ -91,10 +90,11 @@ a {
 }
 
 .btn-ps5 {
-    background-color: #3d3f4e;
+    background-color: #3a2d3c;
 }
 
 .btn-ps5:hover {
     background-color: #c2c2c2;
     color: #303030;
 }
+
