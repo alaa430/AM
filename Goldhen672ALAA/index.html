@@ -39,19 +39,19 @@ document.getElementById("clock").innerHTML = (Hour+":"+Minute);
   setInterval(showdate,0);
 </script>
 </head>
-<body onload="if(localStorage.cached672=='yes')setTimeout(load_goldhen24,50);" style='background-color:#1A1920'>
+
 <div id=ScrOverlay class=cacheUPDbg><pre id=cacheUPDtxt class=cacheUPD></pre>
 <div id=CacheProgress><div id=CacheBar></div></div></div>
 <span id="date" ></span><span id="clock" ></span><h1 style='font-size:25px;text-align:center;text-shadow: 4px 4px 4px black;color:yellow;'><a class="button" style="color: green;text-shadow: 4px 4px 4px black;font-size:120%; font-weight: bold;">Pass = <span id=passCounter></span></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALAA MOHAMED GoldHEN 6.72 FW&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a  class="button2" style="color: red;text-shadow: 4px 4px 4px black;font-size:120%; font-weight: bold;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Fail = <span id=failCounter></span> </a>
 <br>
-<h1 id=msgs2 style='font-size:25px;text-align:center;text-shadow: 4px 4px 4px black;color:white;'>Status</h1>
+<h1 id=msgs2 style='font-size:25px;text-align:center;text-shadow: 4px 4px 4px black;color:white;'>ALAA MOHAMED 01001550618</h1>
 <div style="text-align:center"  id="MyItems">
 <br>
 <br><br>
 <br>
 <div class="content" >
- 	 <br><span class="yellow" >Designed by :</span >&nbsp;&nbsp; <a class="hue" style='font-size:25px;text-align:center;text-shadow: 4px 4px 4px black;color:white;'>Karo Sharifi</a>
- 	 <br><br><br><span class="yellow" >Super Special Thanks To :</span >&nbsp;&nbsp; <a style='font-size:25px;text-align:center;text-shadow: 4px 4px 4px black;color:white;'>Sleirsgoevy , AlAzif , SiSTRo. , ... </a>
+
+
  </div>
 </div>
 <script>
@@ -62,7 +62,7 @@ window.failCounter.innerHTML=localStorage.failcount;
 
 function load_goldhen24() {
 PLfile='goldhenv2.4b16.2.bin';
-msgs2.innerHTML="GoldHEN Loading... please wait"; LoadedMSG="GoldHEN Loaded";
+msgs2.innerHTML="GoldHEN Loading... انتظر شويه لتفعيل الجولد هين"; LoadedMSG="GoldHEN Loaded";
 setTimeout(function(){var script = document.createElement('script');script.src ="exp_loader.js";document.getElementsByTagName('head')[0].appendChild(script);},3000);
 setTimeout(jailbreak,500);
 }
