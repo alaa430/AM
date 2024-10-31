@@ -3,14 +3,14 @@ async function runJailbreak() {
     postjb.style.opacity = "0";
     postjb.style.pointerEvents = "none";
     document.getElementById("run-jb-parent").style.opacity = "0";
-    await sleep(1);
+    await sleep(500);
     document.getElementById("run-jb-parent").style.display = "none";
     document.getElementById("jb-progress").style.opacity = "1";
-    await sleep(1);
+    await sleep(500);
 
     setTimeout(() => {
         poc();
-    }, 50000);
+    }, 10);
 }
 
 async function switch_to_post_jb_view() {
@@ -18,7 +18,7 @@ async function switch_to_post_jb_view() {
     document.getElementById("run-jb-parent").style.display = "none";
 
     document.getElementById("jb-progress").style.opacity = "0";
-    await sleep(500000);
+    await sleep(1000);
     document.getElementById("jb-progress").style.display = "none";
 
     document.getElementById("post-jb-view").style.opacity = "0";
@@ -79,5 +79,5 @@ function showToast(message) {
         toast.addEventListener('transitionend', () => {
             toast.remove();
         });
-    }, 1);
+    }, 1000);
 }
