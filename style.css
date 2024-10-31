@@ -59,7 +59,7 @@ a {
     border-style: none;
     transition-duration: 0.4s;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 2000px;
 }
 
 .btn:hover {
