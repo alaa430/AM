@@ -1,9 +1,9 @@
 const payload_map =
     [
         {
-            displayTitle: 'etaHEN 1.8B By LM',
+            displayTitle: 'etaHEN-1.7B',
             description: 'Runs With 3.xx and 4.xx. FPKG enabler For FW 4.03-4.51 Only.',
-            fileName: 'etaHEN-1.8B.bin',
+            fileName: 'etaHEN-1.7B.bin',
             author: 'LightningMods_, sleirsgoevy, ChendoChap, astrelsky, illusion',
             source: 'https://github.com/LightningMods/etaHEN',
             version: '1.8 beta'
@@ -17,9 +17,9 @@ const payload_map =
             version: '1.2'
         },
         {
-            displayTitle: 'libhijacker game-patch',
+            displayTitle: 'libhijacker-game-patch.v1.160',
             description: 'Patches supported games to run at higher framerates, and adds debug menus to certain titles.',
-            fileName: 'libhijacker-1.137.elf',
+            fileName: 'libhijacker-game-patch.v1.160.elf',
             author: 'illusion0001, astrelsky',
             source: 'https://github.com/illusion0001/libhijacker/releases',
             version: '1.137'
