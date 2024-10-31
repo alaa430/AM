@@ -22,7 +22,7 @@ const payload_map =
             fileName: 'libhijacker-game-patch.v1.160.elf',
             author: 'illusion0001, astrelsky',
             source: 'https://github.com/illusion0001/libhijacker/releases',
-            version: '1.137'
+            version: '1.160'
         },
 		{
             displayTitle: 'PS5 Debug',
