@@ -343,7 +343,7 @@ function create_payload_buttons() {
         btn.className = "btn mx-auto";
         btn.tabIndex = "0";
         btn.onclick = async () => {
-            showToast(payload_map[i].displayTitle + " added to queue.", 500);
+            showToast(payload_map[i].displayTitle + " added to queue.", 1000);
             window.local_payload_queue.push(payload_map[i]);
         };
 
@@ -368,7 +368,7 @@ function create_payload_buttons() {
 
 }
 
-function showToast(message, timeout = 10) {
+function showToast(message, timeout = 2000) {
     const toastContainer = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = 'toast';
