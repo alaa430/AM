@@ -19,9 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 function die(msg) {
-    // alert(msg);
-    // undefinedFunction();
-    throw new Error("PSFree failed: " + msg + "\nReload the page and try again.");
+    alert(msg);
+    undefinedFunction();
 }
 
 function debug_log(msg) {
