@@ -1,48 +1,109 @@
 const payload_map =
     [
         {
-            displayTitle: 'etaHEN-1.7B',
-            description: 'Runs With 3.xx and 4.xx. FPKG enabler For FW 4.03-4.51 Only.',
-            fileName: 'etaHEN-1.7B.bin',
+            displayTitle: 'etaHEN',
+            description: 'All-in-one HEN',
+            fileName: 'etaHEN-1.8B.bin',
             author: 'LightningMods_, sleirsgoevy, ChendoChap, astrelsky, illusion',
             source: 'https://github.com/LightningMods/etaHEN',
             version: '1.8 beta'
         },
         {
             displayTitle: 'K-Stuff',
-            description: 'FW 4.03-4.51 Only. FPKG enabler',
-            fileName: 'ps5-kstuff-v1.2.bin',
+            description: 'FPKG enabler',
+            fileName: 'ps5-kstuff-v1.4.bin',
             author: 'sleirsgoevy',
-            source: 'https://github.com/sleirsgoevy/ps4jb2/blob/ps5-403/ps5-kstuff.bin',
-            version: '1.2'
+            source: 'https://github.com/idlesauce/ps5-kstuff-builds/releases',
+            version: '1.4'
         },
         {
-            displayTitle: 'libhijacker-game-patch.v1.160',
+            displayTitle: 'libhijacker game-patch',
             description: 'Patches supported games to run at higher framerates, and adds debug menus to certain titles.',
-            fileName: 'libhijacker-game-patch.v1.160.elf',
+            fileName: 'libhijacker-1.160.elf',
             author: 'illusion0001, astrelsky',
             source: 'https://github.com/illusion0001/libhijacker/releases',
-            version: '1.137'
+            version: '1.160'
         },
-		{
-            displayTitle: 'PS5 Debug',
-            description: 'Debugger for PlayStation 5',
+        {
+            displayTitle: 'ps5debug',
+            description: 'Debugger (Experimental beta)',
             fileName: 'ps5debug.elf',
-            author: 'SISTRO',
-            source:'https://github.com/GoldHEN/ps5debug/releases/tag/1.0b1',
+            author: 'SiSTR0, ctn123',
+            source: 'https://github.com/GoldHEN/ps5debug',
             version: '1.0b1'
+        },
+        {
+            displayTitle: 'HEN-V',
+            description: 'PS5 Homebrew Enabler, FTP, klog',
+            fileName: 'henv.elf',
+            author: 'astrelsky',
+            source:'https://github.com/astrelsky/HEN-V/releases',
+            version: '0.0.2-alpha'
         },
         {
             displayTitle: 'PS5 Payload ELF Loader',
             description: 'Uses port 9021. Persistent network elf loader',
             fileName: 'elfldr.elf',
             author: 'john-tornblom',
-            source:'https://github.com/john-tornblom/ps5-payload-elfldr/releases',
-            version: '0.5'
+            source:'https://github.com/ps5-payload-dev/elfldr/releases',
+            version: '0.14'
+        },
+        {
+            displayTitle: 'websrv',
+            description: "Uses john-tornblom's elfldr. Custom homebrew loader. Runs on port 8080.",
+            fileName: 'websrv.elf',
+            author: 'john-tornblom',
+            loader: 'john-tornblom-elfldr',
+            source:'https://github.com/ps5-payload-dev/websrv/releases',
+            version: '0.8'
+        },
+        {
+            displayTitle: 'shsrv',
+            description: "Uses john-tornblom's elfldr. Telnet shell server. Runs on port 2323.",
+            fileName: 'shsrv.elf',
+            author: 'john-tornblom',
+            loader: 'john-tornblom-elfldr',
+            source:'https://github.com/ps5-payload-dev/shsrv/releases',
+            version: '0.10'
+        },
+        {
+            displayTitle: 'ftpsrv',
+            description: "Uses john-tornblom's elfldr. FTP server. Runs on port 2121.",
+            fileName: 'ftpsrv.elf',
+            author: 'john-tornblom',
+            loader: 'john-tornblom-elfldr',
+            source:'https://github.com/ps5-payload-dev/ftpsrv/releases',
+            version: '0.10'
+        },
+        {
+            displayTitle: 'klogsrv',
+            description: "Uses john-tornblom's elfldr. Klog server. Runs on port 3232.",
+            fileName: 'klogsrv.elf',
+            author: 'john-tornblom',
+            loader: 'john-tornblom-elfldr',
+            source:'https://github.com/ps5-payload-dev/klogsrv/releases',
+            version: '0.4'
+        },
+        {
+            displayTitle: 'gdbsrv',
+            description: "Uses john-tornblom's elfldr. GDB server. Runs on port 2159.",
+            fileName: 'gdbsrv.elf',
+            author: 'john-tornblom',
+            loader: 'john-tornblom-elfldr',
+            source:'https://github.com/ps5-payload-dev/gdbsrv/releases',
+            version: '0.3'
+        },
+        {
+            displayTitle: 'FTPS5 (Non-Persistent)',
+            description: 'FTP Server',
+            fileName: 'ftps5-np.elf',
+            author: 'SiSTR0, zecoxao, EchoStretch',
+            source:'https://github.com/EchoStretch/FTPS5/releases',
+            version: '1.4'
         },
         {
             displayTitle: 'FTPS5 (Persistent)',
-            description: 'FTP Server',
+            description: 'FTP Server, causes kernel panic on shutdown.',
             fileName: 'ftps5-p.elf',
             author: 'SiSTR0, zecoxao, EchoStretch',
             source:'https://github.com/EchoStretch/FTPS5/releases',
@@ -53,7 +114,7 @@ const payload_map =
             description: 'Shows kernel build, os and sdk versions',
             fileName: 'versions.elf',
             author: 'SiSTRo',
-            source:'https://mega.nz/folder/4xA2ATTI#6lHvye1JUfhxRGvqOva8fw/folder/gwhWmRrB',
+            source:'https://github.com/SiSTR0/ps5-versions/releases/download/v1.0/ps5-versions.elf',
             version: '1.0'
         },
         {
@@ -71,6 +132,22 @@ const payload_map =
             author: 'Storm21CH',
             source:'https://github.com/Storm21CH/PS5_Browser_appCache_remove/blob/main/Browser_appCache_remove.elf',
             version: '1.0fix'
+        },
+        {
+            displayTitle: 'PS5-BackupDB',
+            description: 'Backups up main databases to usb.',
+            fileName: 'BackupDB.elf',
+            author: 'Storm21CH, Jeroendev, Logic68',
+            source:'https://github.com/Storm21CH/PS5-BackupDB/releases/tag/v1.00',
+            version: '1.00'
+        },
+        {
+            displayTitle: 'PS5-BackupDbUser',
+            description: 'May take a long time! Backups up main databases and user files to usb.',
+            fileName: 'BackupDbUser.elf',
+            author: 'Storm21CH, Jeroendev, Logic68',
+            source:'https://github.com/Storm21CH/PS5-BackupDbUser/releases/tag/v1.00',
+            version: '1.00'
         }
 
     ];
