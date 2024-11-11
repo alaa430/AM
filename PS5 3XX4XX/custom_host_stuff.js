@@ -219,7 +219,7 @@ function create_redirector_buttons() {
         a1.tabIndex = "0";
         a1.innerHTML = redirector_pinned_store[i];
         a1.onclick = () => {
-            window.location = redirector_pinned_store[i];
+            window.location.replace(redirector_pinned_store[i]);
         };
 
         div.appendChild(a1);
@@ -274,7 +274,7 @@ function create_redirector_buttons() {
         a1.tabIndex = "0";
         a1.innerHTML = redirector_history_store[i];
         a1.onclick = () => {
-            window.location = redirector_history_store[i];
+            window.location.replace(redirector_history_store[i]);
         };
         div.appendChild(a1);
 
@@ -368,7 +368,7 @@ function create_payload_buttons() {
 
 }
 
-function showToast(message) {
+function showToast(message, timeout = 10) {
     const toastContainer = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = 'toast';
@@ -386,5 +386,5 @@ function showToast(message) {
         toast.addEventListener('transitionend', () => {
             toast.remove();
         });
-    }, 2000);
+    }, timeout);
 }

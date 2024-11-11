@@ -10,14 +10,6 @@ html {
     overflow: hidden;
 }
 
-h1 {
-text-shadow: 0.1em 0.1em 0.2em black;
-text-align: center;
-color: white;
-}
-body{background-color:black;color: #f5f1f1;border: 5px solid #f30505;font-size:15px;text-align:center;}
-.bottopmsg{position:absolute;bottom: 15px;width: 1520px;padding:5px 0 1px 0;}
-
 .lds-ellipsis {
     display: inline-block;
     position: relative;
@@ -102,14 +94,6 @@ body{background-color:black;color: #f5f1f1;border: 5px solid #f30505;font-size:1
     background-color: inherit;
 }
 
-body {
-    user-select: none;
-    -webkit-user-select: none;
-    background-color: rgb(14, 14, 20);
-    color: white;
-    /* font-family: Calibri, Helvetica, 'Sans-Serif'; */
-    font-family: Arial;
-}
 
 input:focus {
     outline:none;
@@ -122,10 +106,10 @@ input:focus {
     display: inline-block;
     margin: 4px 2px;
     cursor: pointer;
-    line-height: 40px;
-    min-width: 75px;
+    line-height: 30px;
+    min-width: 70px;
     border-radius: 16px;
-    width: 45%;
+    width: 1%;
     background-color: #333348;
     border: none;
     color: #fff;
