@@ -343,7 +343,7 @@ function create_payload_buttons() {
         btn.className = "btn mx-auto";
         btn.tabIndex = "0";
         btn.onclick = async () => {
-            showToast(payload_map[i].displayTitle + " added to queue.", 4000);
+            showToast(payload_map[i].displayTitle + " added to queue.", 0);
             window.local_payload_queue.push(payload_map[i]);
         };
 
