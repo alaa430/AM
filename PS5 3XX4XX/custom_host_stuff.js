@@ -9,10 +9,10 @@ async function runJailbreak() {
     postjb.style.pointerEvents = "none";
 
     document.getElementById("run-jb-parent").style.opacity = "0";
-    await sleep(2000);
+    await sleep(4000);
     document.getElementById("run-jb-parent").style.display = "none";
     document.getElementById("jb-progress").style.opacity = "1";
-    await sleep(2000);
+    await sleep(4000);
 
     create_payload_buttons();
     setTimeout(async () => {
@@ -343,7 +343,7 @@ function create_payload_buttons() {
         btn.className = "btn mx-auto";
         btn.tabIndex = "0";
         btn.onclick = async () => {
-            showToast(payload_map[i].displayTitle + " added to queue.", 2000);
+            showToast(payload_map[i].displayTitle + " added to queue.", 4000);
             window.local_payload_queue.push(payload_map[i]);
         };
 
