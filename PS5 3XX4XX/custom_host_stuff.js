@@ -9,10 +9,10 @@ async function runJailbreak() {
     postjb.style.pointerEvents = "none";
 
     document.getElementById("run-jb-parent").style.opacity = "0";
-    await sleep(2);
+    await sleep(1500);
     document.getElementById("run-jb-parent").style.display = "none";
     document.getElementById("jb-progress").style.opacity = "1";
-    await sleep(2);
+    await sleep(1500);
 
     create_payload_buttons();
     setTimeout(async () => {
@@ -22,7 +22,7 @@ async function runJailbreak() {
         } else if (wk_exploit_type == "fontface") {
             await run_fontface();
         }
-    }, 50);
+    }, 1500);
 }
 
 function wk_expoit_type_changed(event) { 
