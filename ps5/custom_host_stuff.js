@@ -39,7 +39,7 @@ async function run(wkonly = false, animate = true) {
         debug_log("[!] Webkit exploit failed: " + error);
 
         debug_log("[+] Retrying in 2 seconds...");
-        await new Promise((resolve) => setTimeout(resolve, 2));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         window.location.reload();
         return; // this is necessary
     }
@@ -52,7 +52,7 @@ async function run(wkonly = false, animate = true) {
     }
 
     debug_log("[+] Retrying in 4 seconds...");
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 4000));
     window.location.reload();
 }
 
@@ -133,7 +133,7 @@ function registerAppCacheEventHandlers() {
 
     if (document.documentElement.hasAttribute("manifest")) {
         if (!navigator.onLine) {
-            createOrUpdateAppCacheToast('Offline.', 1000);
+            createOrUpdateAppCacheToast('Offline.', 2000);
         } else {
             // this is redundant
             createOrUpdateAppCacheToast("Checking for updates...");
@@ -206,7 +206,7 @@ function registerL2ButtonHandler() {
 }
 
 const TOAST_SUCCESS_TIMEOUT = 2000;
-const TOAST_ERROR_TIMEOUT = 2000;
+const TOAST_ERROR_TIMEOUT = 5000;
 
 function showToast(message, timeout = 2000) {
     const toastContainer = document.getElementById('toast-container');

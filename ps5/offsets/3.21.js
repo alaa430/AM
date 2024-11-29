@@ -377,12 +377,12 @@ let syscall_map = {
 };
 
 // Kernel stack offsets
-const OFFSET_KERNEL_STACK_COOKIE                = 0x00000930; // TODO
-const OFFSET_KERNEL_STACK_SYS_SCHED_YIELD_RET   = 0xDEADC0DE; // TODO
+const OFFSET_KERNEL_STACK_COOKIE                = 0x00000930;
+const OFFSET_KERNEL_STACK_SYS_SCHED_YIELD_RET   = 0x00000808;
 
 // Kernel text-relative offsets
-const OFFSET_KERNEL_DATA                        = 0xDEADC0DE; // TODO
-const OFFSET_KERNEL_SYS_SCHED_YIELD_RET         = 0xDEADC0DE; // TODO
+const OFFSET_KERNEL_DATA                        = 0x00BD0000;
+const OFFSET_KERNEL_SYS_SCHED_YIELD_RET         = 0x00559E22;
 const OFFSET_KERNEL_ALLPROC                     = 0x0333DC58;
 const OFFSET_KERNEL_SECURITY_FLAGS              = 0x07036474;
 const OFFSET_KERNEL_TARGETID                    = 0x0703647D;
@@ -390,3 +390,5 @@ const OFFSET_KERNEL_QA_FLAGS                    = 0x07036498;
 const OFFSET_KERNEL_UTOKEN_FLAGS                = 0x07036500;
 const OFFSET_KERNEL_PRISON0                     = 0x02892670;
 const OFFSET_KERNEL_ROOTVNODE                   = 0x0737B4C0;
+
+const OFFSET_KERNEL_PS4SDK                      = 0x02209898;
