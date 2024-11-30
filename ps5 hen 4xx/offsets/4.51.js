@@ -186,15 +186,15 @@ let syscall_map = {
     0x188: 0x330C0, // sys_uuidgen
     0x189: 0x35510, // sys_sendfile
     0x18D: 0x33560, // sys_fstatfs
-    0x190: 0x32A70, // sys_ksem_close
-    0x191: 0x33800, // sys_ksem_post
-    0x192: 0x340A0, // sys_ksem_wait
-    0x193: 0x34E40, // sys_ksem_trywait
-    0x194: 0x32BB0, // sys_ksem_init
-    0x195: 0x345D0, // sys_ksem_open
-    0x196: 0x342B0, // sys_ksem_unlink
-    0x197: 0x32A30, // sys_ksem_getvalue
-    0x198: 0x34270, // sys_ksem_destroy
+    0x190: 0x33120, // sys_ksem_close
+    0x191: 0x33EB0, // sys_ksem_post
+    0x192: 0x34750, // sys_ksem_wait
+    0x193: 0x354F0, // sys_ksem_trywait
+    0x194: 0x33260, // sys_ksem_init
+    0x195: 0x34C80, // sys_ksem_open
+    0x196: 0x34960, // sys_ksem_unlink
+    0x197: 0x330E0, // sys_ksem_getvalue
+    0x198: 0x34920, // sys_ksem_destroy
     0x1A0: 0x34E00, // sys_sigaction
     0x1A1: 0x34AA0, // sys_sigreturn
     0x1A5: 0x33780, // sys_getcontext
@@ -272,10 +272,12 @@ let syscall_map = {
     0x251: 0x35060, // sys_dynlib_get_info
     0x252: 0x33F70, // sys_dynlib_load_prx
     0x253: 0x32F60, // sys_dynlib_unload_prx
-    0x254: 0x34730, // sys_dynlib_do_copy_relocations
-    0x256: 0x336C0, // sys_dynlib_get_proc_param
-    0x257: 0x34A10, // sys_dynlib_process_needed_and_relocate
-    0x258: 0x32480, // sys_sandbox_path
+    0x254: 0x34DE0, // sys_dynlib_do_copy_relocations
+    0x256: 0x33D70, // sys_dynlib_get_proc_param
+    0x257: 0x350C0, // sys_dynlib_process_needed_and_relocate
+    0x258: 0x32B30, // sys_sandbox_path
+    0x259: 0x336A0, // sys_mdbg_service
+    0x25A: 0x33D30, // sys_randomized_path
     0x25B: 0x34BA0, // sys_rdup
     0x25C: 0x331A0, // sys_dl_get_metadata
     0x25D: 0x338E0, // sys_workaround8849
@@ -310,7 +312,7 @@ let syscall_map = {
     0x27E: 0x33760, // sys_utc_to_localtime
     0x27F: 0x35590, // sys_localtime_to_utc
     0x280: 0x34710, // sys_set_uevt
-    0x281: 0x32BD0, // sys_get_cpu_usage_proc
+    0x281: 0x33280, // sys_get_cpu_usage_proc
     0x282: 0x33B00, // sys_get_map_statistics
     0x283: 0x348A0, // sys_set_chicken_switches
     0x286: 0x351C0, // sys_get_kernel_mem_statistics
@@ -324,8 +326,8 @@ let syscall_map = {
     0x290: 0x349C0, // sys_dynlib_get_info_for_libdbg
     0x291: 0x33A80, // sys_blockpool_batch
     0x292: 0x331E0, // sys_fdatasync
-    0x293: 0x33050, // sys_dynlib_get_list2
-    0x294: 0x34DA0, // sys_dynlib_get_info2
+    0x293: 0x33700, // sys_dynlib_get_list2
+    0x294: 0x35450, // sys_dynlib_get_info2
     0x295: 0x34C00, // sys_aio_submit
     0x296: 0x33180, // sys_aio_multi_delete
     0x297: 0x33FB0, // sys_aio_multi_wait
@@ -343,11 +345,11 @@ let syscall_map = {
     0x2A3: 0x33F30, // sys_reserve_2mb_page
     0x2A4: 0x347E0, // sys_cpumode_yield
     0x2A5: 0x342F0, // sys_wait6
-    0x2A6: 0x336A0, // sys_cap_rights_limit
-    0x2A7: 0x32C70, // sys_cap_ioctls_limit
-    0x2A8: 0x339A0, // sys_cap_ioctls_get
-    0x2A9: 0x34170, // sys_cap_fcntls_limit
-    0x2AA: 0x32910, // sys_cap_fcntls_get
+    0x2A6: 0x33D50, // sys_cap_rights_limit
+    0x2A7: 0x33320, // sys_cap_ioctls_limit
+    0x2A8: 0x34050, // sys_cap_ioctls_get
+    0x2A9: 0x34820, // sys_cap_fcntls_limit
+    0x2AA: 0x32FC0, // sys_cap_fcntls_get
     0x2AB: 0x35320, // sys_bindat
     0x2AC: 0x33B20, // sys_connectat
     0x2AD: 0x32D80, // sys_chflagsat
@@ -362,18 +364,18 @@ let syscall_map = {
     0x2B6: 0x34010, // sys_numa_setaffinity
     0x2C1: 0x33020, // sys_get_phys_page_size
     0x2C9: 0x35280, // sys_get_ppr_sdk_compiled_version
-    0x2CC: 0x331B0, // sys_openintr
-    0x2CD: 0x33CA0, // sys_dl_get_info_2
-    0x2CE: 0x33290, // sys_acinfo_add
-    0x2CF: 0x32500, // sys_acinfo_delete
-    0x2D0: 0x34530, // sys_acinfo_get_all_for_coredump
-    0x2D1: 0x345F0, // sys_ampr_ctrl_debug
-    0x2D2: 0x32750, // sys_workspace_ctrl
+    0x2CC: 0x33860, // sys_openintr
+    0x2CD: 0x34350, // sys_dl_get_info_2
+    0x2CE: 0x33940, // sys_acinfo_add
+    0x2CF: 0x32BB0, // sys_acinfo_delete
+    0x2D0: 0x34BE0, // sys_acinfo_get_all_for_coredump
+    0x2D1: 0x34CA0, // sys_ampr_ctrl_debug
+    0x2D2: 0x32E00, // sys_workspace_ctrl
 };
 
 const OFFSET_KERNEL_DATA_KQUEUE_LOW_WORD    = 0x8AB5;
 const OFFSET_KERNEL_DATA_KQUEUE_BASE_SLIDE  = 0x318AB5;
-const OFFSET_KERNEL_TEXT_KQUEUE_BASE_SLIDE  = 0xEE7301;
+const OFFSET_KERNEL_TEXT_KQUEUE_BASE_SLIDE  = 0xF18AB5; //check
 const OFFSET_KERNEL_DATA_BASE_ALLPROC       = 0x27EDCB8;
 const OFFSET_KERNEL_DATA_BASE_PS4SDK        = 0x16ABE88;
 const OFFSET_KERNEL_DATA_BASE_PS5SDK_       = 0x16ABEE8;

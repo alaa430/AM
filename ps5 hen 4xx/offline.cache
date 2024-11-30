@@ -21,7 +21,7 @@ payloads\BackupDB.elf
 payloads\BackupSAV.elf
 payloads\Br_appCache_rm.elf
 payloads\elfldr.elf
-payloads\etaHEN-1.6B.bin
+payloads\etaHEN-1.8B.bin
 payloads\ps5debug.elf
 payloads\ftp-np.elf
 payloads\ftp-p.elf
@@ -34,6 +34,7 @@ res\arial.ttf
 res\ArialBold.ttf
 res\back.png
 res\background.png
+1.jpg
 res\cach.png
 res\cred.png
 res\debug.png
