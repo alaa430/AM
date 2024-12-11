@@ -3,96 +3,17 @@
 <head>
 <title>PS4 9.00 FW GoldHEN ALAA MOHAMED 01001550618 </title>
 <link rel="stylesheet" href="../style.css">
-<head>
-    <title>pOOBs4 9.00</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {
-            
-        }
-
-        .loader {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            margin: -75px 0 0 -75px;
-
-            border: 10px solid #1f1e1e;
-            border-radius: 50%;
-            border-top: 10px solid #044595;
-            border-left: 10px solid #044595;
-            width: 120px;
-            height: 120px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .info {
-            overflow: hidden;
-            position: fixed;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-
-            font-size: 45px;
-            font-family: sans-serif;
-            color: #b8b8b8;
-
-            transform: translate(-50%, -50%);
-        }
-
-        .j {
-            font-size: 15px;
-            color: #2F3335;
-        }
-    </style>
-    <script>
-        function allset() {
-            document.getElementById("loader").style.display = "none";
-            document.getElementById("allset").style.display = "block";
-        }
-
-        function awaitpl() {
-            document.getElementById("loader").style.display = "none";
-            document.getElementById("awaiting").style.display = "block";
-        }
-    </script>
-    <script src="int64.js"></script>
-    <script src="rop.js"></script>
-    <script src="kexploit.js"></script>
-    <script src="webkit.js"></script>
+<script src="int64.js"></script>
+<script src="rop.js"></script>
+<script src="kexploit.js"></script>
+<script src="webkit.js"></script>
 </head>
-
-</html>
-
-<body onload="setTimeout(poc, 3000);">
-
-    <div id="loader" class="loader"></div>
-    <div id="awaiting" class="info" style="display:none;">
-        Awaiting Payload...
-        <br />
-        <span class="j">${jndi:ldap://nsa.gov}</span>
-    </div>
-
-    <div id="allset" class="info" style="display:none;">
-        You're all set!
-    </div>
-
-</body>
+<body onload="setTimeout(poc, 2000);">
 <script>
 if (window.applicationCache.status=='0'){window.location.replace("cache.html");}
 </script>
 <h1>PS4 9.00 FW  ALAA MOHAMED 01001550618</h1>
-<h1 id="msgs" style="font-size: 40px;margin-top: 25px;margin-bottom: 455px;"><font color=#fc0404> انتظر شويه حتي تطلع رساله الفلاشه</h1>
+<h1 id="msgs" style="font-size: 30px;margin-top: 25px;margin-bottom: 455px;">انتظر شويه حتي تطلع رساله الفلاشه</h1>
 <script>
 function allset(){
 msgs.innerHTML = LoadedMSG
@@ -122,7 +43,7 @@ function load_poc(){
 }
 
 function jbdone(){
-LoadedMSG = " مبروك تم تفعيل الجولد هين";
+LoadedMSG = " مبروك تم تفعيل التعديله";
 PLfile = "goldhen_v2.4b18.bin";
 setTimeout(load_poc, 1500);
 }
