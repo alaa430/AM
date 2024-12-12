@@ -33,7 +33,7 @@ const payload_map =
             version: '1.0b1'
         },
         {
-            displayTitle: 'appCache_remove',
+            displayTitle: 'appCache',
             description: 'Removes appcache from browser.',
             fileName: 'Browser_appCache_remove.elf',
             author: 'Storm21CH',
