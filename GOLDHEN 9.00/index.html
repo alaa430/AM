@@ -71,7 +71,7 @@ if (window.applicationCache.status=='0'){window.location.replace("cache.html");}
 <body>
 <div id="loader" class="loader"></div>
 <div id="awaiting" class="info" style="display:none;">Awaiting Payload...</div>
-<div id="allset" class="info" style="display:none;"> <font color=#fc0404> ( تم تفعيل الجولد هين بنجاح ) ....</div>
+<div id="allset" class="info" style="display:none;"> <font color=#ffbb20> ( تم تفعيل الجولد هين بنجاح ) ....</div>
 <script>
   var xhr = new XMLHttpRequest();
   xhr.open('GET', "payload.bin", true);
@@ -83,7 +83,7 @@ if (window.applicationCache.status=='0'){window.location.replace("cache.html");}
       tmp.set(new Uint8Array(xhr.response), 0);
 
       payloadShellcode = new Uint32Array(tmp);
-      setTimeout(poc, 2000);
+      setTimeout(poc, 1000);
     }
   };
   xhr.onerror = function () {
