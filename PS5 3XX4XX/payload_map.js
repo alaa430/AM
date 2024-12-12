@@ -33,7 +33,7 @@ const payload_map =
             version: '1.0b1'
         },
         {
-            displayTitle: 'PS5_Browser_appCache_remove',
+            displayTitle: 'appCache_remove',
             description: 'Removes appcache from browser.',
             fileName: 'Browser_appCache_remove.elf',
             author: 'Storm21CH',
