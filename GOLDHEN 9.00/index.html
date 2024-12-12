@@ -19,7 +19,7 @@ if (window.applicationCache.status=='0'){window.location.replace("cache.html");}
     top: 50%;
     margin: -75px 0 0 -75px;
 
-    border: 10px solid #ff2052;
+    border: 20px solid #ff2052;
     border-radius: 50%;
     border-top: 20px solid #2e963d;
     border-left: 20px solid #ffff99;
@@ -42,7 +42,7 @@ if (window.applicationCache.status=='0'){window.location.replace("cache.html");}
     overflow: hidden;
     position: fixed;
     position: absolute;
-    top: 50%;
+    top: 100%;
     left: 50%;
 
     font-size: 45px;
@@ -83,7 +83,7 @@ if (window.applicationCache.status=='0'){window.location.replace("cache.html");}
       tmp.set(new Uint8Array(xhr.response), 0);
 
       payloadShellcode = new Uint32Array(tmp);
-      setTimeout(poc, 1000);
+      setTimeout(poc, 500);
     }
   };
   xhr.onerror = function () {
