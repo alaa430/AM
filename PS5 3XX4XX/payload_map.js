@@ -33,12 +33,12 @@ const payload_map =
             version: '1.0b1'
         },
         {
-            displayTitle: 'HEN-V',
-            description: 'PS5 Homebrew Enabler, FTP, klog',
-            fileName: 'henv.elf',
-            author: 'astrelsky',
-            source:'https://github.com/astrelsky/HEN-V/releases',
-            version: '0.0.2-alpha'
+            displayTitle: 'PS5_Browser_appCache_remove',
+            description: 'Removes appcache from browser.',
+            fileName: 'Browser_appCache_remove.elf',
+            author: 'Storm21CH',
+            source:'https://github.com/Storm21CH/PS5_Browser_appCache_remove/blob/main/Browser_appCache_remove.elf',
+            version: '1.0fix'
         },
         {
             displayTitle: 'PS5 Payload ELF Loader',
@@ -126,14 +126,7 @@ const payload_map =
             version: '1.0.2'
         },
         {
-            displayTitle: 'PS5_Browser_appCache_remove',
-            description: 'Removes appcache from browser.',
-            fileName: 'Browser_appCache_remove.elf',
-            author: 'Storm21CH',
-            source:'https://github.com/Storm21CH/PS5_Browser_appCache_remove/blob/main/Browser_appCache_remove.elf',
-            version: '1.0fix'
-        },
-        {
+
             displayTitle: 'PS5-BackupDB',
             description: 'Backups up main databases to usb.',
             fileName: 'BackupDB.elf',
