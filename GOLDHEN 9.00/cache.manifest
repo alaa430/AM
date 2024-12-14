@@ -1,8 +1,8 @@
 CACHE MANIFEST 
 
 CACHE: 
-../img.jpg
-../style.css
+img.jpg
+main.css
 payload.bin
 index.html
 int64.js
