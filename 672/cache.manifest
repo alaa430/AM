@@ -1,8 +1,8 @@
 CACHE MANIFEST 
 
 CACHE: 
-../img.jpg
-../style.css
+img.jpg
+main.css
 frontend.js
 goldhen_2.4b18.bin
 index.html
