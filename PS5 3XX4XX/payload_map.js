@@ -9,11 +9,11 @@ const payload_map =
             version: '1.8 beta'
         },
         {
-            displayTitle: 'K-Stuff',
+            displayTitle: 'ps5-kstuff',
             description: 'FPKG enabler',
-            fileName: 'ps5-kstuff-v1.4.bin',
+            fileName: 'ps5-kstuff.bin',
             author: 'sleirsgoevy',
-            source: 'https://github.com/idlesauce/ps5-kstuff-builds/releases',
+            source: 'https://github.com/sleirsgoevy/ps4jb2/blob/3e6053c3e4c691a9ccdc409172293a81de00ad7f/ps5-kstuff.bin',
             version: '1.4'
         },
         {
@@ -33,12 +33,12 @@ const payload_map =
             version: '1.0b1'
         },
         {
-            displayTitle: 'appCache',
-            description: 'Removes appcache from browser.',
-            fileName: 'Browser_appCache_remove.elf',
-            author: 'Storm21CH',
-            source:'https://github.com/Storm21CH/PS5_Browser_appCache_remove/blob/main/Browser_appCache_remove.elf',
-            version: '1.0fix'
+            displayTitle: 'HEN-V',
+            description: 'PS5 Homebrew Enabler, FTP, klog',
+            fileName: 'henv.elf',
+            author: 'astrelsky',
+            source:'https://github.com/astrelsky/HEN-V/releases',
+            version: '0.0.2-alpha'
         },
         {
             displayTitle: 'PS5 Payload ELF Loader',
@@ -126,7 +126,14 @@ const payload_map =
             version: '1.0.2'
         },
         {
-
+            displayTitle: 'PS5_Browser_appCache_remove',
+            description: 'Removes appcache from browser.',
+            fileName: 'Browser_appCache_remove.elf',
+            author: 'Storm21CH',
+            source:'https://github.com/Storm21CH/PS5_Browser_appCache_remove/blob/main/Browser_appCache_remove.elf',
+            version: '1.0fix'
+        },
+        {
             displayTitle: 'PS5-BackupDB',
             description: 'Backups up main databases to usb.',
             fileName: 'BackupDB.elf',

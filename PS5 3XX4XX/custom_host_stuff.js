@@ -8,7 +8,7 @@ async function runJailbreak() {
     postjb.style.opacity = "0";
     postjb.style.pointerEvents = "none";
 
-    document.getElementById("run-jb-parent").style.opacity = "1";
+    document.getElementById("run-jb-parent").style.opacity = "0";
     await sleep(500);
     document.getElementById("run-jb-parent").style.display = "none";
     document.getElementById("jb-progress").style.opacity = "1";
@@ -22,7 +22,7 @@ async function runJailbreak() {
         } else if (wk_exploit_type == "fontface") {
             await run_fontface();
         }
-    }, 500);
+    }, 100);
 }
 
 function wk_expoit_type_changed(event) { 
@@ -343,7 +343,7 @@ function create_payload_buttons() {
         btn.className = "btn mx-auto";
         btn.tabIndex = "0";
         btn.onclick = async () => {
-            showToast(payload_map[i].displayTitle + " added to queue.", 2);
+            showToast(payload_map[i].displayTitle + " added to queue.", 2000);
             window.local_payload_queue.push(payload_map[i]);
         };
 
@@ -368,7 +368,7 @@ function create_payload_buttons() {
 
 }
 
-function showToast(message, timeout = 2) {
+function showToast(message, timeout = 4000) {
     const toastContainer = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = 'toast';
