@@ -17,12 +17,12 @@ const payload_map =
             version: '1.4'
         },
         {
-            displayTitle: 'libhijacker game-patch',
-            description: 'Patches supported games to run at higher framerates, and adds debug menus to certain titles.',
-            fileName: 'libhijacker-1.160.elf',
-            author: 'illusion0001, astrelsky',
-            source: 'https://github.com/illusion0001/libhijacker/releases',
-            version: '1.160'
+            displayTitle: 'appCache',
+            description: 'Removes appcache from browser.',
+            fileName: 'Browser_appCache_remove.elf',
+            author: 'Storm21CH',
+            source:'https://github.com/Storm21CH/PS5_Browser_appCache_remove/blob/main/Browser_appCache_remove.elf',
+            version: '1.0fix'
         },
         {
             displayTitle: 'ps5debug',
