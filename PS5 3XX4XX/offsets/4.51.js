@@ -27,20 +27,20 @@ let wk_gadgetmap = {
 
     "mov [rdi], rsi": 0x00118570,
     "mov [rdi], rax": 0x00C3A5C0,
-    "mov [rdi], eax": 0x003FB6E6,
+    "mov [rdi], eax": 0x00019513,
 
-    "infloop": 0x000109E1,
+    "infloop": 0x00013B01,
 
     //branching specific gadgets
     "cmp [rcx], eax" : 0x00204122,
-    "sete al"        : 0x00B7B735,
+    "sete al"        : 0x00029471,
     "seta al"        : 0x000CCFB4,
-    "setb al"        : 0x001B7657,
+    "setb al"        : 0x001B75F7,
     "setg al"        : 0x000708c9,
-    "setl al"        : 0x01517692,
+    "setl al"        : 0x001F9FAC,
     "shl rax, 3"     : 0x01A43F03,
     "add rax, rdx"   : 0x016F4948,
-    "mov rax, [rax]" : 0x0142E309,
+    "mov rax, [rax]" : 0x00010B4C,
     "inc dword [rax]": 0x017629AF,
 };
 
@@ -373,9 +373,9 @@ let syscall_map = {
     0x2D2: 0x32E00, // sys_workspace_ctrl
 };
 
-const OFFSET_KERNEL_DATA_KQUEUE_LOW_WORD    = 0x8AB5;
+const OFFSET_KERNEL_DATA_KQUEUE_LOW_WORD    = 0x8AB5;//check
 const OFFSET_KERNEL_DATA_KQUEUE_BASE_SLIDE  = 0x318AB5;
-const OFFSET_KERNEL_TEXT_KQUEUE_BASE_SLIDE  = 0xF18AB5; //check
+const OFFSET_KERNEL_TEXT_KQUEUE_BASE_SLIDE  = 0xEE8C1E;
 const OFFSET_KERNEL_DATA_BASE_ALLPROC       = 0x27EDCB8;
 const OFFSET_KERNEL_DATA_BASE_PS4SDK        = 0x16ABE88;
 const OFFSET_KERNEL_DATA_BASE_PS5SDK_       = 0x16ABEE8;
@@ -385,4 +385,4 @@ const OFFSET_KERNEL_DATA_BASE_TARGETID      = 0x650647D;
 const OFFSET_KERNEL_DATA_BASE_QA_FLAGS      = 0x6506498;
 const OFFSET_KERNEL_DATA_BASE_UTOKEN_FLAGS  = 0x6506500;
 const OFFSET_KERNEL_DATA_BASE_PRISON0       = 0x1D34D00;
-const OFFSET_KERNEL_DATA_BASE_ROOTVNODE     = 0x66E74C0;
+const OFFSET_KERNEL_DATA_BASE_ROOTVNODE     = 0x66E74C0;//check
