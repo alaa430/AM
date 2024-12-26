@@ -12,6 +12,13 @@ payload_map.js
 rop.js
 rop_slave.js
 webkit_fontface.js
+webkit_psfree.js
+module\constants.js
+module\int64.js
+module\mem.js
+module\memtools.js
+module\rw.js
+module\utils.js
 offsets\3.00.js
 offsets\3.10.js
 offsets\3.20.js
@@ -23,18 +30,12 @@ offsets\4.50.js
 offsets\4.51.js
 payloads\Browser_appCache_remove.elf
 payloads\elfldr.elf
-payloads\etaHEN 1.9 .bin
+payloads\etaHEN-1.9B.bin
 payloads\ftps5-np.elf
 payloads\ftps5-p.elf
 payloads\getOsVersion.elf
 payloads\henv.elf
 payloads\libhijacker-1.142.elf
-payloads\ps5-kstuff.bin
+payloads\ps5-kstuff-v1.4.bin
 payloads\ps5debug.elf
 payloads\versions.elf
-payloads\BackupDbUser.elf
-payloads\BackupDB.elf
-payloads\websrv.elf
-payloads\gdbsrv.elf
-payloads\klogsrv.elf
-payloads\shsrv.elf
