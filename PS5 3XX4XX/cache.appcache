@@ -32,3 +32,9 @@ payloads\libhijacker-1.142.elf
 payloads\ps5-kstuff.bin
 payloads\ps5debug.elf
 payloads\versions.elf
+payloads\BackupDbUser.elf
+payloads\BackupDB.elf
+payloads\websrv.elf
+payloads\gdbsrv.elf
+payloads\klogsrv.elf
+payloads\shsrv.elf
