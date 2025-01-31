@@ -10,14 +10,6 @@
     <script defer src="exploit.js"></script>
     <script defer src="payload_map.js"></script>
     <script defer src="custom_host_stuff.js"></script>
-    <script defer src="appcache_handler.js"></script>
-    <script defer src="module/utils.js"></script>
-    <script defer src="module/constants.js"></script>
-    <script defer src="module/int64.js"></script>
-    <script defer src="module/mem.js"></script>
-    <script defer src="module/memtools.js"></script>
-    <script defer src="module/rw.js"></script>
-    <script defer src="webkit_psfree.js"></script>
     <script defer src="webkit_fontface.js"></script>
     <script>
         addEventListener('unhandledrejection', (event) => {
@@ -60,7 +52,7 @@
             <h3 style="text-align: center;">Redirector</h3>
             <div style="padding: 25px;padding-top: 0; display: flex;">
                 <input id="redirector-input" type="text" value="http://"
-                    style="width: 100%; border-radius: 10px; padding: 15px; background-color: #223; color: #fff; border-color: #334; font-size: 20px;" />
+                    style="width: 100%; border-radius: 10px; padding: 15px; background-color: #223; color: #b52f2f; border-color: #b52f2f; font-size: 20px;" />
                 <a class="btn icon-btn" style="width: 100px;" tabindex="0" onclick="redirectorGo()">
                     <svg width="32px" height="32px" fill="#ddd">
                         <use href="#forward-arrow-icon" />
@@ -179,10 +171,10 @@
         <div id="menu-bar" style="position: relative;top:0;left: 0; width:100%;height:100%; background-color: #161622; border-radius: 16px; padding: 15px; box-sizing: border-box;">
             <p style="margin: 10px; font-weight: bold;">Webkit exploit type:</p>
             <div style="margin: 10px;" >
-                <input type="radio" id="wk-exploit-psfree" name="wk-exploit" value="PSFree" onchange="wk_expoit_type_changed(event)" >
-                <label for="wk-exploit-psfree" >PSFree</label><br>
-                <input type="radio" id="wk-exploit-fontface" name="wk-exploit" value="FontFace" onchange="wk_expoit_type_changed(event)">
-                <label for="wk-exploit-fontface">FontFace</label>
+                <input type="radio" id="wk-exploit-psfree" name="wk-exploit" value="psfree" onchange="wk_expoit_type_changed(event)" >
+                <label for="psfree" >PSFree</label><br>
+                <input type="radio" id="wk-exploit-fontface" name="wk-exploit" value="fontface" onchange="wk_expoit_type_changed(event)">
+                <label for="fontface">FontFace</label>
             </div>
         </div>
     </div>
