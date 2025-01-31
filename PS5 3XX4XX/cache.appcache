@@ -30,7 +30,7 @@ offsets\4.50.js
 offsets\4.51.js
 payloads\Browser_appCache_remove.elf
 payloads\elfldr.elf
-payloads\etaHEN-1.9B.bin
+payloads\etaHEN.bin
 payloads\ftps5-np.elf
 payloads\ftps5-p.elf
 payloads\getOsVersion.elf
