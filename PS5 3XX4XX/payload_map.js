@@ -2,11 +2,11 @@ const payload_map =
     [
         {
             displayTitle: 'etaHEN',
-            description: 'All-in-one HEN',
-            fileName: 'etaHEN-1.9B.bin',
-            author: 'LightningMods_, sleirsgoevy, ChendoChap, astrelsky, illusion',
+            description: 'AIO HEN',
+            fileName: 'etaHEN.bin',
+            author: 'LightningMods, Buzzer, sleirsgoevy, ChendoChap, astrelsky, illusion, CTN, SiSTR0, Nomadic',
             source: 'https://github.com/LightningMods/etaHEN',
-            version: '1.9 beta'
+            version: '1.9b',
         },
         {
             displayTitle: 'ps5-kstuff',
@@ -27,10 +27,10 @@ const payload_map =
         {
             displayTitle: 'ps5debug',
             description: 'Debugger (Experimental beta)',
-            fileName: 'ps5debug.elf',
+            fileName: 'ps5debug_v1.0b2.elf',
             author: 'SiSTR0, ctn123',
             source: 'https://github.com/GoldHEN/ps5debug',
-            version: '1.0b1'
+            version: '1.0b2'
         },
         {
             displayTitle: 'HEN-V',
