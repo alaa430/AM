@@ -1,3 +1,7 @@
+const LOCALSTORE_WK_EXPLOIT_TYPE_KEY = "wk_exploit_type";
+const LOCALSTORE_WK_EXPLOIT_TYPE_VALUE_PSFREE = "PSFree";
+const LOCALSTORE_WK_EXPLOIT_TYPE_VALUE_FONTFACE = "FontFace";
+
 async function runJailbreak() {
     window.jb_in_progress = true;
     window.jb_started = true;
@@ -16,17 +20,19 @@ async function runJailbreak() {
 
     create_payload_buttons();
     setTimeout(async () => {
-        let wk_exploit_type = localStorage.getItem("wk_exploit_type");
-        if (wk_exploit_type == "psfree") {
+        let wk_exploit_type = localStorage.getItem(LOCALSTORE_WK_EXPLOIT_TYPE_KEY);
+        if (wk_exploit_type == LOCALSTORE_WK_EXPLOIT_TYPE_VALUE_PSFREE) {
             await run_psfree();
-        } else if (wk_exploit_type == "fontface") {
+        } else if (wk_exploit_type == LOCALSTORE_WK_EXPLOIT_TYPE_VALUE_FONTFACE) {
             await run_fontface();
+        } else {
+            alert("Unknown selected webkit exploit type"); // onload_setup resets the value if not known so this shouldnt be hit
         }
     }, 100);
 }
 
 function wk_expoit_type_changed(event) { 
-    localStorage.setItem("wk_exploit_type", event.target.value);
+    localStorage.setItem(LOCALSTORE_WK_EXPLOIT_TYPE_KEY, event.target.value);
 }
 
 function onload_setup() {
@@ -44,14 +50,16 @@ function onload_setup() {
     let menu_overlay = document.getElementById("menu-overlay");
     let menu = document.getElementById("menu-bar-wrapper");
 
-    if (localStorage.getItem("wk_exploit_type") == null) {
-        localStorage.setItem("wk_exploit_type", "psfree");
+    let wk_exploit_type = localStorage.getItem(LOCALSTORE_WK_EXPLOIT_TYPE_KEY);
+    
+    if (wk_exploit_type == null || (wk_exploit_type != LOCALSTORE_WK_EXPLOIT_TYPE_VALUE_PSFREE && wk_exploit_type != LOCALSTORE_WK_EXPLOIT_TYPE_VALUE_FONTFACE)) {
+        wk_exploit_type = LOCALSTORE_WK_EXPLOIT_TYPE_VALUE_PSFREE;
+        localStorage.setItem(LOCALSTORE_WK_EXPLOIT_TYPE_KEY, wk_exploit_type);
     }
 
-    let wk_exploit_type = localStorage.getItem("wk_exploit_type");
-    if (wk_exploit_type == "psfree") {
+    if (wk_exploit_type == LOCALSTORE_WK_EXPLOIT_TYPE_VALUE_PSFREE) {
         document.getElementById("wk-exploit-psfree").checked = true;
-    } else if (wk_exploit_type == "fontface") {
+    } else if (wk_exploit_type == LOCALSTORE_WK_EXPLOIT_TYPE_VALUE_FONTFACE) {
         document.getElementById("wk-exploit-fontface").checked = true;
     }
 
@@ -343,7 +351,7 @@ function create_payload_buttons() {
         btn.className = "btn mx-auto";
         btn.tabIndex = "0";
         btn.onclick = async () => {
-            showToast(payload_map[i].displayTitle + " added to queue.", 2000);
+            showToast(payload_map[i].displayTitle + " added to queue.", 1000);
             window.local_payload_queue.push(payload_map[i]);
         };
 
@@ -368,7 +376,7 @@ function create_payload_buttons() {
 
 }
 
-function showToast(message, timeout = 4000) {
+function showToast(message, timeout = 2000) {
     const toastContainer = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = 'toast';
