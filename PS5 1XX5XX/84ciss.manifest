@@ -1,0 +1,21 @@
+CACHE MANIFEST 
+#VERSION 1.97
+
+CACHE: 
+config.js
+elfldr.elf
+etaHEN.bin
+exploit.js
+index.html
+int64.js
+lndex.html
+loader.js
+offset.js
+psfreec.js
+rop.js
+rop_slave.js
+Style.css
+utils.js
+
+NETWORK: 
+* 
