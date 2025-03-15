@@ -1,126 +1,74 @@
-<html manifest="cache.appcache">
+<html>
+<!-- <html manifest="cache.appcache"> -->
 
 <head>
-    <title>alaa mohamed 01001550618 UMTX 1.xx - 5.xx - AUTO [etaHEN 2.0b] </title>
+    <title>PS5 UMTX Jailbreak</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="main.css">
 </head>
-<style>
 
-        a { color: white; text-decoration: none; }
-        .Estilo3 { font-size: 24px; }
-        .Estilo6 { font-size: 12px; font-weight: bold; }
-        .Estilo1 { font-size: 10px; }
-        .Estilo2 { color: #ECD765; font-size: 12px; font-family: Verdana, Arial, Helvetica, sans-serif; }
-        #footer { width: 100%; height: 81px; position: absolute; bottom: 55px; left: 0; }
-        #inferior { color: #FFF; position: absolute; left: -1400px; right: 0px; bottom: -12px; height: 10px; z-index: 0; }
-        .yellow-text { color: yellow; }
-        .loader3 { margin: auto; width: 243px; height: 10px; position: absolute; left: 90px; top: 30px; }
-        .oneline { width: 200px; height: 50px; }
-        .icon,
-.icon svg {
-  width: 50px;
-  height: 50px;
-  display: inline-block;
-}
-
-.icon {
-  transform: rotate(-90deg) scale(0);
-}
-
-.animate {
-  animation: psicon 2s cubic-bezier(.75,0,1,1) infinite;
-}
-
-@keyframes psicon {
-  0% {
-    transform: rotate(-90deg) scale(0);
-    animation-timing-function: cubic-bezier(0,0,.25,1);
-  }
-  40%, 60% {
-    transform: rotate(0deg) scale(1);
-  }
-  100% {
-    transform: rotate(90deg) scale(0);
-  }
-}
-
-
-    </style>
-
+<!-- body is set up as three rows: auto 1fr auto -->
 <body>
-<script src="L2.js"></script>
+    <!-- Row 1 -->
+    <div class="p-2">
+        <h1 class="text-center">PS5 UMTX Jailbreak (1.xx-5.xx)</h1>
+        <p class="text-center">Current firmware: <span class="text-bold" id="current-fw"></span></p>
+
+        <!-- This is absolute positioned to the body-->
+        <div id="toast-container"></div>
+    </div>
+
+    <!-- Row 2 -->
+    <div id="main-content">
+        <div id="pre-jb-view" class="d-flex align-items-center justify-content-center selected">
+            <a tabindex="0" class="btn" id="run-jb" onclick="runJailbreak()">Jailbreak</a>
+        </div>
+
+        <div id="console-view">
+            <textarea id="console" class="log"></textarea>
+        </div>
+    </div>
+
+    <!-- Row 3 -->
+    <div class="position-relative text-center p-2 mb-2">
+        <p class="text-secondary" id="version">v1.2</p>
+        <p class="text-secondary">creds & greetz</p>
+        <h3 class="text-secondary mt-2">
+            <a href="https://x.com/fail0verflow">@fail0verflow</a>,
+            <a href="https://twitter.com/flat_z">@flat_z</a>,
+            <a href="https://twitter.com/SpecterDev">@SpecterDev</a>,
+            ChendoChap,
+            SlidyBat,
+            abc/psfree,
+            <br />
+            idlesauce,
+            <a href="https://x.com/znullptr">@znullptr</a>,
+            <a href="https://twitter.com/notnotzecoxao">@notnotzecoxao</a>,
+            <a href="https://twitter.com/SocraticBliss">@SocraticBliss</a>,
+            <a href="https://github.com/john-tornblom">John Tornblom</a>,
+            <a href="https://discord.gg/kbrzGuH3F6">PS5 R&D Discord</a>
+        </h3>
+
+        <div class="position-absolute d-flex align-items-center bottom-0 left-0 m-4"> 
+            <div class="l2-redirect-box">L2</div>
+            <span class="ml-2">Redirect</span>
+        </div>
+    </div>
+
     <script src="int64.js"></script>
     <script src="rop.js"></script>
     <script src="exploit.js"></script>
     <script src="custom_host_stuff.js"></script>
+    <script src="module/utils.js"></script>
+    <script src="module/constants.js"></script>
+    <script src="module/int64.js"></script>
+    <script src="module/mem.js"></script>
+    <script src="module/memtools.js"></script>
+    <script src="module/rw.js"></script>
     <script src="module/syscalls.js"></script>
+    <script src="webkit_psfree.js"></script>
     <script src="webkit_fontface.js"></script>
-    <script type="module" src="psfree/psfree.mjs"></script>
-    <script src="payload_map.js"></script>
-
-
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:a="http://ns.adobe.com/AdobeSVGViewerExtensions/3.0/" x="0px" y="0px" width="67px" height="67px" viewBox="0 0 67 67" style="enable-background:new 0 0 67 67;" xml:space="preserve">
-        <style type="text/css"> .st0 { fill: #FFFFFF; } .bottopmsg { position: fixed; bottom: 34px; width: 1520px; padding: 5px 0 1px 0; } </style>
-        <symbol id="ps_triangle" viewBox="0 0 67 67">
-            <path class="st0" d="M0.1,62.2L33.4,4.5l33.5,57.7L0.1,62.2z M33.4,18.9L12.5,55h41.8L33.4,18.9z" />
-        </symbol>
-        <symbol id="ps_square" viewBox="0 0 67 67">
-            <path class="st0" d="M62.3,4.5v57.7H4.6V4.5H62.3z M54.8,12H12.1v42.6h42.6V12z" />
-        </symbol>
-        <symbol id="ps_circle" viewBox="0 0 67 67">
-            <path id="ps_circle" class="st0" d="M33.5,3c16.7,0,30.2,13.5,30.2,30.2c0,16.7-13.5,30.2-30.2,30.2S3.2,50,3.2,33.3C3.2,16.6,16.7,3,33.5,3z M55.7,33.3C55.7,21,45.8,11,33.5,11C21.1,11,11.2,21,11.2,33.3c0,12.3,9.9,22.3,22.3,22.3C45.8,55.5,55.7,45.6,55.7,33.3z" />
-        </symbol>
-        <symbol id="ps_cross" viewBox="0 0 67 67">
-            <path class="st0" d="M57,63L33.5,39.5L10,63l-5.3-5.3l23.5-23.5L4.7,10.7L10,5.4l23.5,23.5L57,5.4l5.3,5.3L38.7,34.2l23.5,23.6L57,63z" />
-        </symbol>
-    </svg>
-
-
-
-  </defs>
-  <g id="surface2">
-  <use xlink:href="#image5" transform="matrix(0.075,0,0,0.075,0,0)"/>
-  </g>
-  </svg>
-
-
-        <p class="text-center" id="top-bar-text" style="position: relative; z-index: 9999; text-align: left; margin: 0; padding: 10px 20px; top:70px;margin-left:20px;">
-    Current firmware: <span class="fw-bold" id="current-fw"></span>
-</p>
-
-
-    <div id="main-content">
-    <div id="pre-jb-view" class="d-flex align-items-center justify-content-center flex-direction-column selected" style="position: relative; z-index: 9999;">
-        <!-- auto-jailbreak by m0ur0ne -->
-        <a tabindex="0" class="btn fw-bold" id="run-jb" style="display: none;" onclick="run()"></a>
-    </div>
-
-    <div id="console-view" style="position: relative; z-index: 9999;height:50px;">
-        <!-- Texto AutoJailbreak --><textarea id="console" class="log" readonly style="width: 439px; height: 329px;">★ Activating Xploit ...</textarea>
-
-    </div>
-
-    <div id="payloads-view" style="position: relative; z-index: 9999; height: 350px; top: -570px;width:480px;"></div>
-</div>
-
-
-
-
-
-
-    <!-- auto jailbreak etahen by mouuu -->
-    <script>
-        // Ocultamos el botón 'Jailbreak' y mostramos el mensaje "انتظر شويه"
-        document.getElementById("run-jb").style.display = "none";
-        document.getElementById("console").innerHTML = "انتظر شويه";
-
-        // Ejecutamos automáticamente el jailbreak cuando la página se carga
-        window.onload = function() {
-            run();  // Esto ejecuta el jailbreak automáticamente al cargar la página
-        };
-    </script>
-
+    
     <script>
         addEventListener('unhandledrejection', (event) => {
             const reason = event.reason;
@@ -133,11 +81,15 @@
             );
             throw reason;
         });
-
         document.getElementById("current-fw").innerHTML = fw_str;
         localStorage.setItem(LOCALSTORE_WK_EXPLOIT_TYPE_KEY, LOCALSTORE_WK_EXPLOIT_TYPE_VALUE_PSFREE);
         registerAppCacheEventHandlers();
         registerL2ButtonHandler();
+        window.onload = function() {
+            if (sessionStorage.getItem(SESSIONSTORE_RUN_WK_EXPLOIT_ON_LOAD_KEY)) {
+                runJailbreak(false);
+            }
+        };
     </script>
 </body>
 
