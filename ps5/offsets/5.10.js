@@ -5,7 +5,7 @@ const OFFSET_wk___stack_chk_guard_import = 0x028D4A90;
 const OFFSET_lk___stack_chk_guard        = 0x0006D1D0;
 const OFFSET_lk_pthread_create_name_np   = 0x00001C40;
 const OFFSET_lk_pthread_join             = 0x000310A0;
-const OFFSET_lk_pthread_exit             = 0x0001F600;
+const OFFSET_lk_pthread_exit             = 0x00021560;
 const OFFSET_lk__thread_list             = 0x00064208;
 const OFFSET_lk_sleep                    = 0x00024920;
 const OFFSET_lk_sceKernelGetCurrentCpu   = 0x00002770;
@@ -31,7 +31,7 @@ let wk_gadgetmap = {
 	"mov [rdi], rax":   0x000D2B47,
 	"mov [rdi], eax":   0x000004D4,
 
-	"infloop":          0x00006462,
+	"infloop":          0x00009251,
 
     //branching specific gadgets
 	"cmp [rcx], eax":   0x00691182,
@@ -380,7 +380,7 @@ const OFFSET_KERNEL_STACK_COOKIE                = 0x00000930;
 const OFFSET_KERNEL_STACK_SYS_SCHED_YIELD_RET   = 0x00000808;
 
 // Kernel text-relative offsets
-const OFFSET_KERNEL_DATA                        = 0x00C50000;
+const OFFSET_KERNEL_DATA                        = 0x00C40000;
 const OFFSET_KERNEL_SYS_SCHED_YIELD_RET         = 0x00599C42;
 const OFFSET_KERNEL_ALLPROC                     = 0x0355DD00; // data = 0x0290DD00
 const OFFSET_KERNEL_SECURITY_FLAGS              = 0x072866EC; // data = 0x066366EC
@@ -389,3 +389,5 @@ const OFFSET_KERNEL_QA_FLAGS                    = 0x07286710; // data = 0x066367
 const OFFSET_KERNEL_UTOKEN_FLAGS                = 0x07286778; // data = 0x06636778
 const OFFSET_KERNEL_PRISON0                     = 0x02A63470; // data = 0x01E13470
 const OFFSET_KERNEL_ROOTVNODE                   = 0x07493510; // data = 0x06843510
+
+const OFFSET_KERNEL_PS4SDK                      = 0x023D8F38;
