@@ -878,7 +878,7 @@ async function main(userlandRW, wkOnly = false) {
             }
         }
 
-        if (await load_local_elf("elfldr.elf") == 0) {
+        if (await load_local_elf("etaHEN.bin") == 0) {
             await log(`elfldr listening on ${ip.ip}:9021`, LogLevel.INFO);
             is_elfldr_running = true;
         } else {
@@ -1196,7 +1196,7 @@ async function main(userlandRW, wkOnly = false) {
     });
 
     // await log("Done, switching to payloads screen...", LogLevel.INFO);
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 300));
     await switchPage("payloads-view");
 
 
@@ -1254,7 +1254,7 @@ async function main(userlandRW, wkOnly = false) {
         }
 
         if (wkOnly) { // in wk only mode i havent set up the socket since we cant load elfs anyway
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => setTimeout(resolve, 1000));
             continue;
         }
 

@@ -40,7 +40,7 @@ const payload_map = [
         projectSource: "https://github.com/LightningMods/etaHEN",
         binarySource: "https://github.com/LightningMods/etaHEN/releases/download/1.9b/etaHEN.bin",
         version: "1.9b",
-        supportedFirmwares: ["3.", "4."]
+        supportedFirmwares: ["1.", "2.", "3.", "4.", "5."]
     },
     {
         displayTitle: "etaHEN",
@@ -52,17 +52,6 @@ const payload_map = [
         version: "1.9b",
         supportedFirmwares: ["1.", "2."],
         toPort: 9021
-    },
-	{
-        displayTitle: "etaHEN", 
-        description: "AIO HEN",
-        fileName: "etaHENByLM.bin",
-        author: "LightningMods",
-        projectSource: "https://github.com/LightningMods/etaHEN",
-        binarySource: "https://github.com/LightningMods/etaHEN/releases/download/1.9b/etaHEN.bin",
-        version: "2.0b",
-		supportedFirmwares: ["5."],
-		toPort: 9021
     },
     {
         displayTitle: "ps5-kstuff",
@@ -137,13 +126,13 @@ const payload_map = [
         toPort: 9021
     },
     {
-        displayTitle: "gdbsrv",
-        description: "GDB server. Runs on port 2159.",
-        fileName: "gdbsrv.elf",
-        author: "john-tornblom",
-        projectSource: "https://github.com/ps5-payload-dev/gdbsrv",
-        binarySource: "https://github.com/ps5-payload-dev/pacbrew-repo/actions/runs/13686166926",
-        version: "0.5",
+        displayTitle: "etaHEN5xx",
+        description: "AIO HEN",
+        fileName: "etaHEN.bin",
+        author: "LightningMods, Buzzer, sleirsgoevy, ChendoChap, astrelsky, illusion, CTN, SiSTR0, Nomadic",
+        projectSource: "https://github.com/LightningMods/etaHEN",
+        binarySource: "https://github.com/etaHEN/etaHEN/releases/download/2.0b-pre/etaHEN.bin",
+        version: "0.5.2",
         toPort: 9021
     },
     {
@@ -151,8 +140,8 @@ const payload_map = [
         description: "Debugger (Experimental beta)",
         fileName: "ps5debug_v1.0b2.elf",
         author: "SiSTR0, ctn123",
-        projectSource: "https://github.com/GoldHEN/ps5debug",
-        binarySource: "https://github.com/GoldHEN/ps5debug/releases/download/1.0b2/ps5debug_v1.0b2.elf",
+        projectSource: "https://github.com/etaHEN/etaHEN",
+        binarySource: "https://github.com/etaHEN/etaHEN/releases/download/2.0b-pre/etaHEN.bin",
         version: "1.0b2",
         supportedFirmwares: ["3.", "4."],
         toPort: 9021
