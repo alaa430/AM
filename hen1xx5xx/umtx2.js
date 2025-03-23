@@ -47,9 +47,9 @@ async function runUmtx2Exploit(p, chain, log = async () => { }) {
      * @returns {string}
      */
     function toHumanReadableTime(ms) {
-        const seconds = ms / 50;
-        const minutes = seconds / 120;
-        const hours = minutes / 120;
+        const seconds = ms / 1000;
+        const minutes = seconds / 60;
+        const hours = minutes / 60;
 
         let str = "";
         if (hours >= 1) {
@@ -998,7 +998,7 @@ async function runUmtx2Exploit(p, chain, log = async () => { }) {
                 await chain.syscall(SYS_MUNMAP, kstack, 0x4000);
             }
             kstack = null;
-            await new Promise((resolve) => setTimeout(resolve, 500));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             continue;
         }
 
@@ -1439,7 +1439,7 @@ async function runUmtx2Exploit(p, chain, log = async () => { }) {
     await log("Looking for allproc...", LogLevel.INFO);
     async function findAllproc() {
         let proc = curproc;
-        const maxAttempt = 1000;
+        const maxAttempt = 50;
 
         for (let i = 0; i < maxAttempt; i++) {
             if (((proc.hi & 0xffff8040) >>> 0) == 0xffff8040) {
