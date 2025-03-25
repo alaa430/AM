@@ -1,5 +1,5 @@
 :root{
-    --primary-color: #333348;
+    --primary-color: #0071C7;
     --text-color-primary: #fff;
     --text-color-secondary: #ccc;
     --text-color-tertiary: #999;
@@ -12,7 +12,7 @@ body {
     user-select: none;
     -webkit-user-select: none;
     background-color: rgb(14, 14, 20);
-    color: white;
+    color: #005ed6;
     font-family: Arial;
 
     display: grid;
@@ -56,6 +56,7 @@ a:focus {
     font-size: 1.3rem;
     transition: background-color 0.3s ease-in-out;
     box-sizing: border-box;
+
 }
 
 .btn:hover {
@@ -97,6 +98,9 @@ a:focus {
 
 #payloads-view .btn {
     width: 100% !important;
+    background-image: url(img/02.png);
+    background-size: 64px 64px;
+    background-repeat: no-repeat;
 }
 
 .payload-btn-title {
@@ -129,10 +133,12 @@ a:focus {
     padding: 0;
     text-overflow: ellipsis;
     overflow: hidden;
-    white-space: nowrap;
     line-height: 1.5rem;
     font-size: 0.9rem;
     font-weight: normal;
+    line-clamp: 3;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
 .btn:hover p.payload-btn-info {
@@ -200,13 +206,18 @@ a:focus {
     font-family: monospace;
     white-space: pre;
     font-size: 1.2rem;
-    color: #fff;
+    color: #0091FF;
     background-color: inherit;
     border: var(--primary-color) 1px solid;
     border-radius: 5px;
     padding: 8px;
     margin: 8px;
     box-sizing: border-box;
+}
+
+.log:active, .log:focus {
+    outline: 0;
+    border: none;
 }
 
 .position-relative { position: relative;}

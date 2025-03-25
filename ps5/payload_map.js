@@ -40,7 +40,7 @@ const payload_map = [
         projectSource: "https://github.com/LightningMods/etaHEN",
         binarySource: "https://github.com/LightningMods/etaHEN/releases/download/1.9b/etaHEN.bin",
         version: "1.9b",
-        supportedFirmwares: ["3.", "5."]
+        supportedFirmwares: ["3.", "4."]
     },
     {
         displayTitle: "etaHEN",
@@ -56,13 +56,93 @@ const payload_map = [
     {
         displayTitle: "ps5-kstuff",
         description: "FPKG enabler",
+        fileName: "ps5-kstuff.bin",
+        author: "sleirsgoevy",
+        projectSource: "https://github.com/sleirsgoevy/ps4jb-payloads/tree/bd-jb/ps5-kstuff",
+        binarySource: "https://github.com/sleirsgoevy/ps4jb2/blob/3e6053c3e4c691a9ccdc409172293a81de00ad7f/ps5-kstuff.bin",
+        version: "3e6053c",
+        supportedFirmwares: ["3.", "4."]
+    },
+	{
+        displayTitle: "etaHEN20b", 
+        description: "AIO HEN 5.10",
+        fileName: "etaHENByLM.bin",
+        author: "LightningMods",
+        projectSource: "https://github.com/LightningMods/etaHEN",
+        binarySource: "https://github.com/LightningMods/etaHEN/releases/download/1.9b/etaHEN.bin",
+        version: "2.0b",
+		supportedFirmwares: ["5.10"],
+		toPort: 9021
+    },
+	{
+        displayTitle: "etaHEN20b 5.50", 
+        description: "AIO HEN 5.50",
+        fileName: "etaHEN20b550.bin",
+        author: "LightningMods",
+        projectSource: "https://github.com/LightningMods/etaHEN",
+        binarySource: "https://github.com/LightningMods/etaHEN/releases/download/1.9b/etaHEN.bin",
+        version: "2.0b",
+		supportedFirmwares: ["5.50"],
+		toPort: 9021
+    },
+	{
+        displayTitle: "kstuff",
+        description: "FPKG enabler",
         fileName: "kstuff.elf",
-        author: "sleirsgoevy, john-tornblom, EchoStretch, buzzer-re, BestPig, LightningMods, zecoxao",
-        projectSource: "https://github.com/EchoStretch/kstuff",
-        binarySource: "https://github.com/EchoStretch/kstuff/releases/download/5xx-support-v1/kstuff.elf",
-        version: "081f53b",
-        supportedFirmwares: ["3.", "4.", "5."],
+        author: "kstuff",
+        projectSource: "",
+        binarySource: "",
+        version: "5.10",
+		toPort: 9021
+    },
+	{
+        displayTitle: "kstuff-new",
+        description: "FPKG enabler",
+        fileName: "kstuff-new.elf",
+        author: "kstuff-new",
+        projectSource: "",
+        binarySource: "",
+		toPort: 9021
+    },
+	{
+        displayTitle: "websrv",
+        description: "Uses john-tornblom's elfldr. Custom homebrew loader. Runs on port 8080.",
+        fileName: "websrv.elf",
+        author: "john-tornblom",
+        projectSource: "https://github.com/ps5-payload-dev/websrv",
+        binarySource: "https://github.com/ps5-payload-dev/websrv/releases/tag/v0.18",
+        version: "0.18",
         toPort: 9021
+    },
+    {
+        displayTitle: "ftpsrv",
+        description: "Uses john-tornblom's elfldr. FTP server. Runs on port 2121.",
+        fileName: "ftpsrv.elf",
+        author: "john-tornblom",
+        projectSource: "https://github.com/ps5-payload-dev/ftpsrv",
+        binarySource: "https://github.com/ps5-payload-dev/ftpsrv/releases/tag/v0.11.1",
+        version: "0.11.1",
+        toPort: 9021
+    },
+	{
+        displayTitle: "PID",
+        description: "PS5 IDPS",
+        fileName: "pid.elf",
+        author: "AlAzif",
+        projectSource: "",
+        binarySource: "",
+        version: "5.10",
+		toPort: 9021
+    },
+	{
+        displayTitle: "sflash",
+        description: "PS5 IDPS",
+        fileName: "sflash_test.elf",
+        author: "LightningMods",
+        projectSource: "",
+        binarySource: "",
+        version: "5.10",
+		toPort: 9021
     },
     {
         displayTitle: "Byepervisor HEN",
@@ -84,35 +164,15 @@ const payload_map = [
         binarySource: "https://github.com/illusion0001/libhijacker-game-patch/releases/tag/1.160-75ab26a3",
         version: "1.160",
         supportedFirmwares: ["3.", "4."]
-    },
-    {
-        displayTitle: "websrv",
-        description: "Uses john-tornblom's elfldr. Custom homebrew loader. Runs on port 8080.",
-        fileName: "websrv.elf",
-        author: "john-tornblom",
-        projectSource: "https://github.com/ps5-payload-dev/websrv/releases",
-        binarySource: "https://github.com/ps5-payload-dev/websrv/releases/download/v0.16/Payload.zip",
-        version: "0.16",
-        toPort: 9021
-    },
-    {
-        displayTitle: "ftpsrv",
-        description: "Uses john-tornblom's elfldr. FTP server. Runs on port 2121.",
-        fileName: "ftpsrv.elf",
-        author: "john-tornblom",
-        projectSource: "https://github.com/ps5-payload-dev/ftpsrv",
-        binarySource: "https://github.com/ps5-payload-dev/pacbrew-repo/actions/runs/12400108209",
-        version: "0.11",
-        toPort: 9021
-    },
+    },	
     {
         displayTitle: "klogsrv",
         description: "Uses john-tornblom's elfldr. Klog server. Runs on port 3232.",
         fileName: "klogsrv.elf",
         author: "john-tornblom",
-        projectSource: "https://github.com/ps5-payload-dev/klogsrv/releases",
-        binarySource: "https://github.com/ps5-payload-dev/pacbrew-repo/actions/runs/12400108209",
-        version: "0.5",
+        projectSource: "https://github.com/ps5-payload-dev/klogsrv",
+        binarySource: "https://github.com/ps5-payload-dev/klogsrv/releases/tag/v0.5.1",
+        version: "0.5.1",
         toPort: 9021
     },
     {
@@ -120,20 +180,20 @@ const payload_map = [
         description: "Uses john-tornblom's elfldr. Telnet shell server. Runs on port 2323.",
         fileName: "shsrv.elf",
         author: "john-tornblom",
-        projectSource: "https://github.com/ps5-payload-dev/shsrv/releases",
-        binarySource: "https://github.com/ps5-payload-dev/pacbrew-repo/actions/runs/12400108209",
-        version: "0.12",
+        projectSource: "https://github.com/ps5-payload-dev/shsrv",
+        binarySource: "https://github.com/ps5-payload-dev/shsrv/releases/tag/v0.13",
+        version: "0.13",
         toPort: 9021
     },
     {
-        displayTitle: "etaHEN5xx",
-        description: "AIO HEN",
-        fileName: "alaa.bin",
-        author: "LightningMods, Buzzer, sleirsgoevy, ChendoChap, astrelsky, illusion, CTN, SiSTR0, Nomadic",
-        projectSource: "https://github.com/LightningMods/etaHEN",
-        binarySource: "https://github.com/LightningMods/etaHEN/releases/download/1.9b/etaHEN.bin",
-        version: "1.9b",
-        supportedFirmwares: ["3.", "5."]
+        displayTitle: "gdbsrv",
+        description: "Uses john-tornblom's elfldr. GDB server. Runs on port 2159.",
+        fileName: "gdbsrv.elf",
+        author: "john-tornblom",
+        projectSource: "https://github.com/ps5-payload-dev/gdbsrv",
+        binarySource: "https://github.com/ps5-payload-dev/gdbsrv/releases/tag/v0.5",
+        version: "0.5",
+        toPort: 9021
     },
     {
         displayTitle: "ps5debug",
