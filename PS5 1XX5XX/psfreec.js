@@ -38,7 +38,7 @@ addEventListener('error', event => {
     return [is_ps4, version];
 })();*/
 /*const ssv_len = (() => {
-    if (0x600 <= config.target && config.target < 0x550) {
+    if (0x600 <= config.target && config.target < 0x650) {
         return 0x58;
     }
     if (config.target >= 0x900) {
@@ -532,7 +532,7 @@ async function run() {
     } catch (error) {
         debug_log("[!] Webkit exploit failed: " + error);
         debug_log("[+] Retrying in 2 seconds...");
-        await new Promise((resolve) => setTimeout(resolve, 400));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         window.location.reload();
         return; // this is necessary
     }  
