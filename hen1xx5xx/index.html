@@ -2,18 +2,17 @@
 <!-- <html manifest="cache.appcache"> -->
 
 <head>
-    <title> PS5 UMTX2 Jailbreak  </title>
+    <title>PS4IDEA UMTX2 Jailbreak</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="main.css">
 </head>
 
 <!-- body is set up as three rows: auto 1fr auto -->
-<body>
+<body style="background-image: url('icon0.png'); background-repeat: no-repeat; background-size: 100% 100%; background-position: center; min-height: 100vh;">
     <!-- Row 1 -->
     <div class="p-2">
-        <h1 class="text-center"><span style="background-color: #005ed6">PS5 UMTX2 Jailbreak (1.xx-5.xx)</span></h1>
-        <p class="text-center" id="top-bar-text"><span style="background-color: #005ed6">Current firmware: </span><span class="fw-bold" id="current-fw"></span></p>
-
+        <h1 class="text-center">PS4IDEA UMTX2 (1.xx-5.xx)</h1>
+        
         <!-- This is absolute positioned to the body-->
         <div id="toast-container"></div>
     </div>
@@ -21,9 +20,7 @@
     <!-- Row 2 -->
     <div id="main-content">
         <div id="pre-jb-view" class="d-flex align-items-center justify-content-center flex-direction-column selected">
-            <a tabindex="0" class="btn fw-bold" id="run-jb" onclick="run()"><img src="img/01.png" width="64" height="64" alt=""><br>Jailbreak</a>
-            <a tabindex="0" class="btn" style="padding: 0.5rem 2rem; font-size: 1rem;" id="run-wk-only"
-                onclick="run(true)"><img src="img/02.png" width="64" height="64" alt=""><br>Webkit-only (sender)</a>
+            <a tabindex="0" class="btn fw-bold" id="run-jb" onclick="run()">Jailbreak</a>
         </div>
 
         <div id="console-view">
@@ -36,24 +33,12 @@
 
     <!-- Row 3 -->
     <div class="position-relative text-center p-2 mb-2">
-        <p class="text-secondary" id="version">v1.0</p>
-        <p class="text-secondary">creds & greetz</p>
+                <p class="text-center" id="top-bar-text">Current firmware: <span class="fw-bold" id="current-fw"></span></p>
         <h3 class="text-secondary mt-2">
-            <a href="https://github.com/shahrilnet">@shahrilnet</a>,
-            <a href="https://github.com/n0llptr">@n0llptr</a>,
-            <a href="https://x.com/fail0verflow">@fail0verflow</a>,
-            <a href="https://twitter.com/flat_z">@flat_z</a>,
-            <a href="https://twitter.com/SpecterDev">@SpecterDev</a>,
-            ChendoChap,
-            SlidyBat,
-            abc/psfree,
+            <a> MY YOUTUBE CHANNEL</a>
+            <a href="https://www.youtube.com/@PS4IDEA">@PS4IDEA</a>
             <br />
-            idlesauce,
-            <a href="https://x.com/znullptr">@znullptr</a>,
-            <a href="https://twitter.com/notnotzecoxao">@notnotzecoxao</a>,
-            <a href="https://twitter.com/SocraticBliss">@SocraticBliss</a>,
-            <a href="https://github.com/john-tornblom">John Tornblom</a>,
-            <a href="https://discord.gg/kbrzGuH3F6">PS5 R&D Discord</a>
+            <a> Thanks to all deves and people who contributed to the scene</a>
         </h3>
 
         <div class="position-absolute d-flex align-items-center bottom-0 left-0 m-4">
@@ -70,6 +55,7 @@
     <script src="syscalls.js"></script>
     <script type="module" src="psfree/psfree.js"></script>
     <script src="payload_map.js"></script>
+    <script src="cache.appcache"></script>
 
     <script>
         addEventListener('unhandledrejection', (event) => {
