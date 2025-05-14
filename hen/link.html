@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store Content Editor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    .btn {
+      cursor: pointer;
+    }
+    fieldset {
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #aaa;
+      background-color: #fff;
+      border-radius: 5px;
+    }
+    legend {
+        font-weight: bold;
+        color: #555;
+    }
+    .game-container {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #eee;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      display: flex; /* Use flexbox for layout */
+      align-items: flex-start; /* Align items to the top */
+    }
+    .game-details {
+        flex-grow: 1; /* Allow details to take up remaining space */
+        margin-right: 15px; /* Space between details and image */
+    }
+    .game-image-preview {
+        width: 80px; /* Small size for the image preview */
+        height: 80px;
+        object-fit: cover; /* Crop image to fit without distortion */
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        background-color: #eee; /* Placeholder background */
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="text"], select {
+      width: calc(100% - 22px);
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+     .buttons button {
+      padding: 8px 15px;
+      margin-right: 5px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .add-section-btn {
+      background-color: #5cb85c;
+      color: white;
+    }
+    .add-item-btn {
+        background-color: #5bc0de;
+        color: white;
+    }
+    .remove-item-btn {
+        background-color: #d9534f;
+        color: white;
+    }
+     .remove-section-btn {
+        background-color: #f0ad4e;
+        color: white;
+    }
+    .generate-html-btn, .insert-code-btn, .download-btn {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background-color: #0275d8;
+        color: white;
+        font-size: 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    #outputHtml {
+        width: 100%;
+        height: 300px;
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+        font-family: monospace;
+        font-size: 14px;
+    }
+     .editBtn, .saveBtn {
+        padding: 5px 10px;
+     }
+     /* Style for the new game input container */
+     #newGameInputsContainer fieldset {
+         display: flex;
+         flex-wrap: wrap; /* Allow items to wrap */
+         align-items: flex-start;
+     }
+      #newGameInputsContainer fieldset .game-details {
+          flex-basis: 70%; /* Adjust width for details */
+          margin-right: 15px;
+      }
+       #newGameInputsContainer fieldset .game-image-preview {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+             border: 1px solid #ccc;
+             background-color: #eee;
+       }
+        #newGameInputsContainer fieldset .buttons {
+             width: 100%; /* Buttons take full width */
+             margin-top: 10px;
+        }
+
+    .reorder-buttons {
+        display: flex;
+        flex-direction: column;
+        margin-left: 15px; /* Space between game details and reorder buttons */
+    }
+    .reorder-buttons button {
+        margin-bottom: 5px;
+        padding: 5px 10px;
+        font-size: 12px;
+        background-color: #ddd;
+        color: #333;
+    }
+
+  </style>
+</head>
+<body>
+  <button id="languageToggle" onclick="toggleLanguage()">Switch to Arabic</button><br><br>
+
+  <h2 id="selectFileTitle">1. Select an HTML File</h2>
+  <input type="file" id="htmlFileInput" accept=".html"><br><br>
+
+  <div id="sectionSelectionArea" style="display: none;">
+      <h2 id="chooseSectionTitle">2. Choose a Section to Edit</h2>
+      <select id="sectionSelector" onchange="displaySectionGames()"></select><br><br>
+  </div>
+
+
+  <div id="gamesContainer">
+      <!-- Games from the selected section will be displayed here -->
+  </div>
+
+  <h2 id="addGameTitle" style="display: none;">Add New Game</h2>
+  <div id="newGameInputsContainer" style="display: none;">
+      <button onclick="addNewGameInput()">Add New Game Fields</button><br><br>
+  </div>
+
+
+  <button class="generate-html-btn" onclick="generateCode()">Generate Final HTML Code</button><br><br>
+
+  <h3 id="generatedCodeTitle">Final HTML Code:</h3>
+  <textarea id="outputHtml" rows="10" cols="80" style="background:#f0f0f0; padding:10px; border:1px solid #ccc;" readonly></textarea><br><br>
+
+  <button class="download-btn" onclick="downloadModifiedFile()">Download Modified File</button><br><br>
+
+  <script>
+    let originalContent = '';
+    let sectionIds = [];
+    let isEnglish = true; // Default language is English
+    let gamesData = {}; // Stores parsed game data organized by section ID
+
+    const languageStrings = {
+        'en': {
+            'selectFileTitle': '1. Select an HTML File',
+            'chooseSectionTitle': '2. Choose a Section to Edit',
+            'addGameTitle': 'Add New Game',
+            'generatedCodeTitle': 'Final HTML Code:',
+            'languageToggle': 'Switch to Arabic',
+            'newGamePlaceholderName': 'New Game',
+            'gameLinkLabel': 'Game Link:',
+            'gameImageLabel': 'Game Image Link:',
+            'gameNameLabel': 'Game Name:',
+            'saveButton': 'Save',
+            'editButton': 'Edit',
+            'removeButton': 'Remove',
+            'addToImageListButton': 'Add to List',
+            'removeFieldsButton': 'Remove Fields',
+            'pleaseFillNewGameDetails': 'Please fill in all new game details.',
+            'newGameAdded': (name, section) => `New game "${name}" added to section "${section}".`,
+             'confirmRemoveGame': 'Are you sure you want to remove this game?',
+             'confirmRemoveSection': 'Are you sure you want to remove this section and all its games?',
+             'sectionRemoved': (sectionId) => `Section "${sectionId}" removed.`,
+             'generateHtmlFirst': 'Generate the HTML code first.',
+             'moveUpButton': 'Move Up',
+             'moveDownButton': 'Move Down',
+             'addSectionButton': 'Add New Section Fields',
+             'addSectionToListButton': 'Add Section to List',
+             'removeSectionFieldsButton': 'Remove Fields',
+             'newSectionPlaceholderName': 'New Section',
+             'sectionIdLabel': 'Section ID:',
+             'pleaseFillNewSectionDetails': 'Please fill in the new section ID.',
+             'newSectionAdded': (sectionId) => `New section "${sectionId}" added.`
+        },
+        'ar': {
+            'selectFileTitle': '1. اختر ملف HTML',
+            'chooseSectionTitle': '2. اختر القسم للتعديل',
+            'addGameTitle': 'إضافة لعبة جديدة',
+            'generatedCodeTitle': 'كود HTML النهائي:',
+            'languageToggle': 'التبديل إلى الإنجليزية',
+             'newGamePlaceholderName': 'لعبة جديدة',
+            'gameLinkLabel': 'رابط اللعبة:',
+            'gameImageLabel': 'رابط صورة اللعبة:',
+            'gameNameLabel': 'اسم اللعبة:',
+            'saveButton': 'حفظ',
+            'editButton': 'تعديل',
+            'removeButton': 'إزالة',
+            'addToImageListButton': 'إضافة إلى القائمة',
+            'removeFieldsButton': 'إزالة الحقول',
+            'pleaseFillNewGameDetails': 'يرجى تعبئة جميع تفاصيل اللعبة الجديدة.',
+            'newGameAdded': (name, section) => `تمت إضافة اللعبة "${name}" إلى القسم "${section}".`,
+            'confirmRemoveGame': 'هل أنت متأكد أنك تريد إزالة هذه اللعبة؟',
+            'confirmRemoveSection': 'هل أنت متأكد أنك تريد إزالة هذا القسم وجميع ألعابه؟',
+            'sectionRemoved': (sectionId) => `تمت إزالة القسم "${sectionId}".`,
+            'generateHtmlFirst': 'قم بتوليد كود HTML أولاً.',
+             'moveUpButton': 'تحريك للأعلى',
+             'moveDownButton': 'تحريك للأسفل',
+             'addSectionButton': 'إضافة حقول قسم جديد',
+             'addSectionToListButton': 'إضافة القسم إلى القائمة',
+             'removeSectionFieldsButton': 'إزالة الحقول',
+             'newSectionPlaceholderName': 'قسم جديد',
+             'sectionIdLabel': 'معرف القسم (ID):',
+             'pleaseFillNewSectionDetails': 'يرجى تعبئة معرف القسم الجديد.',
+             'newSectionAdded': (sectionId) => `تمت إضافة القسم "${sectionId}".`
+        }
+    };
+
+    function getLanguageString(key, ...args) {
+        const lang = isEnglish ? 'en' : 'ar';
+        const string = languageStrings[lang][key];
+        if (typeof string === 'function') {
+            return string(...args);
+        }
+        return string;
+    }
+
+    function updateUIStrings() {
+        document.getElementById('selectFileTitle').textContent = getLanguageString('selectFileTitle');
+        document.getElementById('chooseSectionTitle').textContent = getLanguageString('chooseSectionTitle');
+        document.getElementById('addGameTitle').textContent = getLanguageString('addGameTitle');
+        document.getElementById('generatedCodeTitle').textContent = getLanguageString('generatedCodeTitle');
+        document.getElementById('languageToggle').textContent = getLanguageString('languageToggle');
+
+         // Update text for dynamically added elements if they exist
+        document.querySelectorAll('.gameLinkLabel').forEach(el => el.textContent = getLanguageString('gameLinkLabel'));
+        document.querySelectorAll('.gameImageLabel').forEach(el => el.textContent = getLanguageString('gameImageLabel'));
+        document.querySelectorAll('.gameNameLabel').forEach(el => el.textContent = getLanguageString('gameNameLabel'));
+        document.querySelectorAll('.saveBtn').forEach(el => el.textContent = getLanguageString('saveButton'));
+        document.querySelectorAll('.editBtn').forEach(el => el.textContent = getLanguageString('editButton'));
+        document.querySelectorAll('.remove-item-btn').forEach(el => el.textContent = getLanguageString('removeButton'));
+        document.querySelectorAll('.addToImageListButton').forEach(el => el.textContent = getLanguageString('addToImageListButton'));
+        document.querySelectorAll('.removeFieldsButton').forEach(el => el.textContent = getLanguageString('removeFieldsButton'));
+        document.querySelectorAll('.moveUpBtn').forEach(el => el.textContent = getLanguageString('moveUpButton'));
+        document.querySelectorAll('.moveDownBtn').forEach(el => el.textContent = getLanguageString('moveDownButton'));
+
+         // Update legends for existing games based on current names
+         const gamesContainer = document.getElementById('gamesContainer');
+         gamesContainer.querySelectorAll('legend').forEach(legend => {
+             // This assumes the legend text was set to the game name initially
+              const gameName = legend.textContent; // Or find the input and get its value
+             legend.textContent = gameName || getLanguageString('newGamePlaceholderName');
+         });
+
+         // Update placeholder/default text for new game inputs if visible
+         const newGameInputsContainer = document.getElementById('newGameInputsContainer');
+         if (newGameInputsContainer.style.display !== 'none') {
+             newGameInputsContainer.querySelectorAll('legend').forEach(legend => {
+                 if (legend.textContent === 'New Game' || legend.textContent === 'لعبة جديدة') { // Check for both English and Arabic placeholders
+                     legend.textContent = getLanguageString('newGamePlaceholderName');
+                 }
+             });
+         }
+    }
+
+    function toggleLanguage() {
+      isEnglish = !isEnglish;
+      updateUIStrings();
+    }
+
+    document.getElementById('htmlFileInput').addEventListener('change', function () {
+      const file = this.files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        originalContent = e.target.result;
+        parseHtmlContent(); // Parse and populate sections and games
+
+        // Display relevant sections after file load
+        document.getElementById('sectionSelectionArea').style.display = 'block';
+        document.getElementById('addGameTitle').style.display = 'block';
+        document.getElementById('newGameInputsContainer').style.display = 'block';
+
+        // Trigger display of games for the first section by default
+        displaySectionGames();
+      };
+      reader.readAsText(file);
+    });
+
+    function parseHtmlContent() {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(originalContent, 'text/html');
+
+        // Extract section IDs and populate the selector
+        sectionIds = [];
+        gamesData = {};
+        const sections = doc.querySelectorAll('.carousel-section');
+        sections.forEach(section => {
+            const sectionId = section.id;
+            if (sectionId) {
+                sectionIds.push(sectionId);
+                gamesData[sectionId] = []; // Initialize array for games in this section
+
+                // Extract game details from buttons within this section
+                const buttons = section.querySelectorAll('.btn');
+                buttons.forEach(button => {
+                    const linkMatch = button.getAttribute('onClick').match(/installPkg\('([^']*)'\)/);
+                    const link = linkMatch ? linkMatch[1] : '';
+                    const imgElement = button.querySelector('.btn-img');
+                    const image = imgElement ? imgElement.src : '';
+                    const name = imgElement ? imgElement.getAttribute('data-tooltip') : '';
+                    gamesData[sectionId].push({ link, image, name });
+                });
+            }
+        });
+
+        populateSectionSelector();
+    }
+
+     function populateSectionSelector() {
+         const selector = document.getElementById('sectionSelector');
+         selector.innerHTML = '';
+         sectionIds.forEach(id => {
+           const option = document.createElement('option');
+           option.value = id;
+           option.textContent = id;
+           selector.appendChild(option);
+         });
+     }
+
+    function displaySectionGames() {
+        const selectedSectionId = document.getElementById('sectionSelector').value;
+        const gamesContainer = document.getElementById('gamesContainer');
+        gamesContainer.innerHTML = ''; // Clear previous games
+
+        if (gamesData[selectedSectionId]) {
+            gamesData[selectedSectionId].forEach((game, index) => {
+                const gameDiv = document.createElement('div');
+                gameDiv.classList.add('game-container');
+                gameDiv.setAttribute('data-index', index); // Add data attribute for reordering
+                gameDiv.innerHTML = `
+                    <fieldset>
+                        <legend>${game.name || getLanguageString('newGamePlaceholderName')}</legend>
+                        <div class="game-details">
+                            <label class="gameLinkLabel">${getLanguageString('gameLinkLabel')}</label> <input type="text" class="gameLink" value="${game.link}" disabled><br>
+                            <label class="gameImageLabel">${getLanguageString('gameImageLabel')}</label> <input type="text" class="gameImage" value="${game.image}" disabled><br>
+                            <label class="gameNameLabel">${getLanguageString('gameNameLabel')}</label> <input type="text" class="gameName" value="${game.name}" disabled><br>
+                            <div class="buttons">
+                                <button class="saveBtn" onclick="saveExistingGame(this, '${selectedSectionId}', ${index})" disabled>${getLanguageString('saveButton')}</button>
+                                <button class="editBtn" onclick="editExistingGame(this)">${getLanguageString('editButton')}</button>
+                                <button class="remove-item-btn" onclick="removeExistingGame('${selectedSectionId}', ${index}, this)">${getLanguageString('removeButton')}</button>
+                            </div>
+                        </div>
+                        <img src="${game.image}" alt="${game.name || 'Game Image'}" class="game-image-preview">
+                        <div class="reorder-buttons">
+                            <button class="moveUpBtn" onclick="moveGameUp('${selectedSectionId}', ${index})">${getLanguageString('moveUpButton')}</button>
+                            <button class="moveDownBtn" onclick="moveGameDown('${selectedSectionId}', ${index})">${getLanguageString('moveDownButton')}</button>
+                        </div>
+                    </fieldset>
+                `;
+                gamesContainer.appendChild(gameDiv);
+
+                // Add event listener to image link input to update preview
+                const imgInput = gameDiv.querySelector('.gameImage');
+                const imgPreview = gameDiv.querySelector('.game-image-preview');
+                imgInput.addEventListener('input', () => {
+                    imgPreview.src = imgInput.value;
+                });
+            });
+        }
+         updateUIStrings(); // Ensure buttons within newly displayed games are translated
+    }
+
+    function editExistingGame(button) {
+      const gameDiv = button.closest('fieldset');
+      const inputs = gameDiv.querySelectorAll('.game-details input'); // Select inputs within game-details
+      inputs.forEach(input => input.disabled = false);
+
+      gameDiv.querySelector('.saveBtn').disabled = false;
+      button.disabled = true;
+    }
+
+    function saveExistingGame(button, sectionId, index) {
+      const gameDiv = button.closest('fieldset');
+      const inputs = gameDiv.querySelectorAll('.game-details input'); // Select inputs within game-details
+      inputs.forEach(input => input.disabled = true);
+
+      button.disabled = true;
+      const editBtn = gameDiv.querySelector('.editBtn');
+      editBtn.disabled = false;
+
+      // Update gamesData array
+      gamesData[sectionId][index].link = gameDiv.querySelector('.gameLink').value;
+      gamesData[sectionId][index].image = gameDiv.querySelector('.gameImage').value;
+      gamesData[sectionId][index].name = gameDiv.querySelector('.gameName').value;
+
+       // Update legend with new name
+       gameDiv.querySelector('legend').textContent = gamesData[sectionId][index].name || getLanguageString('newGamePlaceholderName');
+    }
+
+    function removeExistingGame(sectionId, index, button) {
+        if (confirm(getLanguageString('confirmRemoveGame'))) {
+            gamesData[sectionId].splice(index, 1);
+            // No need to remove the div directly, displaySectionGames will refresh the list
+            displaySectionGames();
+        }
+    }
+
+    function moveGameUp(sectionId, index) {
+        if (index > 0) {
+            const gameToMove = gamesData[sectionId].splice(index, 1)[0];
+            gamesData[sectionId].splice(index - 1, 0, gameToMove);
+            displaySectionGames(); // Re-render the list
+        }
+    }
+
+    function moveGameDown(sectionId, index) {
+        if (index < gamesData[sectionId].length - 1) {
+            const gameToMove = gamesData[sectionId].splice(index, 1)[0];
+            gamesData[sectionId].splice(index + 1, 0, gameToMove);
+            displaySectionGames(); // Re-render the list
+        }
+    }
+
+    function addNewGameInput() {
+      const container = document.getElementById('newGameInputsContainer');
+       const sectionOptions = sectionIds.map(id => `<option value="${id}">${id}</option>`).join('');
+       const selectedSectionId = document.getElementById('sectionSelector').value; // Default to current selected section
+
+
+      const gameDiv = document.createElement('div');
+      gameDiv.classList.add('game-container');
+      gameDiv.innerHTML = `
+        <fieldset>
+          <legend>${getLanguageString('newGamePlaceholderName')}</legend>
+          <div class="game-details">
+              <label>Section:</label>
+              <select class="newGameSection">${sectionOptions}</select><br>
+              <label class="gameLinkLabel">${getLanguageString('gameLinkLabel')}</label> <input type="text" class="newGameLink"><br>
+              <label class="gameImageLabel">${getLanguageString('gameImageLabel')}</label> <input type="text" class="newGameImage"><br>
+              <label class="gameNameLabel">${getLanguageString('gameNameLabel')}</label> <input type="text" class="newGameName"><br>
+              <div class="buttons">
+                  <button class="addToImageListButton" onclick="addNewGame(this)">${getLanguageString('addToImageListButton')}</button>
+                  <button class="removeFieldsButton" onclick="this.closest('.game-container').remove()">${getLanguageString('removeFieldsButton')}</button>
+              </div>
+          </div>
+          <img src="" alt="New Game Image" class="game-image-preview">
+        </fieldset>
+      `;
+       // Set the default selected section
+       const sectionSelectElement = gameDiv.querySelector('.newGameSection');
+       if (sectionSelectElement) {
+           sectionSelectElement.value = selectedSectionId;
+       }
+
+        container.appendChild(gameDiv);
+
+        // Add event listener to the new image link input to update preview
+        const imgInput = gameDiv.querySelector('.newGameImage');
+        const imgPreview = gameDiv.querySelector('.game-image-preview');
+        imgInput.addEventListener('input', () => {
+            imgPreview.src = imgInput.value;
+        });
+         updateUIStrings(); // Translate the newly added input fields
+    }
+
+    function addNewGame(button) {
+         const gameDiv = button.closest('fieldset');
+         const section = gameDiv.querySelector('.newGameSection').value;
+         const link = gameDiv.querySelector('.newGameLink').value;
+         const image = gameDiv.querySelector('.newGameImage').value;
+         const name = gameDiv.querySelector('.newGameName').value;
+
+        if (!link || !image || !name) {
+            alert(getLanguageString('pleaseFillNewGameDetails'));
+            return;
+        }
+
+         // Add the new game to our internal data structure AT THE BEGINNING
+         if (!gamesData[section]) {
+             gamesData[section] = []; // Should not happen if sections are parsed correctly, but as a fallback
+         }
+         gamesData[section].unshift({ link, image, name }); // Use unshift here
+
+         alert(getLanguageString('newGameAdded', name, section));
+         button.closest('.game-container').remove(); // Remove the input fields for this new game
+
+         // Re-display games if the current section is the one we added to
+         if (document.getElementById('sectionSelector').value === section) {
+             displaySectionGames();
+         }
+    }
+
+
+    function generateCode() {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(originalContent, 'text/html');
+
+        // Update the content of each carousel section based on gamesData
+        for (const sectionId in gamesData) {
+            const sectionElement = doc.getElementById(sectionId);
+            if (sectionElement) {
+                // Capture existing comments before clearing
+                let comments = '';
+                 const nodes = sectionElement.childNodes;
+                 for (let i = 0; i < nodes.length; i++) {
+                     if (nodes[i].nodeType === Node.COMMENT_NODE) {
+                         // Reconstruct comment with delimiters if they were trimmed by parser
+                         comments += `<!--${nodes[i].textContent}-->\n`;
+                     }
+                 }
+
+
+                // Clear existing content (including buttons)
+                sectionElement.innerHTML = '';
+
+                // Add the preserved comments back
+                sectionElement.innerHTML += comments;
+
+                // Build new button HTML for this section based on the order in gamesData
+                let newButtonsHtml = '';
+                gamesData[sectionId].forEach(game => {
+                    const buttonHTML = `
+<button class="btn" onClick="installPkg('${game.link}')">
+  <img src="${game.image}" alt="Install App" class="btn-img" data-tooltip="${game.name}">
+</button>`;
+                    newButtonsHtml += buttonHTML + '\n'; // Add newline for readability
+                });
+
+                // Append the new buttons
+                sectionElement.innerHTML += newButtonsHtml;
+            } else {
+                // Handle case where a section was added but didn't exist in the original HTML
+                // We need to decide how to add new sections. For now, we'll ignore sections not in original.
+                console.warn(`Section with ID "${sectionId}" not found in original HTML. Skipping code generation for this section.`);
+            }
+        }
+
+        // Get the complete modified HTML
+        const modifiedHtml = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+        document.getElementById('outputHtml').value = formatHtml(modifiedHtml); // Optional: format the output
+    }
+
+    // Basic HTML formatting (can be improved)
+    function formatHtml(html) {
+        const div = document.createElement('div');
+        div.innerHTML = html.trim();
+        let indent = 0;
+        const indentSize = 2; // Number of spaces for each indent level
+        const newline = '\n';
+        const result = [];
+        const indentChars = ' '.repeat(indentSize);
+
+        function processNode(node, currentIndent) {
+            const nodeName = node.nodeName.toLowerCase();
+            const nodeType = node.nodeType;
+
+            if (nodeType === Node.TEXT_NODE) {
+                 const text = node.textContent.trim();
+                 if (text) {
+                     result.push(indentChars.repeat(currentIndent) + text + newline);
+                 }
+            } else if (nodeType === Node.ELEMENT_NODE) {
+                let attributes = '';
+                for (let i = 0; i < node.attributes.length; i++) {
+                    attributes += ` ${node.attributes[i].name}="${node.attributes[i].value}"`;
+                }
+
+                // Special handling for elements whose inner content should not be indented
+                const rawContentElements = ['textarea', 'script', 'style'];
+                 if (rawContentElements.includes(nodeName)) {
+                     result.push(indentChars.repeat(currentIndent) + `<${nodeName}${attributes}>` + node.innerHTML + `</${nodeName}>` + newline);
+                 } else if (nodeName === 'img' || nodeName === 'input' || nodeName === 'br' || nodeName === 'hr' || node.childNodes.length === 0) {
+                     // Self-closing or empty elements
+                      result.push(indentChars.repeat(currentIndent) + `<${nodeName}${attributes}>` + newline);
+                 }
+                 else {
+                     result.push(indentChars.repeat(currentIndent) + `<${nodeName}${attributes}>` + newline);
+                     for (let i = 0; i < node.childNodes.length; i++) {
+                         processNode(node.childNodes[i], currentIndent + 1);
+                     }
+                     result.push(indentChars.repeat(currentIndent) + `</${nodeName}>` + newline);
+                 }
+            } else if (nodeType === Node.COMMENT_NODE) {
+                 const comment = node.textContent;
+                 // Preserve original comment formatting as much as possible
+                 result.push(indentChars.repeat(currentIndent) + `<!--${comment.trim()}-->` + newline);
+            }
+        }
+
+         for (let i = 0; i < div.childNodes.length; i++) {
+             processNode(div.childNodes[i], indent);
+         }
+
+        return result.join('');
+    }
+
+
+    function downloadModifiedFile() {
+      const modifiedHtml = document.getElementById('outputHtml').value;
+      if (!modifiedHtml) {
+          alert(getLanguageString('generateHtmlFirst'));
+          return;
+      }
+      const blob = new Blob([modifiedHtml], { type: "text/html" });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = "modified_store.html"; // Suggested filename
+      a.click();
+    }
+
+    // Initialize language on load
+    updateUIStrings();
+
+  </script>
+</body>
+</html>
