@@ -3,6 +3,7 @@ CACHE MANIFEST
 
 alert.mjs
 btn.css
+img.jpg
 cache.html
 config.mjs
 exploit.js
@@ -12,7 +13,6 @@ index.html
 lapse.mjs
 pl_goldhenbeta.bin
 psfree.mjs
-README.md
 fonts\FONTS.LICENSE
 fonts\LiberationMono-Regular.ttf
 fonts\README.txt
