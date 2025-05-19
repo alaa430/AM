@@ -1,26 +1,53 @@
+<!-- Copyright (C) 2023-2025 anonymous
+
+This file is part of PSFree.
+
+PSFree is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+PSFree is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
 <html>
-<head>
-<title>alaa mohamed 01001550618 [GoldHEN v2.4b18]</title>
-<link rel="shortcut icon" href="favicon.ico"></link>
-<link rel="stylesheet" href="btn.css">
-<style>
-
-</style>
-
-<script>
-async function webkitExploit() 
-{
- await import('./alert.mjs');
+    <head>
+        <meta charset='utf-8'>
+        <title>PSFree-Lapse Exploit For 9.00</title>
+        <style>
+html {
+    background-image: url('img.jpg');
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-color: #24272b;
+    color: white;
+    text-align: center;
+    overflow: hidden;
 }
-</script>
-
-</head>
-<body onload="setTimeout(webkitExploit,1500);"><!--  -->
-<script src="psfree.mjs"></script>
-<h1 id="msgs" style='font-size:70px;text-align:center;'> <font color=#04fcfc> ( انتظر شويه ) </h1>
- <script src="lapse.mjs"></script>
-<script>
-if (window.applicationCache.status=='0'){window.location.replace("cache.html");}
-</script>
-</body>
+            .info{position:relative;top:39%;}
+            @font-face {
+                font-family: 'logging';
+                src: url('fonts/LiberationMono-Regular.ttf');
+            }
+            #console {
+                font-family: 'logging';
+            }
+        </style>
+    </head>
+    <body>
+      <script>
+       if (window.applicationCache.status=='0'){window.location.replace("cache.html");}
+      </script>
+        <pre id='console'></pre>
+    </body>
+    <script src="payload.js"></script>
+    <script type='module' src='./alert.mjs'></script>
 </html>
