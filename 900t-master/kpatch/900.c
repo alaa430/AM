@@ -35,7 +35,7 @@ void restore(struct kexec_args *uap);
 __attribute__((section (".text.start")))
 int kpatch(void *td, struct kexec_args *uap) {
     do_patch();
-    restore(uap);
+    //restore(uap); Disable to backtrace
     return 0;
 }
 
