@@ -1601,7 +1601,7 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
     log('setuid(0)');
     sysi('setuid', 0);
     log('kernel exploit succeeded!');
-    alert("Exploit Complete...Press X to load GoldHen!");
+    alert("kernel exploit succeeded!");
 }
 
 // FUNCTIONS FOR STAGE: SETUP
@@ -1662,15 +1662,6 @@ export async function kexploit() {
     const _init_t1 = performance.now();
     await init();
     const _init_t2 = performance.now();
-
-    // If setuid is successful, we dont need to run the kexploit again
-    try {
-        if (sysi('setuid', 0) == 0) {
-            log("Not running kexploit again.")
-            return;
-        }
-    }
-    catch (e) {}
 
     // fun fact:
     // if the first thing you do since boot is run the web browser, WebKit can

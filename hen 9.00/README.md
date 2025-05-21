@@ -1,6 +1,14 @@
-# PSFree version 1-BMM
+# PSFree version 1.5.0
 
-PSFree Chained to Lapse port for 9.00
+Lapse Kex ported to 9.00 - WIP
+
+Very fast and reliable but can KP :P
+
+TODO:
+- Some performance Tweaks??.
+- Payload Loader will look for payload.bin provided on this repo, you can swap it with another payload.
+  
+PR are welcome!!!
 
 Credits:
 - Jhon https://github.com/janisslsm
@@ -8,17 +16,22 @@ Credits:
 - CTN https://github.com/ctn123
 - Al-Azif https://github.com/al-azif
 - abc for PSFree webkit exploit & Lapse kernel Exploit
-- kameleon
 
 PSFree is a collection of exploits for the PS4 console. The main focus of the 
 repo is for the PS4 but we try to make things portable to PS5.
 
 * Exploits
-  * PSFree Webkit Entry: src/psfree.mjs
-  * Lapse kernel exploit: src/scripts/lapse.mjs
+  * PSFree: src/psfree.mjs
+  * Lapse (kernel): src/scripts/lapse.mjs
+
+Developer [abc] Donation (Monero/XMR):
+86Fk3X9AE94EGKidzRbvyiVgGNYD3qZnuKNq1ZbsomFWXHYm6TtAgz9GNGitPWadkS3Wr9uXoT29U1SfdMtJ7QNKQpW1CVS
 
 # COPYRIGHT AND AUTHORS:
 AGPL-3.0-or-later (see src/COPYING). This repo belongs to the group
 `anonymous`. We refer to anonymous contributors as "anonymous" as well.
 
-https://youtube.com/shorts/mxNC9WvXHIw?si=_DzZmp2hIsC_U7ja
+# CREDITS:
+* anonymous for PS4 firmware kernel dumps
+* Check the appropriate files for any **extra** contributors. Unless otherwise
+  stated, everything here can also be credited to us.
