@@ -16,13 +16,22 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
-<html>
+<html manifest="offlinexmb.cache">
     <head>
         <meta charset='utf-8'>
-        <title>ALAA MOHAMED 01001550618 9.00</title>
+        <title>PSFree-Lapse Exploit For 9.00</title>
         <style>
-            body{background: linear-gradient(to bottom right, #063FAB, #01258A);color:white;font-size:28px;text-align:center;margin:0;overflow:hidden;}
-            .info{position:relative;top:39%;}
+html {
+    background-image: url('img.jpg');
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-color: #24272b;
+    color: white;
+    text-align: center;
+    overflow: hidden;
+}
             @font-face {
                 font-family: 'logging';
                 src: url('fonts/LiberationMono-Regular.ttf');
@@ -33,11 +42,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         </style>
     </head>
     <body>
-      <script>
-       if (window.applicationCache.status=='0'){window.location.replace("cache.html");}
-      </script>
+        PSFree: A PS4/PS5 Exploit Chain<br>
+        Donation (Monero/XMR):<br>
+        86Fk3X9AE94EGKidzRbvyiVgGNYD3qZnuKNq1ZbsomFWXHYm6TtAgz9GNGitPWadkS3Wr9uXoT29U1SfdMtJ7QNKQpW1CVS<br>
+        See <a href='./about.html' data-jslicense='1'>JavaScript license information</a> for the
+        source code and license.<br>
         <pre id='console'></pre>
     </body>
+    <script>
+    if (window.applicationCache.status=='0'){window.location.replace("cache.html");}
+   </script> 
     <script src="payload.js"></script>
     <script type='module' src='./alert.mjs'></script>
 </html>
