@@ -2,10 +2,10 @@
 
 Lapse Kex ported to 9.00 - Still WIP
 
-Very fast and Stable
+Very fast and Stable 80%
 
 - Some performance Tweaks add
-- Add sysveri Patch
+- Need Add sysveri Patch
   
 PR are welcome 
 
@@ -14,7 +14,7 @@ repo is for the PS4 but we try to make things portable to PS5.
 
 * Exploits
   * PSFree: src/psfree.js
-  * Lapse (kernel): src/scripts/lapse.js
+  * Lapse (kernel): src/lapse.js
 
 Donation (Monero/XMR):
 86Fk3X9AE94EGKidzRbvyiVgGNYD3qZnuKNq1ZbsomFWXHYm6TtAgz9GNGitPWadkS3Wr9uXoT29U1SfdMtJ7QNKQpW1CVS

