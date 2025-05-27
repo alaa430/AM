@@ -840,6 +840,7 @@ async function make_arw(reader, view2, pop) {
 }
 
 async function main() {
+    StartTimer();
     log('STAGE: UAF SSV');
     const [fsets, indices] = prepare_uaf();
     const [view, [view2, pop]] = await uaf_ssv(fsets, indices[1], indices[0]);
@@ -859,5 +860,4 @@ async function main() {
     // path to your script that will use the exploit
     import('./lapse.js');
 }
-setTimeout(StartTimer, 1500);
 setTimeout(main, 1500);
