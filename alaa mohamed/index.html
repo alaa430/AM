@@ -1,5 +1,6 @@
 <html>
 <head>
+<<<<<<< HEAD
 <title>alaa mohamed 01001550618</title>
 <link rel="shortcut icon" href="favicon.ico"></link>
 <link rel="stylesheet" href="btn.css">
@@ -8,6 +9,17 @@ body{background-image: url("bg.jpg");background-repeat: no-repeat;background-siz
 color:white;font-size:20px;text-align:center;margin:0;overflow:hidden;}
 .info{overflow: hidden;position: fixed;position: absolute;top: 45%;left: 50%;font-size: 25px;font-family: sans-serif;color: white;transform: translate(-50%, -50%);}
 </style>
+=======
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALAA MOHAMED 01001550618</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+>>>>>>> e376b7ed3275ece92597eb006c1eb2c6dc93f47e
 
 
 
@@ -80,6 +92,7 @@ function loadPayloadDataSleirs(pl) // preload payload data
 
 }
 
+<<<<<<< HEAD
  function loadPayloadDataBz2() 
 {
 	if (PLfile)
@@ -92,6 +105,121 @@ function loadPayloadDataSleirs(pl) // preload payload data
             if (this.status == 200) 
             {
             let payloadData = Uint8Array.from(xhr.response, c => c.charCodeAt(0));
+=======
+        .progress-bar {
+            width: 100%;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 7px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #621FDB, #D6BBFB);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 7px;
+        }
+
+        .progress-text {
+            font-size: 16px;
+            color: #FDFDFD;
+            text-align: center;
+        }
+
+        .console {
+            background: #171717;
+            border: 1.5px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #1BFACC;
+            height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .credits {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1.5px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .credits h3 {
+            color: #FDFDFD;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .credit-item {
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .credit-item:last-child {
+            border-bottom: none;
+        }
+
+        .credit-label {
+            color: #FDFDFD;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .credit-link {
+            color: #D6BBFB;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.2s ease;
+        }
+
+        .credit-link:hover {
+            color: #1BFACC;
+        }
+
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(86, 255, 255, 0.9);
+            color: #010101;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+
+        .alert.show {
+            transform: translateX(0);
+        }
+
+        .alert.success {
+            background: rgba(27, 250, 204, 0.9);
+        }
+
+        .alert.error {
+            background: rgba(244, 73, 22, 0.9);
+            color: #fff;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+>>>>>>> e376b7ed3275ece92597eb006c1eb2c6dc93f47e
             
             if (payloadData.length > 0)
 		{
@@ -275,6 +403,7 @@ loadPayloadData();
 </head>
 
 <body>
+<<<<<<< HEAD
     <h1 id=msgs style='font-size:25px;text-align:center;color:white'>alaa mohamed 01001550618</h1>
     <div id="progress" class="info" > <h1 id="msgs" style='font-size:50px;text-align:center;'> <font color=#04fcfc> انتظر شويه حتي تظهر رساله الفلاشه </div>
     <div id=mymenu style="text-align:center;display:none;">
@@ -287,10 +416,50 @@ loadPayloadData();
       <br>
       <div style=font-size:16px>GOLDHEN</div>
       <button class="btnkme" onMouseOver="msgs.innerHTML='GoldHEN v2.4b18 '"; onmouseout="msgs.innerHTML='alaa mohamed 01001550618'" onclick="load_goldhenbeta(); return false">اضغط هنا </button>
+=======
+    <div class="container">
+        <div class="header">
+            <h1 class="title">>ALAA MOHAMED 01001550618</h1>
+            <p class="subtitle">>01200707205  01123145559 01001550618</p>
+        </div>
+
+        <div class="status-panel">
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Initializing exploit...</div>
+            </div>
+        </div>
+
+        <div class="console" id="console"></div>
+
+        <div class="credits">
+            
+            
+            <div class="credit-item">
+                
+                <a href="https://facebook.com/groups/666127568646294" class="credit-link" target="_blank">جروب الفيس بوك</a>
+            </div>
+            
+            <div class="credit-item">
+                
+                <a href="https://t.me/alaamohamed2025" class="credit-link" target="_blank">جروب التليجرام</a>
+            </div>
+            
+            <div class="credit-item">
+                
+                <a href="https://www.facebook.com/alaameto2021" class="credit-link" target="_blank">صفحه الفيس بوك بتاعتي</a>
+            </div>
+
+        </div>
+    </div>
+>>>>>>> e376b7ed3275ece92597eb006c1eb2c6dc93f47e
 
     </script>
     
     <script>
+<<<<<<< HEAD
     if (localStorage.passcount == null || localStorage.passcount == undefined) localStorage.passcount=0;
      if (localStorage.passCounter == null || localStorage.passCounter == undefined ){
       passCounter.innerHTML=localStorage.passcount;}
@@ -347,6 +516,91 @@ loadPayloadData();
         GBl.style.display = "none";
       }
       
+=======
+        // Global variables for progress tracking
+        window.exploitProgress = {
+            current: 0,
+            total: 100,
+            stage: 'Initializing...'
+        };
+
+        // Progress bar update function
+        function updateProgress(percent, text) {
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            if (progressFill) {
+                progressFill.style.width = percent + '%';
+            }
+            if (progressText) {
+                progressText.textContent = text;
+            }
+            
+            window.exploitProgress.current = percent;
+            window.exploitProgress.stage = text;
+        }
+
+        // Alert system
+        function showAlert(message, type = 'info') {
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.textContent = message;
+            document.body.appendChild(alert);
+            
+            setTimeout(() => alert.classList.add('show'), 100);
+            
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.parentNode.removeChild(alert);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Console logging
+        function logToConsole(message) {
+            const console = document.getElementById('console');
+            if (console) {
+                const timestamp = new Date().toLocaleTimeString();
+                console.textContent += `[${timestamp}] ${message}\n`;
+                console.scrollTop = console.scrollHeight;
+            }
+        }
+
+        // Override console methods for PS4 compatibility
+        const originalLog = console.log;
+        console.log = function(...args) {
+            const message = args.join(' ');
+            logToConsole(message);
+            if (originalLog) {
+                originalLog.apply(console, args);
+            }
+        };
+
+        // Initialize exploit on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress(10, 'Loading exploit modules...');
+            logToConsole('PSFree exploit starting...');
+            logToConsole('Target: PS4 9.00');
+            
+            // Show cache installation alert
+            if (window.applicationCache.status !== 0) {
+                showAlert('Offline cache loaded successfully', 'success');
+            }
+        });
+
+        // Prevent context menu and other PS4 browser issues
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // Disable text selection for better PS4 experience
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+        });
+>>>>>>> e376b7ed3275ece92597eb006c1eb2c6dc93f47e
     </script>
 
 <script>

