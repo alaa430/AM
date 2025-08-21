@@ -8,6 +8,7 @@ cache.html
 config.mjs
 index.html
 lapse.mjs
+aio_patches.bin
 payload.bin
 psfree.mjs
 fonts\LiberationMono-Regular.ttf
