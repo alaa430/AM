@@ -1869,6 +1869,6 @@ setTimeout(PayloadLoader("aio_patches.bin"),500);
 log("AIO Fixes Applied.!");
 //Load GoldHEN :)
 setTimeout(PayloadLoader("payload.bin"),500);
-msgs.innerHTML = "GoldHEN v2.4b18.6 Loaded ...";
+msgs.innerHTML = "تم تفعيل الجولد هين بنجاح";
 
 })
