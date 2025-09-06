@@ -1,12 +1,12 @@
 CACHE MANIFEST 
 
 CACHE: 
-../img.jpg
-../style.css
+img.jpg
+style.css
 aio_patches.bin
 alert.mjs
 config.mjs
-goldhen_2.4b18.6.bin
+payload.bin
 index.html
 lapse.mjs
 psfree.mjs
