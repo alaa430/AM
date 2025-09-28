@@ -15,7 +15,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
-// 9.00
+// 7.00, 7.01, 7.02
 
 #include "types.h"
 #include "utils.h"
@@ -57,7 +57,7 @@ static inline void restore(void *kbase, struct kexec_args *uap) {
 
     u64 *sysent_661_save = uap->arg5;
     for (int i = 0; i < 0x30; i += 8) {
-        write64(kbase, 0x1107f00 + i, sysent_661_save[i / 8]);
+        write64(kbase, 0x112d250 + i, sysent_661_save[i / 8]);
     }
 }
 
@@ -66,18 +66,18 @@ static inline void do_patch(void *kbase) {
     disable_cr0_wp();
 
     // ChendoChap's patches from pOOBs4
-    write16(kbase, 0x626874, 0x00eb); // veriPatch
+    write16(kbase, 0x63acce, 0x00eb); // veriPatch
     write8(kbase, 0xacd, 0xeb); // bcopy
-    write8(kbase, 0x2713fd, 0xeb); // bzero
-    write8(kbase, 0x271441, 0xeb); // pagezero
-    write8(kbase, 0x2714bd, 0xeb); // memcpy
-    write8(kbase, 0x271501, 0xeb); // pagecopy
-    write8(kbase, 0x2716ad, 0xeb); // copyin
-    write8(kbase, 0x271b5d, 0xeb); // copyinstr
-    write8(kbase, 0x271c2d, 0xeb); // copystr
+    write8(kbase, 0x2ef8d, 0xeb); // bzero
+    write8(kbase, 0x2efd1, 0xeb); // pagezero
+    write8(kbase, 0x2f04d, 0xeb); // memcpy
+    write8(kbase, 0x2f091, 0xeb); // pagecopy
+    write8(kbase, 0x2f23d, 0xeb); // copyin
+    write8(kbase, 0x2f6ed, 0xeb); // copyinstr
+    write8(kbase, 0x2f7bd, 0xeb); // copystr
 
     // stop sysVeri from causing a delayed panic on suspend
-    write16(kbase, 0x62715f, 0x00eb);
+    write16(kbase, 0x63b5ef, 0x00eb);
 
     // patch amd64_syscall() to allow calling syscalls everywhere
     // struct syscall_args sa; // initialized already
@@ -113,16 +113,16 @@ static inline void do_patch(void *kbase) {
     //     call    qword [rax + 8] ; error = (sa->callp->sy_call)(td, sa->args)
     //
     // sy_call() is the function that will execute the requested syscall.
-    write8(kbase, 0x4c2, 0xeb);
+    write16(kbase, 0x4c6, 0xe990);
+    write16(kbase, 0x4bd, 0x00eb);
     write16(kbase, 0x4b9, 0x00eb);
-    write16(kbase, 0x4b5, 0x00eb);
 
     // patch sys_setuid() to allow freely changing the effective user ID
     // ; PRIV_CRED_SETUID = 50
     // call priv_check_cred(oldcred, PRIV_CRED_SETUID, 0)
     // test eax, eax
     // je ... ; patch je to jmp
-    write8(kbase, 0x1a06, 0xeb);
+    write8(kbase, 0x87b77, 0xeb);
 
     // patch vm_map_protect() (called by sys_mprotect()) to allow rwx mappings
     //
@@ -132,17 +132,17 @@ static inline void do_patch(void *kbase) {
     //     vm_map_unlock(map);
     //     return (KERN_PROTECTION_FAILURE);
     // }
-    write16(kbase, 0x80b8b, 0x04eb);
+    write16(kbase, 0x264c08, 0x04eb);
 
     // TODO: Description of this patch. patch sys_dynlib_load_prx()
-    write16(kbase, 0x23aec4, 0xe990);
+    write16(kbase, 0x94ec1, 0xe990);
 
     // patch sys_dynlib_dlsym() to allow dynamic symbol resolution everywhere
     // call    ...
     // mov     r14, qword [rbp - 0xad0]
     // cmp     eax, 0x4000000
     // jb      ... ; patch jb to jmp
-    write8(kbase, 0x23b67f, 0xeb);
+    write16(kbase, 0x9547b, 0xe990);
     // patch called function to always return 0
     //
     // sys_dynlib_dlsym:
@@ -157,7 +157,7 @@ static inline void do_patch(void *kbase) {
     //     push    rbp
     //     mov     rbp, rsp
     //     ...
-    write32(kbase, 0x221b40, 0xc3c03148);
+    write32(kbase, 0x2f2c20, 0xc3c03148);
 
     // patch sys_mmap() to allow rwx mappings
     // patch maximum cpu mem protection: 0x33 -> 0x37
@@ -165,8 +165,8 @@ static inline void do_patch(void *kbase) {
     // GPU X: 0x8 R: 0x10 W: 0x20
     // that's why you see other bits set
     // ref: https://cturt.github.io/ps4-2.html
-    write8(kbase, 0x16632a, 0x37);
-    write8(kbase, 0x16632d, 0x37);
+    write8(kbase, 0x1d2336, 0x37);
+    write8(kbase, 0x1d2339, 0x37);
 
     // overwrite the entry of syscall 11 (unimplemented) in sysent
     //
@@ -182,11 +182,11 @@ static inline void do_patch(void *kbase) {
     // int sys_kexec(struct thread td, struct args *uap) {
     //     asm("jmp qword ptr [rsi]");
     // }
-    const u64 sysent_11_off = 0x1100520;
+    const u64 sysent_11_off = 0x1125870;
     // .sy_narg = 2
     write32(kbase, sysent_11_off, 2);
     // .sy_call = gadgets['jmp qword ptr [rsi]']
-    write64(kbase, sysent_11_off + 8, kbase + 0x4c7ad);
+    write64(kbase, sysent_11_off + 8, kbase + 0x6b192);
     // .sy_thrcnt = SY_THR_STATIC
     write32(kbase, sysent_11_off + 0x2c, 1);
 

