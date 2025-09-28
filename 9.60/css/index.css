@@ -21,19 +21,7 @@ html {
     pointer-events: none;
 }
 
-.header-title {
-    color: #FFF;
-    font-size: 20px;
-    font-weight: bold;
-    letter-spacing: 2px;
-    text-shadow: 0px 0px 15px #FFB84D;
-    background: #6f707433;
-    border-radius: 18px;
-    padding: 10px 48px;
-    pointer-events: auto;
-    border: 3px solid #FFB84D; 
 
-}
 
 .center-btn-wrap {
     position: absolute;

@@ -6,6 +6,10 @@ const savedc = localStorage.getItem('dbugc');
 const menuBtns = document.querySelectorAll('.menu-btn');
 const psBtns = document.querySelectorAll('.ps-btn');
 const plsbtn = document.querySelectorAll('.button-container button');
+const consoleDev = document.getElementById("console");
+
+
+var ps4fw
 
 window.addEventListener('DOMContentLoaded', loadsettings);
 
@@ -99,19 +103,35 @@ function closesettings() {
 
 function CheckFW() {
   const userAgent = navigator.userAgent;
-  const ps4Regex = /PlayStation 4/;
+  const ps4Regex = /PlayStation(?:;\s*PlayStation)?(?: 4\/| 4 )?(\d+\.\d+)/;
   const elementsToHide = [
-    'jailbreak-page', 'jailbreak', 'autojbchkb', 'agtext', 
+    'jailbreak-page', 'jailbreak', 'autojbchkb', 'agtext',
     'payloadsbtn', 'generate-cache-btn', 'update-exploit', 'settings-btn'
   ];
-
+  
   if (ps4Regex.test(userAgent)) {
-    const firmwareMatch = userAgent.match(/PlayStation 4\/([\d.]+)/);
-    const fwVersion = firmwareMatch ? firmwareMatch[1] : null;
+    // Extract firmware version using regex
+    const match = userAgent.match(ps4Regex);
+    const fwVersion = match ? match[1] : "Unknown"; // Get the firmware version or default to "Unknown"
 
-    if (fwVersion == '8.00' || fwVersion == '8.01' || fwVersion == '8.01' || fwVersion == '8.03' || fwVersion == '8.50' || fwVersion == '8.52' || fwVersion === '9.00' || fwVersion == '9.03' || fwVersion == '9.04' || fwVersion == '9.50' || fwVersion == '9.51' || fwVersion === '9.60') {
+    if (
+      fwVersion === '9.00' || fwVersion === '9.03' || fwVersion === '9.60' ||
+      fwVersion === '7.00' || fwVersion === '7.01' || fwVersion === '7.02' ||
+      fwVersion === '7.50' || fwVersion === '7.51' || fwVersion === '7.55' ||
+      fwVersion === '8.00' || fwVersion === '8.01' || fwVersion === '8.03' ||
+      fwVersion === '8.50' || fwVersion === '8.52' || fwVersion === '9.04' ||
+      fwVersion === '9.50' || fwVersion === '9.51'
+    ) {
       document.getElementById('PS4FW').textContent = `PS4 FW: ${fwVersion} | Compatible`;
       document.getElementById('PS4FW').style.color = 'green';
+      ps4fw = fwVersion.replace('.', '');
+      document.getElementById('install-psfrf').style.display = 'flex';
+      if (ps4fw === '903' || ps4fw === '960') {
+        document.getElementById('gameb').style.display = 'none';
+      }
+      if (ps4fw === '900' || ps4fw === '903' || ps4fw === '960'){
+        document.getElementById('linuxb').style.display = 'flex';
+      }
     } else {
       document.getElementById('PS4FW').textContent = `PS4 FW: ${fwVersion || 'Unknown'} | Incompatible`;
       document.getElementById('PS4FW').style.color = 'red';
@@ -122,7 +142,7 @@ function CheckFW() {
       });
     }
 
-    document.title = "PSFree | " + fwVersion
+    document.title = "PSFree | " + fwVersion;
   } else {
     let platform = 'Unknown platform';
 
@@ -302,10 +322,12 @@ function loadajbsettings(){
 
   if (ckbaj.checked) {
     if (sessionStorage.getItem('jbsuccess')) {
-      console.log('Aleardy jailbroken !');
+      consoleDev.append(`Already jailbroken !\n`);
+      consoleDev.scrollTop = consoleDev.scrollHeight;
     } else {
       document.getElementById('jailbreak').style.display = 'none';
-      document.getElementById('loader').style.display = 'flex';
+      consoleDev.append(`Auto jailbreaking... Please wait for a few seconds.\n`);
+      consoleDev.scrollTop = consoleDev.scrollHeight;
       setTimeout(() => {
         jailbreak();
       }, 3000);
@@ -341,32 +363,36 @@ function loadajbsettings(){
 
 async function jailbreak() {
   try {
-    document.getElementById('jailbreak').style.display = 'none';
-    document.getElementById('loader').style.display = 'flex';
-    const modules = await loadMultipleModules([
-      '../payloads/Jailbreak.js',
-      '../psfree/alert.mjs'
-    ]);
-    console.log("All modules are loaded!");
-    const JailbreakModule = modules[0];
-
-    if (localStorage.getItem('HEN')) {
-      if (JailbreakModule && typeof JailbreakModule.HEN === 'function') {
-          JailbreakModule.HEN();
-      } else {
-          console.error("HEN function not found in Jailbreak.js module");
-      }
-    } else if (localStorage.getItem('GoldHEN')) {
-      if (JailbreakModule && typeof JailbreakModule.GoldHEN === 'function') {
-          JailbreakModule.GoldHEN();
-      } else {
-          console.error("GoldHEN function not found in Jailbreak.js module");
-      }
+    if (sessionStorage.getItem('jbsuccess')) {
+      consoleDev.append(`Aleardy jailbroken !\n`);
+      consoleDev.scrollTop = consoleDev.scrollHeight;
     } else {
-      if (JailbreakModule && typeof JailbreakModule.GoldHEN === 'function') {
-          JailbreakModule.GoldHEN();
+      document.getElementById('jailbreak').style.display = 'none';
+      const modules = await loadMultipleModules([
+        '../payloads/Jailbreak.js',
+        '../psfree/alert.mjs'
+      ]);
+      console.log("All modules are loaded!");
+      const JailbreakModule = modules[0];
+
+      if (localStorage.getItem('HEN')) {
+        if (JailbreakModule && typeof JailbreakModule.HEN === 'function') {
+            JailbreakModule.HEN();
+        } else {
+            console.error("HEN function not found in Jailbreak.js module");
+        }
+      } else if (localStorage.getItem('GoldHEN')) {
+        if (JailbreakModule && typeof JailbreakModule.GoldHEN === 'function') {
+            JailbreakModule.GoldHEN();
+        } else {
+            console.error("GoldHEN function not found in Jailbreak.js module");
+        }
       } else {
-          console.error("GoldHEN function not found in Jailbreak.js module");
+        if (JailbreakModule && typeof JailbreakModule.GoldHEN === 'function') {
+            JailbreakModule.GoldHEN();
+        } else {
+            console.error("GoldHEN function not found in Jailbreak.js module");
+        }
       }
     }
   } catch (e) {
@@ -422,10 +448,10 @@ async function Loadpayloads(payload) {
 }
 
 function loadsettings() {
+  CheckFW();
   loadajbsettings();
   loadjbflavor();
   checksettings();
-  CheckFW();
 }
 
 function onCheckboxChange(checked) {
