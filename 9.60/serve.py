@@ -120,21 +120,32 @@ class CustomHandler(SimpleHTTPRequestHandler):
         elif self.path == '/update_exploit':
             root_dir = os.path.abspath(os.path.dirname(__file__))
             files_to_update = [
-                ("psfree/lapse.mjs", "https://raw.githubusercontent.com/kmeps4/PSFree/refs/heads/main/lapse.mjs"),
-                ("psfree/psfree.mjs", "https://raw.githubusercontent.com/kmeps4/PSFree/refs/heads/main/psfree.mjs"),
-                ("psfree/config.mjs", "https://raw.githubusercontent.com/kmeps4/PSFree/refs/heads/main/config.mjs"),
-                ("psfree/send.mjs", "https://raw.githubusercontent.com/kmeps4/PSFree/refs/heads/main/send.mjs"),
-                ("psfree/kpatch/900.elf", "https://raw.githubusercontent.com/kmeps4/PSFree/main/kpatch/900.elf"),
-                ("psfree/rop/900.mjs", "https://raw.githubusercontent.com/kmeps4/PSFree/main/rop/900.mjs"),
-                #("module/chain.mjs", "https://raw.githubusercontent.com/kmeps4/PSFree/main/module/chain.mjs"),
-                ("psfree/module/constants.mjs", "https://raw.githubusercontent.com/kmeps4/PSFree/main/module/constants.mjs"),
-                ("psfree/module/int64.mjs", "https://raw.githubusercontent.com/kmeps4/PSFree/main/module/int64.mjs"),
-                ("psfree/module/mem.mjs", "https://raw.githubusercontent.com/kmeps4/PSFree/main/module/mem.mjs"),
-                ("psfree/module/memtools.mjs", "https://raw.githubusercontent.com/kmeps4/PSFree/main/module/memtools.mjs"),
-                ("psfree/module/offset.mjs", "https://raw.githubusercontent.com/kmeps4/PSFree/main/module/offset.mjs"),
-                ("psfree/module/rw.mjs", "https://raw.githubusercontent.com/kmeps4/PSFree/main/module/rw.mjs"),
-                ("psfree/module/utils.mjs", "https://raw.githubusercontent.com/kmeps4/PSFree/main/module/utils.mjs"),
-                #("module/view.mjs", "https://raw.githubusercontent.com/kmeps4/PSFree/main/module/view.mjs")
+                ("psfree/lapse.mjs", "https://raw.githubusercontent.com/Nazky/PSFree/refs/heads/main/psfree/lapse.mjs"),
+                ("psfree/psfree.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/psfree.mjs"),
+                ("psfree/config.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/config.mjs"),
+                ("psfree/send.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/send.mjs"),
+                ("psfree/kpatch/700.bin", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/kpatch/700.bin"),
+                ("psfree/kpatch/750.bin", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/kpatch/750.bin"),
+                ("psfree/kpatch/800.bin", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/kpatch/800.bin"),
+                ("psfree/kpatch/850.bin", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/kpatch/850.bin"),
+                ("psfree/kpatch/900.bin", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/kpatch/900.bin"),
+                ("psfree/kpatch/903.bin", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/kpatch/903.bin"),
+                ("psfree/kpatch/950.bin", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/kpatch/950.bin"),
+                ("psfree/rop/ps4/700.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/rop/ps4/700.mjs"),
+                ("psfree/rop/ps4/750.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/rop/ps4/750.mjs"),
+                ("psfree/rop/ps4/800.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/rop/ps4/800.mjs"),
+                ("psfree/rop/ps4/850.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/rop/ps4/850.mjs"),
+                ("psfree/rop/ps4/900.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/rop/ps4/900.mjs"),
+                ("psfree/rop/ps4/950.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/rop/ps4/950.mjs"),
+                ("psfree/module/chain.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/module/chain.mjs"),
+                ("psfree/module/constants.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/module/constants.mjs"),
+                ("psfree/module/int64.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/module/int64.mjs"),
+                ("psfree/module/mem.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/module/mem.mjs"),
+                ("psfree/module/memtools.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/module/memtools.mjs"),
+                ("psfree/module/offset.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/module/offset.mjs"),
+                ("psfree/module/rw.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/module/rw.mjs"),
+                ("psfree/module/utils.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/module/utils.mjs"),
+                ("psfree/module/view.mjs", "https://github.com/Nazky/PSFree/raw/refs/heads/main/psfree/module/view.mjs")
             ]
             results = []
 
@@ -158,21 +169,21 @@ class CustomHandler(SimpleHTTPRequestHandler):
                         results.append(f"{local_rel_path}: download failed ({download_error})")
                         continue  # skip to next file
 
-                    # If .mjs file, decode, replace strings using regex, then encode back
-                    if is_mjs_file(local_rel_path):
-                        text_data = raw_data.decode('utf-8')
-                        text_data = re.sub(r'(?<!\.)\./kpatch\b', './psfree/kpatch', text_data)
-                        text_data = re.sub(r'(?<!\.)\./module\b', './module', text_data)
-                        text_data = re.sub(r'(?<!\.)\./rop\b', '../rop', text_data)
-                        text_data = text_data.replace('alert("kernel exploit succeeded!");', '//alert("kernel exploit succeeded!");')
-                        text_data = text_data.replace("const textarea = document.createElement('textarea');", "const textarea = document.createElement('textarea');\n       textarea.style.opacity = '0'; // Set the opacity to 0")
-                        text_data = text_data.replace("const fset = document.createElement('frameset');", "const fset = document.createElement('frameset');\n           fset.style.opacity = '0'; // Set the opacity to 0")
-                        text_data = text_data.replace("const input = document.createElement('input');", "const input = document.createElement('input');\n    input.style.opacity = '0'; // Set the opacity to 0")
-                        text_data = text_data.replace("const foo = document.createElement('input');", "const foo = document.createElement('input');\n    foo.style.opacity = '0'; // Set the opacity to 0")
-                        text_data = text_data.replace("const bar = document.createElement('a');", "const bar = document.createElement('a');\n    bar.style.opacity = '0'; // Set the opacity to 0")
-                        new_data = text_data.encode('utf-8')
-                    else:
-                        new_data = raw_data
+                    ## If .mjs file, decode, replace strings using regex, then encode back
+                    #if is_mjs_file(local_rel_path):
+                    #    text_data = raw_data.decode('utf-8')
+                    #    text_data = re.sub(r'(?<!\.)\./kpatch\b', './psfree/kpatch', text_data)
+                    #    text_data = re.sub(r'(?<!\.)\./module\b', './module', text_data)
+                    #    text_data = re.sub(r'(?<!\.)\./rop\b', '../rop', text_data)
+                    #    text_data = text_data.replace('alert("kernel exploit succeeded!");', '//alert("kernel exploit succeeded!");')
+                    #    text_data = text_data.replace("const textarea = document.createElement('textarea');", "const textarea = document.createElement('textarea');\n       textarea.style.opacity = '0'; // Set the opacity to 0")
+                    #    text_data = text_data.replace("const fset = document.createElement('frameset');", "const fset = document.createElement('frameset');\n           fset.style.opacity = '0'; // Set the opacity to 0")
+                    #    text_data = text_data.replace("const input = document.createElement('input');", "const input = document.createElement('input');\n    input.style.opacity = '0'; // Set the opacity to 0")
+                    #    text_data = text_data.replace("const foo = document.createElement('input');", "const foo = document.createElement('input');\n    foo.style.opacity = '0'; // Set the opacity to 0")
+                    #    text_data = text_data.replace("const bar = document.createElement('a');", "const bar = document.createElement('a');\n    bar.style.opacity = '0'; // Set the opacity to 0")
+                    #    new_data = text_data.encode('utf-8')
+                    #else:
+                    new_data = raw_data
 
                     # Read old file content if exists
                     old_data = b""
