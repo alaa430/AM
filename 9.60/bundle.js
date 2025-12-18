@@ -5129,7 +5129,7 @@ async function doJBwithPSFreeLapseExploit() {
     window.log('Lapse STAGE 5/5: Patch kernel');
     window.log("\nKernel exploit succeeded and AIO fixes applied", "green");
     window.log("GoldHen loaded", "green");
-    window.log("\nPSFree & Lapse exploit with AIO fixes by ABC");
+    window.log("\nPSFree & Lapse exploit with AIO fixes by ALAA MOHAMED");
     window.log("\nATTENTION: This device is not jailbroken!!!","red");
     window.log("This screen is shown for DEMO purposes only");
     */
