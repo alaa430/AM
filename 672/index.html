@@ -36,7 +36,7 @@ else {
 <h1 id="msgs">PS4 6.72 FW ALAA MOHAMED 01001550618</h1>
 <h1 style="font-size: 18px;"><font color="green">Pass = <span id="passCounter"></span>&nbsp;&nbsp;&nbsp;&nbsp;<font color="orange">Main Payloads</span>&nbsp;&nbsp;&nbsp;&nbsp;<font color="red">Fail = <span id="failCounter"></span></h1>
 <button class="btn" onclick="load_goldhen()"> GoldHEN </button>
-<button class="btn" onclick="load_hen()"> HEN </button>
+
 </div>
 <script>
 for(var i=40; i<=79; i++){var select = document.getElementById("tempC"); var option = document.createElement("OPTION"); select.options.add(option); option.text = i; option.value = i;}
@@ -87,12 +87,6 @@ PLfile="payload.bin";
 setTimeout(jailbreak,10);
 }
 
-function load_hen(){
-msgs.innerHTML="انتظر شويه ";
-LoadedMSG="تم تفعيل الهين بنجاح";
-PLfile="hen2.1.3b.bin";
-setTimeout(jailbreak,500);
-}
 
 </script>
 </body>
