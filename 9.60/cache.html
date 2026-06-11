@@ -1,7 +1,7 @@
-<html manifest="psfree_lapse.cache">
+<html manifest="ps4jb.cache">
   <head>
     <meta charset="utf-8">
-    <title>PS4 Jailbreak</title>
+    <title>PS4 7.00 - 9.60 Exploit alaa mohamed 01001550618</title>
     <style>
 html {
     background-image: url('img.jpg');
@@ -14,6 +14,9 @@ html {
     text-align: center;
     overflow: hidden;
 }
+      h2 {
+        margin-bottom: 20px;
+      }
       #console {
         font-family: monospace;
         background-color: #1e1e1e;
@@ -45,9 +48,9 @@ html {
     </style>
   </head>
   <body>
-    <h2>PSFree: A PS4 7.00 - 9.60 Exploit alaa mohamed 01001550618</h2>
+    <h2>PS4 7.00 - 9.60 Exploit alaa mohamed 01001550618</h2>
     <div>
-      <button id="jailbreakBtn">Start Jailbreak</button>
+      <button id="jailbreakBtn">PS4 7.00 - 9.60 Exploit alaa mohamed 01001550618</button>
     </div>
     <div style="margin-top: 15px;">
       <label style="font-size: 16px;">
@@ -57,7 +60,7 @@ html {
     </div>
     <pre id="console"></pre>
     <footer>
-      UI Designed by <strong>alaa mohamed</strong>
+      UI Designed by <strong>PS4 7.00 - 9.60 Exploit alaa mohamed 01001550618</strong>
     </footer>
   </body>
   <script>
@@ -66,12 +69,15 @@ html {
     var histlength = history.length;
     history.go(-histlength);
     // Logging utility
-    const outputConsole = document.getElementById("console");
-    window.log = (msg) => { outputConsole.textContent += msg + "\n"; };
+    var outputConsole = document.getElementById("console");
+    window.log = function (msg) {
+      outputConsole.textContent += msg + "\n";
+    };
     // Download progress (% display)
     function DLProgress(e) {
-      const percent = (Math.round((e.loaded / e.total) * 100));
-      window.log(`[CACHE] Downloading... ${percent}% complete.`);
+      if (!e || !e.total) return;
+      var percent = (Math.round((e.loaded / e.total) * 100));
+      window.log("[CACHE] Downloading... " + percent + "% complete.");
     }
     // On cache complete
     function DisplayCacheProgress() {
@@ -83,12 +89,19 @@ html {
       // Navigate back to index.html to load the exploit from cache
       setTimeout(function() { location.reload(); }, 3000);
     }
+    // On error
+    function DLError(e) {
+      window.log(" ");
+      window.log("[CACHE ERROR] An error occured during Cache...");
+      window.log("[CACHE ERROR] Check if payload.bin file included in the directory!!!");
+    }
     // Event listeners
     window.applicationCache.addEventListener("progress", DLProgress, false);
+    window.applicationCache.addEventListener("error", DLError, false);
     window.applicationCache.oncached = function(e) { DisplayCacheProgress(); };
     window.applicationCache.onupdateready = function(e) { DisplayCacheProgress(); };
     // Initialization message on DOM load
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', function () {
       outputConsole.textContent = ""; // Clear console log
       window.log("AppCache download initiating...");
       window.log("Please wait, this may take a few seconds.");
