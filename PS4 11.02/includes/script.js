@@ -1,103 +1,150 @@
-let timerId = null; 
+// ============================================
+// MUSTAFA PS4/PS5 - GOLDEN EDITION
+// ============================================
+
+let timerId = null;
 const label = document.getElementById('autoJbLabel');
 const checkbox = document.getElementById('autoJbInput');
-const jeilbrekBtn = document.getElementById('jeilbrek');
-const UAElement = document.getElementById("UA");
+const btn = document.getElementById('jeilbrek');
+const ua = document.getElementById('UA');
+const statusText = document.getElementById('statusText');
+const statusDot = document.getElementById('statusDot');
 
-const storedAutoJb = localStorage.getItem("autoJb");
-let autoJbValue = storedAutoJb !== null ? storedAutoJb === "true" : true;
+// ===== SETTINGS =====
+const storedAuto = localStorage.getItem("autoJb");
+let autoValue = storedAuto !== null ? storedAuto === "true" : false;
 
-// choose one of kernel exploits
-var exploitChain = localStorage.getItem("exploitChain") || "lapse";
-const netctrlRadio = document.getElementById("netctrl-exploit");
-const lapseRadio = document.getElementById("lapse-exploit");
-const kexForm = document.getElementById('kernel-options');
+let exploitChain = localStorage.getItem("exploitChain") || "lapse";
+const netctrl = document.getElementById("netctrl-exploit");
+const lapse = document.getElementById("lapse-exploit");
+const form = document.getElementById('kernel-options');
 
-// Show user agent
-UAElement.innerText += " " + navigator.userAgent;
+// ===== DEVICE INFO =====
+if (ua) ua.textContent = 'الجهاز: ' + navigator.userAgent;
 
-kexForm.addEventListener("change", function (event) {
-    localStorage.setItem("exploitChain", event.target.value);
-    exploitChain = event.target.value;
-});
+// ===== STATUS =====
+function setStatus(text, type) {
+    type = type || 'waiting';
+    if (statusText) statusText.textContent = text;
+    if (statusDot) statusDot.className = 'dot ' + type;
+}
 
-// jailbreak execution
-jeilbrekBtn.addEventListener("click", function (e){
-    jeilbrekBtn.disabled = true;
-    stopInterval();
-    doJb();
-});
+// ===== KERNEL SELECT =====
+if (form) {
+    form.addEventListener("change", function(e) {
+        localStorage.setItem("exploitChain", e.target.value);
+        exploitChain = e.target.value;
+        setStatus('تغيير: ' + e.target.value, 'waiting');
+    });
+}
 
-checkbox.addEventListener('change', function () {
-    localStorage.setItem("autoJb", checkbox.checked);
-    if (checkbox.checked == true && jeilbrekBtn.disabled == false) {
-        jailbreakCountdown();
-        return;
-    }
+// ===== JAILBREAK BUTTON =====
+if (btn) {
+    btn.addEventListener("click", function() {
+        btn.disabled = true;
+        setStatus('جاري التشغيل...', 'waiting');
+        stopTimer();
+        if (typeof doJb === 'function') {
+            doJb();
+        } else {
+            setStatus('خطأ في التحميل', 'error');
+            btn.disabled = false;
+        }
+    });
+}
 
-    stopInterval();
-});
+// ===== AUTO TOGGLE =====
+if (checkbox) {
+    checkbox.addEventListener('change', function() {
+        localStorage.setItem("autoJb", checkbox.checked);
+        if (checkbox.checked && !btn.disabled) {
+            setStatus('تلقائي...', 'waiting');
+            startCountdown();
+        } else {
+            stopTimer();
+            setStatus('جاهز', 'waiting');
+        }
+    });
+}
 
-function stopInterval(){
-    if (timerId !== null) {
+// ===== TIMER =====
+function stopTimer() {
+    if (timerId) {
         clearInterval(timerId);
         timerId = null;
     }
-    label.textContent = "Auto Jailbreak";
+    if (label) label.textContent = 'تلقائي';
 }
 
-function jailbreakCountdown() {   
-    stopInterval();
-
-    let countdown = 5;
-    label.textContent = `Auto Jailbreaking in: ${countdown}`;
-    timerId = setInterval(() => {
-        countdown--;
-        label.textContent = `Auto Jailbreaking in: ${countdown}`;
-
-        if (countdown < 0) {
-            jeilbrekBtn.disabled = true; 
+function startCountdown() {
+    stopTimer();
+    let count = 5;
+    if (label) label.textContent = 'عد: ' + count;
+    timerId = setInterval(function() {
+        count--;
+        if (label) label.textContent = 'عد: ' + count;
+        if (count < 0) {
             clearInterval(timerId);
             timerId = null;
-            label.textContent = 'Executing';
-            doJb();
+            if (btn) {
+                btn.disabled = true;
+                setStatus('جاري التشغيل...', 'waiting');
+                if (label) label.textContent = 'تنفيذ';
+                if (typeof doJb === 'function') {
+                    doJb();
+                }
+            }
         }
     }, 1000);
 }
 
+// ===== CACHE =====
 function cacheProgress(e) {
-    var Percent = (Math.round(e.loaded / e.total * 100));
-    document.title = "Caching: " + Percent + "%";
+    var p = Math.round(e.loaded / e.total * 100);
+    document.title = 'Mustafa ' + p + '%';
+}
+function cacheDone() {
+    document.title = 'Mustafa';
 }
 
-function displayCacheProgress() {
-    setTimeout(function () {
-        // show a tick
-        document.title = "\u2713";
-    }, 1000);
-    setTimeout(function () {
-        // location.reload();
-        document.title = "CSSFontFace exploit";
-    }, 3000);
-}
-
+// ===== ON LOAD =====
 document.addEventListener("DOMContentLoaded", function() {
-    // Cache handling
+
+    // Cache
     if (window.applicationCache) {
         window.applicationCache.addEventListener("progress", cacheProgress, false);
-        window.applicationCache.oncached = function (e) { displayCacheProgress(); };
-        window.applicationCache.onupdateready = function (e) { displayCacheProgress(); };
+        window.applicationCache.oncached = cacheDone;
+        window.applicationCache.onupdateready = cacheDone;
     }
 
-    // choose prefered exploit chain
-    if (exploitChain == "netctrl") {
-        netctrlRadio.checked = true;
+    // Select kernel
+    if (exploitChain === "netctrl") {
+        if (netctrl) netctrl.checked = true;
     } else {
-        lapseRadio.checked = true;
+        if (lapse) lapse.checked = true;
     }
 
-    // apply autojb localStorage value
-    checkbox.checked = autoJbValue;
+    // Auto
+    if (checkbox) {
+        checkbox.checked = autoValue;
+        if (autoValue) {
+            setStatus('تلقائي...', 'waiting');
+            startCountdown();
+        } else {
+            setStatus('جاهز', 'waiting');
+        }
+    }
 
-    if (autoJbValue) jailbreakCountdown();
+    // Exploit complete listener
+    window.addEventListener('exploitComplete', function(e) {
+        if (e.detail && e.detail.success) {
+            setStatus('تم الاختراق بنجاح!', 'success');
+            document.title = 'نجاح';
+            if (btn) btn.disabled = true;
+        } else if (e.detail && !e.detail.success) {
+            setStatus('فشل، حاول مجدداً', 'error');
+            if (btn) btn.disabled = false;
+        }
+    });
+
 });
