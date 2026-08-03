@@ -1,150 +1,169 @@
-// ============================================
-// MUSTAFA PS4/PS5 - GOLDEN EDITION
-// ============================================
-
 let timerId = null;
-const label = document.getElementById('autoJbLabel');
-const checkbox = document.getElementById('autoJbInput');
-const btn = document.getElementById('jeilbrek');
-const ua = document.getElementById('UA');
-const statusText = document.getElementById('statusText');
-const statusDot = document.getElementById('statusDot');
 
-// ===== SETTINGS =====
-const storedAuto = localStorage.getItem("autoJb");
-let autoValue = storedAuto !== null ? storedAuto === "true" : false;
+const jeilbrekBtn = document.getElementById("jeilbrek");
+const UAElement = document.getElementById("UA");
 
+const countdownText = document.getElementById("countdown");
+const checkbox = document.getElementById("autoJbInput");
+
+// Auto JB (default OFF)
+const storedAutoJb = localStorage.getItem("autoJb");
+const autoJbValue = storedAutoJb !== null ? storedAutoJb === "true" : false;
+
+// Kernel exploit
 let exploitChain = localStorage.getItem("exploitChain") || "lapse";
-const netctrl = document.getElementById("netctrl-exploit");
-const lapse = document.getElementById("lapse-exploit");
-const form = document.getElementById('kernel-options');
 
-// ===== DEVICE INFO =====
-if (ua) ua.textContent = 'الجهاز: ' + navigator.userAgent;
+const netctrlRadio = document.getElementById("netctrl-exploit");
+const lapseRadio = document.getElementById("lapse-exploit");
+const kexForm = document.getElementById("kernel-options");
 
-// ===== STATUS =====
-function setStatus(text, type) {
-    type = type || 'waiting';
-    if (statusText) statusText.textContent = text;
-    if (statusDot) statusDot.className = 'dot ' + type;
-}
+// User Agent
+UAElement.textContent += " " + navigator.userAgent;
 
-// ===== KERNEL SELECT =====
-if (form) {
-    form.addEventListener("change", function(e) {
-        localStorage.setItem("exploitChain", e.target.value);
-        exploitChain = e.target.value;
-        setStatus('تغيير: ' + e.target.value, 'waiting');
-    });
-}
+// ========================================================
+// Kernel Selection
+// ========================================================
 
-// ===== JAILBREAK BUTTON =====
-if (btn) {
-    btn.addEventListener("click", function() {
-        btn.disabled = true;
-        setStatus('جاري التشغيل...', 'waiting');
-        stopTimer();
-        if (typeof doJb === 'function') {
-            doJb();
-        } else {
-            setStatus('خطأ في التحميل', 'error');
-            btn.disabled = false;
-        }
-    });
-}
+kexForm.addEventListener("change", function (event) {
+  exploitChain = event.target.value;
 
-// ===== AUTO TOGGLE =====
-if (checkbox) {
-    checkbox.addEventListener('change', function() {
-        localStorage.setItem("autoJb", checkbox.checked);
-        if (checkbox.checked && !btn.disabled) {
-            setStatus('تلقائي...', 'waiting');
-            startCountdown();
-        } else {
-            stopTimer();
-            setStatus('جاهز', 'waiting');
-        }
-    });
-}
-
-// ===== TIMER =====
-function stopTimer() {
-    if (timerId) {
-        clearInterval(timerId);
-        timerId = null;
-    }
-    if (label) label.textContent = 'تلقائي';
-}
-
-function startCountdown() {
-    stopTimer();
-    let count = 5;
-    if (label) label.textContent = 'عد: ' + count;
-    timerId = setInterval(function() {
-        count--;
-        if (label) label.textContent = 'عد: ' + count;
-        if (count < 0) {
-            clearInterval(timerId);
-            timerId = null;
-            if (btn) {
-                btn.disabled = true;
-                setStatus('جاري التشغيل...', 'waiting');
-                if (label) label.textContent = 'تنفيذ';
-                if (typeof doJb === 'function') {
-                    doJb();
-                }
-            }
-        }
-    }, 1000);
-}
-
-// ===== CACHE =====
-function cacheProgress(e) {
-    var p = Math.round(e.loaded / e.total * 100);
-    document.title = 'Mustafa ' + p + '%';
-}
-function cacheDone() {
-    document.title = 'Mustafa';
-}
-
-// ===== ON LOAD =====
-document.addEventListener("DOMContentLoaded", function() {
-
-    // Cache
-    if (window.applicationCache) {
-        window.applicationCache.addEventListener("progress", cacheProgress, false);
-        window.applicationCache.oncached = cacheDone;
-        window.applicationCache.onupdateready = cacheDone;
-    }
-
-    // Select kernel
-    if (exploitChain === "netctrl") {
-        if (netctrl) netctrl.checked = true;
-    } else {
-        if (lapse) lapse.checked = true;
-    }
-
-    // Auto
-    if (checkbox) {
-        checkbox.checked = autoValue;
-        if (autoValue) {
-            setStatus('تلقائي...', 'waiting');
-            startCountdown();
-        } else {
-            setStatus('جاهز', 'waiting');
-        }
-    }
-
-    // Exploit complete listener
-    window.addEventListener('exploitComplete', function(e) {
-        if (e.detail && e.detail.success) {
-            setStatus('تم الاختراق بنجاح!', 'success');
-            document.title = 'نجاح';
-            if (btn) btn.disabled = true;
-        } else if (e.detail && !e.detail.success) {
-            setStatus('فشل، حاول مجدداً', 'error');
-            if (btn) btn.disabled = false;
-        }
-    });
-
+  localStorage.setItem("exploitChain", exploitChain);
 });
+
+// ========================================================
+// Jailbreak Button
+// ========================================================
+
+jeilbrekBtn.addEventListener("click", function () {
+  stopInterval();
+
+  jeilbrekBtn.disabled = true;
+
+  doJb();
+});
+
+// ========================================================
+// Auto Jailbreak
+// ========================================================
+
+checkbox.addEventListener("change", function () {
+  localStorage.setItem("autoJb", checkbox.checked);
+
+  if (checkbox.checked && !jeilbrekBtn.disabled) {
+    jailbreakCountdown();
+  } else {
+    stopInterval();
+  }
+});
+
+function stopInterval() {
+  if (timerId !== null) {
+    clearInterval(timerId);
+
+    timerId = null;
+  }
+
+  countdownText.classList.add("hidden");
+}
+
+function jailbreakCountdown() {
+  stopInterval();
+
+  let countdown = 5;
+
+  countdownText.classList.remove("hidden");
+
+  countdownText.textContent = "Auto JB in " + countdown + "...";
+
+  timerId = setInterval(function () {
+    countdown--;
+
+    if (countdown >= 0) {
+      countdownText.textContent = "Auto JB in " + countdown + "...";
+    }
+
+    if (countdown < 0) {
+      clearInterval(timerId);
+
+      timerId = null;
+
+      countdownText.textContent = "Executing...";
+
+      jeilbrekBtn.disabled = true;
+
+      doJb();
+    }
+  }, 1000);
+}
+
+// ========================================================
+// AppCache
+// ========================================================
+
+function cacheProgress(e) {
+  const percent = Math.round((e.loaded / e.total) * 100);
+
+  document.title = "Caching: " + percent + "%";
+}
+
+function displayCacheProgress() {
+  setTimeout(function () {
+    document.title = "✓";
+  }, 1000);
+
+  setTimeout(function () {
+    document.title = "PS4 CSSFontFace Exploit";
+  }, 3000);
+}
+
+// ========================================================
+// Startup
+// ========================================================
+
+document.addEventListener("DOMContentLoaded", function () {
+  // AppCache
+
+  if (window.applicationCache) {
+    window.applicationCache.addEventListener("progress", cacheProgress, false);
+
+    window.applicationCache.oncached = displayCacheProgress;
+
+    window.applicationCache.onupdateready = displayCacheProgress;
+  }
+
+  // Selected exploit
+
+  if (exploitChain === "netctrl") {
+    netctrlRadio.checked = true;
+  } else {
+    lapseRadio.checked = true;
+  }
+
+  // Auto JB
+
+  checkbox.checked = autoJbValue;
+
+  if (autoJbValue) {
+    jailbreakCountdown();
+  }
+});
+
+// ========================================================
+// Background Console Auto Scroll
+// ========================================================
+
+const consoleElement = document.getElementById("console");
+
+if (consoleElement) {
+  const observer = new MutationObserver(function () {
+    consoleElement.scrollTop = consoleElement.scrollHeight;
+  });
+
+  observer.observe(consoleElement, {
+    childList: true,
+
+    characterData: true,
+
+    subtree: true,
+  });
+}

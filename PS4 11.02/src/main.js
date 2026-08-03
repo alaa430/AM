@@ -123,9 +123,11 @@ async function doJb() {
     }
 
     logger.info("===END===");
+    document.dispatchEvent(new Event("jb-success"));
   } catch (e) {
     logger.error(e.message);
     logger.error(e.stack);
+    document.dispatchEvent(new Event("jb-failed"));
     //mem.free_all();
   }
 }

