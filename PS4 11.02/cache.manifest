@@ -4,6 +4,7 @@ CACHE MANIFEST
 
 CACHE:
 index.html
+includes/img.jpg
 includes/script.js
 includes/style.css
 src/payload.bin
