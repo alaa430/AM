@@ -1700,7 +1700,7 @@ export async function kexploit() {
   }
 
   if (localStorage.ExploitLoaded === "yes" && sessionStorage.ExploitLoaded != "yes") {
-    msgs.innerHTML = "تم تفعيل الجولد هين بالفعل من قبل ...";
+    msgs.innerHTML = "GoldHEN is Already Loaded ...";
     return new Promise(() => {});
   }
 

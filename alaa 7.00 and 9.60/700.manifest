@@ -1,6 +1,7 @@
 CACHE MANIFEST 
 
 CACHE: 
+img.jpg
 style.css
 payload.bin
 index.html
@@ -31,7 +32,6 @@ index.html
 700\rop\750.js
 700\rop\800.js
 700\rop\850.js
-img.jpg
 
 NETWORK: 
 * 
