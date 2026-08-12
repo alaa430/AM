@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en" manifest="manifest.appcache">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AlaaMohamed 01001550618 PS5 Exploit Host</title>
+<style>
+ html {
+    background-image: url('img.jpg');
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-color: #24272b;
+    color: white;
+    text-align: center;
+    overflow: hidden;
+}
+
+  .container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    padding: 40px 50px;
+    max-width: 750px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 100, 255, 0.05);
+    transition: all 0.3s ease;
+    text-align: center;
+  }
+
+  .container:hover {
+    border-color: rgba(100, 150, 255, 0.3);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.9), 0 0 60px rgba(0, 100, 255, 0.1);
+  }
+
+  .main-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 42px;
+    font-weight: 900;
+    text-shadow: 0 0 30px rgba(0, 100, 255, 0.2);
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+  }
+
+  .highlight {
+    background: linear-gradient(135deg, #ff6b35, #ff2e63);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 40px rgba(255, 46, 99, 0.3);
+  }
+
+  .ps4-text {
+    background: linear-gradient(135deg, #0066ff, #00ccff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .ps5-text {
+    background: linear-gradient(135deg, #ff0066, #ff33cc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: #8899bb;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    margin-top: -5px;
+  }
+
+  .version-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff6b35, #ff2e63);
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 15px;
+    border-radius: 20px;
+    margin-top: 10px;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(255, 46, 99, 0.3);
+  }
+
+  .separator {
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    margin: 20px 0;
+  }
+
+  /* ===== عداد الكاش ===== */
+  #cacheStatus {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 16px;
+    padding: 15px 20px;
+    margin: 15px 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: 'Consolas', monospace;
+    text-align: left;
+    transition: all 0.3s ease;
+  }
+
+  #cacheStatus .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 14px;
+    color: #8899bb;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+
+  #cacheStatus .row:last-child {
+    border-bottom: none;
+  }
+
+  #cacheStatus .label {
+    color: #556688;
+    font-size: 13px;
+  }
+
+  #cacheStatus .value {
+    color: #47c76a;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  #cacheStatus .value.loading { color: #ebcb8b; }
+  #cacheStatus .value.error { color: #ff2e63; }
+  #cacheStatus .value.offline { color: #ff6b35; }
+
+  .cache-progress {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+
+  .cache-progress .bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ff2e63, #ff6b35);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .cache-progress .bar.complete {
+    background: linear-gradient(90deg, #47c76a, #2a9d4a);
+  }
+
+  .cache-progress .bar.error {
+    background: linear-gradient(90deg, #ff2e63, #b01a3f);
+  }
+
+  /* ===== أزرار ===== */
+  #actions {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #ff2e63, #ff6b35);
+    color: white;
+    width: 100%;
+    max-width: 400px;
+    height: 56px;
+    padding: 0 25px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
+    box-shadow: 0 8px 25px rgba(255, 46, 99, 0.3);
+    margin: 5px auto;
+  }
+
+  .action::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: all 0.5s ease;
+  }
+
+  .action:hover::before { left: 100%; }
+  .action:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 35px rgba(255, 46, 99, 0.5);
+  }
+
+  .action:active { transform: translateY(0px) scale(0.98); }
+
+  .btn-cache {
+    background: linear-gradient(135deg, #003263, #004a8f) !important;
+    max-width: 200px !important;
+    height: 40px !important;
+    font-size: 12px !important;
+  }
+
+  .btn-cache:hover {
+    background: linear-gradient(135deg, #004a8f, #0066cc) !important;
+  }
+
+  #status {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #8899bb;
+    letter-spacing: 1px;
+    margin: 20px 0;
+    min-height: 1.5em;
+    transition: all 0.3s ease;
+  }
+
+  #status.success { color: #47c76a; }
+  #status.error { color: #ff2e63; }
+  #status.loading { color: #ebcb8b; }
+
+  footer {
+    margin-top: 25px;
+  }
+
+  .credit {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    color: #556688;
+    letter-spacing: 2px;
+  }
+
+  .credit-link {
+    background: linear-gradient(135deg, #ff6b35, #ff2e63);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .credit-link:hover {
+    text-shadow: 0 0 30px rgba(255, 46, 99, 0.4);
+  }
+
+  .thanks {
+    font-size: 13px;
+    color: #6688aa;
+    margin-top: 10px;
+    letter-spacing: 1px;
+    line-height: 1.8;
+  }
+
+  .thanks .heart { color: #ff2e63; }
+  .thanks .devs { color: #47c76a; font-weight: 700; }
+
+  .offline-banner {
+    display: none;
+    background: rgba(255, 46, 99, 0.15);
+    border: 1px solid #ff2e63;
+    border-radius: 12px;
+    padding: 10px 20px;
+    margin: 10px 0;
+    color: #ff6473;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  .offline-banner.show { display: block; }
+  .offline-banner.success {
+    border-color: #47c76a;
+    color: #47c76a;
+    background: rgba(71, 199, 106, 0.15);
+  }
+  .offline-banner.loading {
+    border-color: #ebcb8b;
+    color: #ebcb8b;
+    background: rgba(235, 203, 139, 0.15);
+  }
+  .offline-banner.error {
+    border-color: #ff2e63;
+    color: #ff2e63;
+    background: rgba(255, 46, 99, 0.15);
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 25px 20px; border-radius: 20px; }
+    .main-title { font-size: 28px; }
+    .subtitle { font-size: 11px; letter-spacing: 5px; }
+    .action { font-size: 13px; height: 50px; padding: 0 15px; }
+    #status { font-size: 12px; }
+    .thanks { font-size: 11px; }
+    #cacheStatus .row { font-size: 12px; }
+  }
+
+  @media (max-width: 400px) {
+    .main-title { font-size: 22px; }
+    .action { font-size: 11px; height: 44px; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1 class="main-title">
+    <span class="highlight">AlaaMohamed 01001550618 PS5 Exploit Host</span>
+    <span class="ps4-text">PS4</span>
+    <span class="ps5-text">PS5</span>
+  </h1>
+  <div class="subtitle">Exploit Host</div>
+  <div class="version-badge">✨ 9.00 – 12.00</div>
+
+  <hr class="separator">
+
+  <!-- ===== عداد الكاش ===== -->
+  <div id="cacheStatus">
+    <div class="row">
+      <span class="label">📦 الحالة</span>
+      <span id="cacheState" class="value loading">⏳ جاري التحقق...</span>
+    </div>
+    <div class="row">
+      <span class="label">📄 الملفات المحملة</span>
+      <span id="cacheFiles" class="value">0 / 37</span>
+    </div>
+    <div class="row">
+      <span class="label">📥 نسبة التقدم</span>
+      <span id="cacheProgressText" class="value loading">0%</span>
+    </div>
+    <div class="cache-progress">
+      <div id="cacheProgressBar" class="bar" style="width: 0%;"></div>
+    </div>
+    <div class="row" style="border-bottom: none; padding-top: 6px;">
+      <span class="label" style="font-size:11px; color:#445566;">🔄 آخر تحديث</span>
+      <span id="cacheDetail" style="font-size:11px; color:#445566;">⏳ انتظار...</span>
+    </div>
+  </div>
+
+  <div id="wrap">
+    <div id="actions">
+      <a id="start" class="action"
+         href="slopkit/poops.html?go=1&amp;auto=1&amp;production=1&amp;trigger=netcontrol&amp;attempts=8&amp;only=ps0_preflight,ps1_prepare,ps3_stage0,ps4_validate,ps5_stage1,ps6_stage2,ps8_stage3,ps9_stage4,ps10_stage5&amp;log=debug&amp;payload=1&amp;v=41"
+         tabindex="0">🚀 تشغيل التعديل من هنا</a>
+
+      <button id="refreshCache" class="action btn-cache">🔄 تحديث الكاش</button>
+    </div>
+    <div id="status">⏳ جاهز</div>
+  </div>
+
+  <footer>
+    <p class="credit">Designed by <a href="#" class="credit-link">AlaaMohamed 01001550618 PS5 Exploit Host</a></p>
+    <p class="thanks">
+      <span class="heart">❤️</span> Special thanks to all 
+      <span class="devs">scene developers</span> who made this possible
+    </p>
+  </footer>
+</div>
+
+<script>
+// ============================================================
+//  عداد الكاش مع الأرقام وحالة النجاح/الفشل
+// ============================================================
+(function() {
+    'use strict';
+
+    var stateEl = document.getElementById('cacheState');
+    var filesEl = document.getElementById('cacheFiles');
+    var progressText = document.getElementById('cacheProgressText');
+    var progressBar = document.getElementById('cacheProgressBar');
+    var detailEl = document.getElementById('cacheDetail');
+    var statusEl = document.getElementById('status');
+    var banner = document.getElementById('offlineBanner');
+
+    var totalFiles = 37; // بدون صور UI
+    var loaded = 0;
+    var success = false;
+    var error = false;
+
+    // ===== تحديث واجهة الكاش =====
+    function updateCache(state, pct, msg, files) {
+        // تحديث الحالة
+        var stateLabels = {
+            'checking': { text: '⏳ جاري التحقق...', cls: 'loading' },
+            'downloading': { text: '📥 جاري التحميل...', cls: 'loading' },
+            'cached': { text: '✅ تم التخزين بنجاح!', cls: '' },
+            'updateready': { text: '🔄 تحديث جاهز', cls: 'loading' },
+            'error': { text: '❌ فشل التخزين', cls: 'error' },
+            'offline': { text: '📡 وضع غير متصل', cls: 'offline' },
+            'noupdate': { text: '✅ الكاش محدث', cls: '' },
+            'obsolete': { text: '⚠️ الكاش قديم', cls: 'error' },
+            'idle': { text: '⏳ جاهز', cls: '' },
+            'failed': { text: '❌ فشل', cls: 'error' }
+        };
+
+        var info = stateLabels[state] || stateLabels['idle'];
+        stateEl.textContent = info.text;
+        stateEl.className = 'value ' + info.cls;
+
+        // تحديث الملفات
+        if (files !== undefined && files !== null) {
+            filesEl.textContent = files + ' / ' + totalFiles;
+        } else if (pct !== undefined && pct !== null) {
+            var loadedFiles = Math.round((pct / 100) * totalFiles);
+            filesEl.textContent = loadedFiles + ' / ' + totalFiles;
+        }
+
+        // تحديث النسبة
+        if (pct !== undefined && pct !== null) {
+            var pctNum = Math.min(Math.round(pct), 100);
+            progressText.textContent = pctNum + '%';
+            progressText.className = 'value ' + (state === 'error' || state === 'failed' ? 'error' : (state === 'cached' || state === 'noupdate' ? '' : 'loading'));
+            progressBar.style.width = pctNum + '%';
+            if (pctNum >= 100) {
+                progressBar.className = 'bar complete';
+            } else if (state === 'error' || state === 'failed') {
+                progressBar.className = 'bar error';
+            } else {
+                progressBar.className = 'bar';
+            }
+        }
+
+        // تحديث التفاصيل
+        if (msg) {
+            detailEl.textContent = msg;
+        }
+
+        // تحديث الحالة العامة
+        if (state === 'cached' || state === 'noupdate') {
+            success = true;
+            error = false;
+            statusEl.textContent = '✅ جاهز للاستخدام دون اتصال';
+            statusEl.className = 'success';
+            banner.textContent = '✅ تم التخزين بنجاح — جاهز للاستخدام دون اتصال';
+            banner.className = 'offline-banner show success';
+        } else if (state === 'error' || state === 'failed' || state === 'obsolete') {
+            success = false;
+            error = true;
+            statusEl.textContent = '❌ فشل التخزين المؤقت';
+            statusEl.className = 'error';
+            banner.textContent = '❌ فشل التخزين — تحقق من الاتصال';
+            banner.className = 'offline-banner show error';
+        } else if (state === 'offline') {
+            statusEl.textContent = '📡 وضع غير متصل';
+            statusEl.className = '';
+            banner.textContent = '📡 غير متصل — الملفات مخزنة وجاهزة';
+            banner.className = 'offline-banner show';
+        } else if (state === 'downloading') {
+            statusEl.textContent = '📥 جاري التحميل...';
+            statusEl.className = 'loading';
+            banner.textContent = '📥 جاري تحميل الملفات...';
+            banner.className = 'offline-banner show loading';
+        } else {
+            statusEl.textContent = '⏳ جاهز';
+            statusEl.className = '';
+            banner.className = 'offline-banner';
+        }
+    }
+
+    // ===== مراقبة الـ AppCache =====
+    function initCacheMonitor() {
+        if (!window.applicationCache) {
+            updateCache('error', 0, '❌ المتصفح لا يدعم AppCache');
+            return;
+        }
+
+        var cache = window.applicationCache;
+        console.log('📦 AppCache مدعوم');
+
+        // ===== أحداث الـ AppCache =====
+        cache.addEventListener('checking', function() {
+            console.log('🔄 جاري التحقق من التحديثات...');
+            updateCache('checking', null, '⏳ جاري التحقق...');
+        });
+
+        cache.addEventListener('downloading', function(e) {
+            console.log('📥 جاري تحميل الملفات...');
+            updateCache('downloading', 0, '📥 بدء التحميل');
+            loaded = 0;
+        });
+
+        cache.addEventListener('progress', function(e) {
+            if (e.total) {
+                var pct = (e.loaded / e.total) * 100;
+                loaded = Math.round((e.loaded / e.total) * totalFiles);
+                var loadedFiles = Math.min(loaded, totalFiles);
+                updateCache('downloading', pct, '📥 تحميل: ' + loadedFiles + '/' + totalFiles, loadedFiles);
+                console.log('📥 التقدم:', Math.round(pct) + '% (' + loadedFiles + '/' + totalFiles + ')');
+            }
+        });
+
+        cache.addEventListener('cached', function() {
+            console.log('✅ تم التخزين بنجاح!');
+            updateCache('cached', 100, '✅ تم تحميل ' + totalFiles + ' ملف بنجاح', totalFiles);
+            console.log('✅ النجاح: تم تخزين ' + totalFiles + ' ملف');
+        });
+
+        cache.addEventListener('updateready', function() {
+            if (cache.status === cache.UPDATEREADY) {
+                console.log('🔄 تحديث جاهز');
+                updateCache('updateready', 100, '🔄 نسخة جديدة متاحة');
+                if (confirm('📦 نسخة جديدة متاحة. إعادة تحميل؟')) {
+                    try {
+                        cache.swapCache();
+                        location.reload();
+                    } catch(e) {
+                        console.error('فشل التبديل:', e);
+                        updateCache('error', null, '❌ فشل التبديل');
+                    }
+                }
+            }
+        });
+
+        cache.addEventListener('noupdate', function() {
+            console.log('✅ لا توجد تحديثات');
+            updateCache('cached', 100, '✅ الكاش محدث (' + totalFiles + ' ملف)', totalFiles);
+        });
+
+        cache.addEventListener('error', function(e) {
+            console.log('❌ خطأ في الكاش:', e);
+            updateCache('error', loaded > 0 ? Math.round((loaded/totalFiles)*100) : 0, '❌ فشل التحميل');
+        });
+
+        cache.addEventListener('obsolete', function() {
+            console.log('⚠️ الكاش قديم');
+            updateCache('obsolete', 0, '⚠️ الكاش قديم — تحديث مطلوب');
+        });
+
+        cache.addEventListener('offline', function() {
+            console.log('⚠️ وضع غير متصل');
+            updateCache('offline', null, '📡 وضع غير متصل');
+        });
+
+        // ===== التحقق من الحالة الحالية =====
+        var statusMap = {
+            0: 'idle',
+            1: 'checking',
+            2: 'downloading',
+            3: 'noupdate',
+            4: 'cached',
+            5: 'updateready',
+            6: 'obsolete',
+            7: 'error'
+        };
+        var currentStatus = statusMap[cache.status] || 'idle';
+        if (cache.status === 2) {
+            updateCache('downloading', 0, '📥 جاري التحميل...');
+        } else if (cache.status === 4 || cache.status === 3) {
+            updateCache('cached', 100, '✅ الكاش جاهز (' + totalFiles + ' ملف)', totalFiles);
+        } else {
+            updateCache(currentStatus, 0, '⏳ جاهز');
+        }
+    }
+
+    // ===== زر تحديث الكاش =====
+    document.getElementById('refreshCache').addEventListener('click', function() {
+        if (window.applicationCache) {
+            try {
+                window.applicationCache.update();
+                updateCache('checking', 0, '⏳ جاري التحقق من التحديثات...');
+                statusEl.textContent = '🔄 جاري التحقق...';
+                statusEl.className = 'loading';
+                alert('⏳ جاري التحقق من التحديثات...');
+            } catch(e) {
+                updateCache('error', 0, '❌ فشل التحديث');
+                alert('❌ فشل التحديث: ' + e.message);
+            }
+        } else {
+            alert('❌ AppCache غير مدعوم في هذا المتصفح');
+        }
+    });
+
+    // ===== مراقبة حالة الاتصال =====
+    function updateOnlineStatus() {
+        if (navigator.onLine) {
+            if (banner.className.includes('offline-banner show') &&
+                !banner.className.includes('success') &&
+                !banner.className.includes('loading') &&
+                !banner.className.includes('error')) {
+                banner.className = 'offline-banner';
+            }
+        } else {
+            banner.textContent = '📡 غير متصل — الملفات مخزنة';
+            banner.className = 'offline-banner show';
+        }
+    }
+
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+
+    // ===== بدء المراقبة =====
+    initCacheMonitor();
+
+    // ===== تركيز على الزر =====
+    try {
+        document.getElementById('start').focus();
+    } catch(e) {}
+
+    console.log('🔍 مراقب الكاش نشط');
+    console.log('📊 إجمالي الملفات المتوقعة:', totalFiles);
+})();
+</script>
+
+</body>
+</html>
