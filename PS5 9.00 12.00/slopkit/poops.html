@@ -3,9 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>slopkit</title>
-<link rel="preload" href="cat.jpg" as="image">
-<link rel="preload" href="mmhmm-cats-ps5.gif" as="image">
+<title>ALAA MOHAMED 01001550618 Exploit Host</title>
 
 <script>(function () {
     var pending = [];
@@ -34,196 +32,458 @@
 </script>
 
 <style>
-  html, body { margin: 0; padding: 0; min-height:100%;
-    background: radial-gradient(circle at 50% 28%, #18233a 0, #0c111b 44%, #07090e 100%);
-    color: #d8dee9; }
-  body { box-sizing:border-box; min-height:100vh;
-    font: 22px/1.35 "Consolas", "DejaVu Sans Mono", monospace;
-    padding: 24px 20px; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; }
-  h1 { font-size: 30px; margin: 0 0 2px; color: #eceff4; font-weight: 600; }
-  .sub { font-size: 18px; color: #7c8795; margin: 0 0 12px; }
-  #stage { font-size: 24px; padding: 9px 13px; border-radius: 6px;
-           margin-bottom: 12px; background: #1b2430; border-left: 8px solid #5e81ac; }
-  #stage.ok  { background: #16281c; border-left-color: #47c76a; color: #b8f0c6; }
-  #stage.bad { background: #1b2430; border-left-color: #5e81ac; color: #d8dee9; }
-  #danger, #reboot, #verdict { display:none !important; }
+ html {
+    background-image: url('img.jpg');
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-color: #24272b;
+    color: white;
+    text-align: center;
+    overflow: hidden;
+}
 
-  #reboot { display: none; font-size: 34px; font-weight: 800; padding: 20px 18px;
-            margin-bottom: 14px; border-radius: 8px; background: #4a0d10;
-            border: 5px solid #ff5566; color: #ffe3e6; white-space: pre-wrap;
-            line-height: 1.25; }
-  #reboot.on { display:none; }
-  #reboot.fine { display:none; }
+  .container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    padding: 40px 50px;
+    max-width: 1000px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 100, 255, 0.05);
+    transition: all 0.3s ease;
+    margin: 0 auto;
+  }
 
-  #verdict { display: none; font-size: 26px; font-weight: 700; padding: 16px 18px;
-             margin-bottom: 14px; border-radius: 8px; background: #101a26;
-             border: 4px solid #6d7788; color: #dfe7f0; white-space: pre-wrap;
-             line-height: 1.3; }
-  #verdict.on   { display:none; }
-  #verdict.good { background: #0f2c17; border-color: #47c76a; color: #d4f7de; }
-  #verdict.bad  { background: #101a26; border-color: #6d7788; color: #dfe7f0; }
-  #verdict.warn { background: #2e2413; border-color: #ebcb8b; color: #f6e6bd; }
-  #vitals { display: none; font-size: 24px; padding: 10px 14px; margin-bottom: 12px;
-            border-radius: 6px; background: #17212e; border-left: 8px solid #ebcb8b;
-            color: #e8dcb6; white-space: pre-wrap; }
-  #vitals.on { display: block; }
-  #cfg { font-size: 22px; color: #9fb1c3; background: #131922; padding: 10px 13px;
-         border-radius: 6px; margin-bottom: 12px; white-space: pre-wrap; }
-  #scr, #early { font-size: 15px; color: #6d7788; margin: 0 0 10px;
-                 white-space: pre; overflow: hidden; min-height: 1.3em; }
-  #nav { display:none !important; margin: 0 0 14px; }
-  #nav a { display: inline-block; margin: 0 12px 8px 0; padding: 10px 18px;
-           background: #1b2430; border: 2px solid #3b4756; border-radius: 6px;
-           color: #d8dee9; text-decoration: none; font-size: 20px; }
-  #nav a.primary { border-color: #5e81ac; background: #223146; color: #cfe3ff; }
-  #nav a.hot { border-color: #52647c; background: #202d40; color: #dce8f7; }
+  .container:hover {
+    border-color: rgba(100, 150, 255, 0.3);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.9), 0 0 60px rgba(0, 100, 255, 0.1);
+  }
 
-  #nav a.one { display: block; font-size: 30px; font-weight: 700;
-               padding: 20px 26px; margin: 0 0 12px;
-               border-color: #5e81ac; background: #223146; color: #cfe3ff; }
-  #nav a.one.hot { border-color: #52647c; background: #202d40; color: #dce8f7; }
+  header { text-align: center; margin-bottom: 20px; }
 
-  body.quiet #nav a.extra { display: none; }
-  #nav a:focus { outline: 3px solid #ebcb8b; }
-  #arm { font-size: 26px; padding: 24px 6px; color: #ebcb8b; }
-  #wrap { overflow-x: auto; }
-  table { border-collapse: collapse; width: 100%; min-width: 640px; }
-  thead th { position: sticky; top: 0; background: #131922; color: #8fa1b3;
-             text-align: left; font-size: 17px; padding: 8px 10px;
-             border-bottom: 2px solid #2a3340; z-index: 2; }
-  td { padding: 9px 10px; vertical-align: top; border-bottom: 1px solid #1d232c; }
-  td.n  { width: 2.6em; color: #55606e; font-size: 17px; }
-  td.k  { width: 12em; color: #cfd8e3; font-weight: 700; }
-  td.k .cls { display: block; color: #61708a; font-weight: 400; font-size: 15px; }
-  td.st { width: 4.6em; font-weight: 700; font-size: 25px; }
+  .main-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 38px;
+    font-weight: 900;
+    text-shadow: 0 0 30px rgba(0, 100, 255, 0.2);
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+  }
+
+  .highlight {
+    background: linear-gradient(135deg, #ff6b35, #ff2e63);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 40px rgba(255, 46, 99, 0.3);
+  }
+
+  .ps4-text {
+    background: linear-gradient(135deg, #0066ff, #00ccff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .ps5-text {
+    background: linear-gradient(135deg, #ff0066, #ff33cc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: #8899bb;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    margin-top: -5px;
+  }
+
+  .version-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff6b35, #ff2e63);
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 15px;
+    border-radius: 20px;
+    margin-top: 10px;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(255, 46, 99, 0.3);
+  }
+
+  .separator {
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    margin: 20px 0;
+  }
+
+  #stage {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.3);
+    border-left: 6px solid #5e81ac;
+    color: #aabbdd;
+    margin-bottom: 15px;
+    text-align: center;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+  }
+
+  #stage.ok { border-left-color: #47c76a; color: #47c76a; }
+  #stage.bad { border-left-color: #ff2e63; color: #ff2e63; }
+
+  #verdict, #reboot, #vitals, #cfg, #summary, #tally {
+    font-family: 'Tajawal', sans-serif;
+    font-size: 16px;
+    color: #9fb1c3;
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+    padding: 12px 18px;
+    margin: 10px 0;
+    border: 1px solid rgba(255,255,255,0.05);
+    text-align: left;
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+
+  #verdict.good { border-left: 6px solid #47c76a; }
+  #verdict.bad { border-left: 6px solid #ff2e63; }
+  #verdict.warn { border-left: 6px solid #ebcb8b; }
+
+  #reboot { border-left: 6px solid #ff2e63; color: #ff6473; font-weight: 700; }
+
+  #tally { font-size: 24px; font-weight: 700; text-align: center; font-family: 'Orbitron', sans-serif; }
+  #tally.pass { color: #47c76a; }
+  #tally.fail { color: #ff2e63; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #003263, #004a8f);
+    color: white;
+    height: 50px;
+    padding: 0 25px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: all 0.5s ease;
+  }
+
+  .btn:hover::before { left: 100%; }
+  .btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(0, 74, 143, 0.4);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #ff2e63, #ff6b35);
+    box-shadow: 0 8px 25px rgba(255, 46, 99, 0.3);
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #ff1a4f, #ff5520);
+    box-shadow: 0 12px 35px rgba(255, 46, 99, 0.5);
+  }
+
+  .btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin: 20px 0;
+  }
+
+  .btn-group .btn { width: auto; min-width: 140px; padding: 0 20px; flex: 1 1 auto; }
+
+  #payloadMenu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin: 20px 0;
+  }
+
+  .payloadTile {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 14px 22px;
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-width: 110px;
+    text-align: center;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, #003263, #004a8f);
+  }
+
+  .payloadTile:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 74, 143, 0.4);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .payloadTile.sending { background: linear-gradient(135deg, #ebcb8b, #b48e4a); animation: pulse 1s infinite; }
+  .payloadTile.sent { background: linear-gradient(135deg, #47c76a, #2a9d4a); }
+  .payloadTile.failed { background: linear-gradient(135deg, #ff2e63, #b01a3f); }
+
+  #scr, #early {
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    color: #6d7788;
+    background: rgba(0,0,0,0.3);
+    border-radius: 12px;
+    padding: 15px;
+    margin: 10px 0;
+    border: 1px solid rgba(255,255,255,0.05);
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow-y: auto;
+    line-height: 1.5;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 15px 0;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  thead th {
+    background: rgba(0, 0, 0, 0.3);
+    color: #8899bb;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    color: #c8ced8;
+  }
+
+  td.n { color: #556688; font-weight: 700; width: 30px; }
+  td.k { font-weight: 700; color: #aabbdd; }
+  td.st { font-weight: 700; text-align: center; }
   td.st.PASS { color: #47c76a; }
-  td.st.FAIL { color: #cfd8e3; }
+  td.st.FAIL { color: #ff2e63; }
   td.st.SKIP { color: #8f7a3f; }
-  td.st.RUN  { color: #ebcb8b; }
-  td.d { color: #aeb8c6; font-size: 19px; word-break: break-word;
-         white-space: pre-wrap; }
-  td.d .why  { color: #aeb8c6; }
-  td.d .note { color: #7fb7d4; display: block; font-size: 17px; }
-  td.d .pu   { color: #6b7a8c; display: block; font-size: 15px; margin-top: 3px; }
-  td.d .ev   { color: #5a6472; display: block; font-size: 15px; margin-top: 3px; }
-  #tally { margin-top: 18px; font-size: 30px; font-weight: 700; }
-  #summary { margin-top: 10px; font-size: 20px; color: #9fb1c3;
-             white-space: pre-wrap; }
+  td.st.RUN { color: #ebcb8b; }
+  td.d { color: #9fb1c3; word-break: break-word; }
+  td.d .note { color: #7fb7d4; display: block; font-size: 14px; }
 
-  #dt { position: fixed; top: 10px; right: 12px; z-index: 9;
-        font: 700 18px ui-monospace, Menlo, Consolas, monospace;
-        padding: 10px 16px; border-radius: 6px; cursor: pointer;
-        background: #1b2430; border: 2px solid #3b4756; color: #9fb1c3; }
-  #dt:focus { outline: 3px solid #ebcb8b; }
-  body.quiet #dt { color: #61708a; }
+  footer {
+    margin-top: 25px;
+    text-align: center;
+  }
 
-  body.quiet h1,
-  body.quiet .sub,
-  body.quiet #cfg,
-  body.quiet #summary,
-  body.quiet #tally,
-  body.quiet #wrap,
-  body.quiet #early,
-  body.quiet #vitals,
-  body.quiet #verdict,
-  body.quiet #danger,
-  body.quiet #stage,
-  body.quiet td.d .pu,
-  body.quiet td.d .ev                     { display: none; }
+  .credit {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    color: #556688;
+    letter-spacing: 2px;
+  }
 
-  body.quiet #reboot { font-size: 26px; }
+  .credit-link {
+    background: linear-gradient(135deg, #ff6b35, #ff2e63);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
 
-  body.quiet #scr {
-        box-sizing: border-box; width:88vw; max-width:680px; height:150px;
-        overflow: auto; font-size: 14px; line-height: 1.3; color: #b8c4d2;
-        background: rgba(12,18,28,.88); border: 1px solid #344258;
-        box-shadow: 0 18px 42px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.04);
-        border-radius: 14px; padding: 13px 15px; margin: 10px auto 0; }
+  .credit-link:hover {
+    text-shadow: 0 0 30px rgba(255, 46, 99, 0.4);
+  }
 
-  body.loader-ready #scr { display:none; }
+  .thanks {
+    font-size: 13px;
+    color: #6688aa;
+    margin-top: 10px;
+    letter-spacing: 1px;
+    line-height: 1.8;
+  }
 
-  body.quiet tr:not(.r-FAIL) td.d .note   { display: none; }
+  .thanks .heart { color: #ff2e63; }
+  .thanks .devs { color: #47c76a; font-weight: 700; }
+  .thanks .names { font-size: 11px; color: #445566; display: block; margin-top: 4px; }
 
-  body.quiet tr:not(.r-FAIL) td.d > span:first-child {
-        display: -webkit-box; display: box; overflow: hidden;
-        -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
-
-  body.quiet #stage { font-size: 34px; }
-
-  #cat { box-sizing:border-box; display:block; margin:0 auto 12px;
-         width:150px; height:150px; max-width:34vw; max-height:34vw;
-         border:4px solid #343c49; border-radius:18px;
-         box-shadow:0 24px 70px rgba(0,0,0,.5); overflow:hidden; }
-  #cat img { display:block; width:100%; height:100%; object-fit:cover; }
-  #cat.ok  { border-color:#16c60c; }
-  #cat.bad { border-color:#e74856; }
+  .hidden { display: none !important; }
+  #nav { display: none !important; }
+  #wrap { display: none !important; }
+  #arm { font-size: 26px; padding: 24px 6px; color: #ebcb8b; }
   #failureMessage { display:none; margin:0 auto 12px; color:#ff6473;
     font-size:25px; font-weight:800; text-align:center; letter-spacing:.02em; }
   #failureMessage.on { display:block; }
 
-  body.loader-ready { justify-content:flex-start; overflow-y:auto; padding-top:22px; }
-  body.loader-ready #cat { width:112px; height:112px; margin-bottom:6px; }
-  body.loader-ready #nav { display:none !important; }
-  #payloadMenu { display:none; width:1356px; max-width:94vw; margin:4px auto 24px; }
-  #payloadMenu.on { display:block; }
-  #payloadMenu .menuTitle { display:block; width:330px; height:56px;
-    max-width:100%; margin:0 auto 12px; }
-  #payloadMenu .payloadGrid { display:flex; flex-wrap:wrap;
-    justify-content:center; }
-  #payloadMenu .payloadTile {
-    box-sizing:border-box; display:block; flex:0 0 calc(25% - 12px);
-    width:330px; min-width:0; max-width:330px; margin:6px; padding:0;
-    border:0; border-radius:13px;
-    background:transparent; text-decoration:none !important;
-  }
-  #payloadMenu .payloadTile:focus { outline:3px solid #fff; outline-offset:2px; }
-  #payloadMenu .payloadTile img { display:block; width:330px; height:72px;
-    max-width:100%; margin:0 auto; }
-  #payloadMenu .payloadTile.busy { opacity:.42; }
+  #cat { display: none !important; }
 
-  #wrap { display:none !important; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 20px; }
+    .main-title { font-size: 26px; }
+    .subtitle { font-size: 11px; letter-spacing: 5px; }
+    .btn { font-size: 12px; height: 44px; }
+    #stage { font-size: 15px; }
+    .payloadTile { font-size: 11px; padding: 10px 16px; min-width: 80px; }
+    table { font-size: 12px; }
+    .thanks { font-size: 11px; }
+    .thanks .names { font-size: 10px; }
+  }
+
+  @media (max-width: 400px) {
+    .main-title { font-size: 20px; }
+    .btn { font-size: 10px; height: 38px; gap: 6px; }
+  }
+
+  body.quiet #scr {
+    box-sizing: border-box;
+    width: 88vw;
+    max-width: 680px;
+    height: 150px;
+    overflow: auto;
+    font-size: 14px;
+    line-height: 1.3;
+    color: #b8c4d2;
+    background: rgba(12,18,28,.88);
+    border: 1px solid #344258;
+    box-shadow: 0 18px 42px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.04);
+    border-radius: 14px;
+    padding: 13px 15px;
+    margin: 10px auto 0;
+  }
+
+  body.loader-ready #scr { display:none; }
+  body.loader-ready { justify-content:flex-start; overflow-y:auto; padding-top:22px; }
+  body.quiet #stage { font-size: 34px; }
+  body.quiet h1, body.quiet .sub, body.quiet #cfg, body.quiet #summary,
+  body.quiet #tally, body.quiet #wrap, body.quiet #early, body.quiet #vitals,
+  body.quiet #verdict, body.quiet #danger, body.quiet #stage,
+  body.quiet td.d .pu, body.quiet td.d .ev { display: none; }
+  body.quiet #reboot { font-size: 26px; }
+  body.quiet tr:not(.r-FAIL) td.d .note { display: none; }
+  body.quiet tr:not(.r-FAIL) td.d > span:first-child {
+    display: -webkit-box; display: box; overflow: hidden;
+    -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+  }
 </style>
 </head>
 <body class="quiet">
-<div id="failureMessage">UNLUCKY &mdash; YOU NEED TO REBOOT</div>
-<div id="cat">
-  <img id="catImage" src="mmhmm-cats-ps5.gif" alt="">
-</div>
-<h1>poops</h1>
-<div id="reboot"></div>
-<div id="verdict"></div>
-<div id="danger"></div>
-<div id="stage">idle</div>
-<div id="vitals"></div>
-<div id="cfg"></div>
-<pre id="early"></pre>
-<pre id="scr"></pre>
-<div id="payloadMenu">
-  <img class="menuTitle" data-src="../ui/payload-menu-title.png" alt="">
-  <div class="payloadGrid">
-    <a class="payloadTile" href="#" data-name="ftpsrv-ps5.elf" data-key="ftp"><img data-src="../ui/payload-ftp-default.png" alt=""></a>
-    <a class="payloadTile" href="#" data-name="gdbsrv-ps5.elf" data-key="gdb"><img data-src="../ui/payload-gdb-default.png" alt=""></a>
-    <a class="payloadTile" href="#" data-name="klogsrv-ps5.elf" data-key="klog"><img data-src="../ui/payload-klog-default.png" alt=""></a>
-    <a class="payloadTile" href="#" data-name="shsrv-ps5.elf" data-key="shell"><img data-src="../ui/payload-shell-default.png" alt=""></a>
-    <a class="payloadTile" href="#" data-name="websrv-ps5.elf" data-key="web"><img data-src="../ui/payload-web-default.png" alt=""></a>
-    <a class="payloadTile" href="#" data-name="kstuff.elf" data-key="kstuff"><img data-src="../ui/payload-kstuff-default.png" alt="KStuff"></a>
-    <a class="payloadTile" href="#" data-name="PLK.elf" data-key="plk"><img data-src="../ui/payload-plk-default.png" alt="PLK PLD Manager"></a>
-  </div>
-</div>
-<div id="nav"></div>
-<div id="arm" hidden>Open this page with <b>?go=1</b> to arm it. Nothing runs
-otherwise.</div>
-<div id="wrap">
-<table>
-  <thead><tr><th>#</th><th>test</th><th>st</th><th>result</th></tr></thead>
-  <tbody id="rows"></tbody>
-</table>
-</div>
-<div id="tally"></div>
-<div id="summary"></div>
 
-<div id="console" hidden></div>
+<div id="failureMessage">UNLUCKY &mdash; YOU NEED TO REBOOT</div>
+
+<div class="container">
+  <header>
+    <h1 class="main-title">
+      <span class="highlight">ALAA MOHAMED 01001550618</span>
+      <span class="ps4-text">PS4</span>
+      <span class="ps5-text">PS5</span>
+    </h1>
+    <div class="subtitle">Exploit Host</div>
+    <div class="version-badge">✨ 9.00 – 12.00</div>
+  </header>
+
+  <hr class="separator">
+
+  <div id="reboot"></div>
+  <div id="verdict"></div>
+  <div id="danger"></div>
+  <div id="stage">idle</div>
+  <div id="vitals"></div>
+  <div id="cfg"></div>
+  <pre id="early"></pre>
+  <pre id="scr"></pre>
+
+  <div id="payloadMenu">
+    <a class="payloadTile" href="#" data-name="ftpsrv-ps5.elf" data-key="ftp">📁 FTP Server</a>
+    <a class="payloadTile" href="#" data-name="gdbsrv-ps5.elf" data-key="gdb">🐞 GDB Server</a>
+    <a class="payloadTile" href="#" data-name="klogsrv-ps5.elf" data-key="klog">📊 KLog Server</a>
+    <a class="payloadTile" href="#" data-name="shsrv-ps5.elf" data-key="shell">💻 Shell</a>
+    <a class="payloadTile" href="#" data-name="websrv-ps5.elf" data-key="web">🌐 Web Server</a>
+    <a class="payloadTile" href="#" data-name="kstuff.elf" data-key="kstuff">⚙️ KStuff</a>
+    <a class="payloadTile" href="#" data-name="PLK.elf" data-key="plk">📦 PLK PLD Manager</a>
+  </div>
+
+  <div id="nav"></div>
+  <div id="arm" hidden>Open this page with <b>?go=1</b> to arm it. Nothing runs otherwise.</div>
+
+  <div id="wrap">
+    <table>
+      <thead><tr><th>#</th><th>test</th><th>st</th><th>result</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <div id="tally"></div>
+  <div id="summary"></div>
+  <div id="console" hidden></div>
+
+  <hr class="separator">
+
+  <footer>
+    <p class="credit">Designed by <a href="#" class="credit-link">ALAA MOHAMED 01001550618</a></p>
+    <p class="thanks">
+      <span class="heart">❤️</span> Special thanks to all 
+      <span class="devs">scene developers</span> who made this possible
+    </p>
+    <p class="thanks" style="font-size:11px; color:#445566; margin-top:2px;">
+      🙏 TheFlow • Sleirsgoevy • SpecterDev • ChendoChap • LightningMods • and every contributor
+    </p>
+  </footer>
+</div>
 
 <script src="rop.js"></script>
 <script src="main.js?v=19"></script>
@@ -765,7 +1025,7 @@ const rowByKey = new Map();
 let payloadSendBusy = false;
 const PAYLOAD_PORT = 9021;
 const PAYLOAD_BUFFER_SIZE = 0x10000;
-const PAYLOAD_MAX_SIZE = 0x400000;
+const PAYLOAD_MAX_SIZE = 0x200000;
 let payloadSendStore = null;
 let payloadSockaddrStore = null;
 let payloadSocketOptionStore = null;
@@ -776,24 +1036,12 @@ function showPayloadMenu() {
     navEl.textContent = "";
     navEl.style.display = "none";
     payloadMenuEl.className = "on";
-    const title = payloadMenuEl.getElementsByClassName("menuTitle")[0];
-    if (title && !title.getAttribute("src"))
-        title.setAttribute("src", title.getAttribute("data-src"));
     const tiles = payloadMenuEl.getElementsByTagName("a");
-    for (let i = 0; i < tiles.length; ++i) {
-        const image = tiles[i].getElementsByTagName("img")[0];
-        if (image && !image.getAttribute("src"))
-            image.setAttribute("src", image.getAttribute("data-src"));
-    }
     if (tiles.length) try { tiles[0].focus(); } catch (e) { }
 }
 
 function setPayloadTileState(tile, state) {
     tile.setAttribute("data-state", state);
-    const image = tile.getElementsByTagName("img")[0];
-    const key = tile.getAttribute("data-key");
-    if (image && key)
-        image.setAttribute("src", "../ui/payload-" + key + "-" + state + ".png");
 }
 
 function payloadIsListed(name) {
@@ -1019,16 +1267,10 @@ function clearFailureBanners() {
 }
 
 function setCatResult(success) {
-    const cat = document.getElementById("cat");
     const failureMessage = document.getElementById("failureMessage");
     if (failureMessage) failureMessage.className = success ? "" : "on";
-    if (cat) {
-        cat.className = success ? "ok" : "bad";
-        if (success) {
-            const image = document.getElementById("catImage");
-            if (image) image.src = "cat.jpg";
-        }
-    }
+    const cat = document.getElementById("cat");
+    if (cat) cat.className = success ? "ok" : "bad";
 }
 
 function verdictBanner(kind, text) {
