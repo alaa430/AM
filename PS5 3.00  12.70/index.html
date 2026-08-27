@@ -37,7 +37,7 @@ body{
 }
 #credits span{ display:block; color:#6f7076; font-size:0.8rem; font-weight:700;
                letter-spacing:.22em; margin-bottom:5px; }
-/* 27 names wrap to ~3 lines; cap the width so they break evenly rather than
+/* 26 names wrap to ~3 lines; cap the width so they break evenly rather than
    spanning the full screen, and keep the whole block clear of the buttons. */
 #credits h3{ margin:0 auto; max-width:60rem; font-size:0.82rem; font-weight:700;
              color:#4a4b50; line-height:1.55; }
@@ -63,7 +63,7 @@ body{
        &burn=1                  DANGER: sprays after every close, PANICKED the kernel in
                                 v73. Do not use. -->
 <a class="btn" id="btnp2jb"
-   href="p2jb.html?go=1&amp;auto=1&amp;trigger=netcontrol&amp;payload=1&amp;v=107"
+   href="p2jb.html?go=1&amp;auto=1&amp;trigger=netcontrol&amp;payload=1&amp;v=131"
    tabindex="0">P2JB</a>
 
 <!-- sockets= is deliberately NOT forced here any more. poops.html's own default is 80
@@ -86,8 +86,9 @@ body{
      calls - it has its own stage3_cleanup plus post-jb repair, and has ended sessions
      without panicking. Remove &nullfds=1 to revert. -->
 <a class="btn" id="btnpoops"
-   href="poops.html?go=1&amp;auto=1&amp;trigger=netcontrol&amp;payload=1&amp;nullfds=1&amp;v=107"
+   href="poops.html?go=1&amp;auto=1&amp;trigger=netcontrol&amp;payload=1&amp;nullfds=1&amp;v=131"
    tabindex="0">Poopsploit</a>
+
 
 
 <div id="msg"></div>
@@ -106,8 +107,9 @@ body{
         zecoxao, ChendoChap, abc/psfree, idlesauce, flat_z, TheFlow,
         c0w-ar, earthonion, SIStro, egycnq, abkarino, gezine, Dr.Yenyen,
         StonedModder, VoidWhisper, EchoStretch, BestPig, AlAzif, drakmor,
-        hzhreal, Team-Alua, hammer-83, ntfargo, shahrilnet, Znullptr,
-        LM, ItsJokerZz
+        hzhreal, hammer-83, ntfargo, shahrilnet, Znullptr,
+        LM, ItsJokerZz,
+        cblock, BeLegal
     </h3>
     <p id="basedon">based on the slopkit by j0rdy</p>
 </div>
@@ -117,13 +119,18 @@ body{
 
 // FIRMWARE GATING. Each exploit covers a different range, and 12.00 is the only firmware
 // both can do:
-//     Poopsploit   9.00 - 12.00   (IPv6 rthdr UAF; its kernel offsets stop at 12.00)
+//     Poopsploit   7.00 - 12.00   (IPv6 rthdr UAF; its kernel offsets stop at 12.00)
+// 7.00-8.60 is the Safari 15.4 range: it needs core.js's LOWFW_VIEW path (m_mode at
+// +0x20, rotating K) and the 7.xx/8.xx offset profiles. Every constant in 7.00-12.70
+// was verified offline against that firmware's own retail binaries; 7.00, 9.05, 12.00,
+// 12.40 and 12.70 are additionally proven on hardware. 6.00-6.50 stays OFF - those
+// profiles are still missing lk_worker_wait_return.
 //     P2JB        12.00 - 12.70   (cr_ref overflow via kqueueex)
 // The one that cannot run on this console is greyed out and taken out of the tab order,
 // so a wrong click is not possible. Firmware is parsed, not assumed 4 chars: "12.0" was
 // being read out of 12.02 by an earlier version.
 var RANGES = {
-    btnpoops: { lo: 900, hi: 1200, name: "Poopsploit", range: "9.00-12.00" },
+    btnpoops: { lo: 700, hi: 1200, name: "Poopsploit", range: "7.00-12.00" },
     btnp2jb:  { lo: 1200, hi: 1270, name: "P2JB",       range: "12.00-12.70" }
 };
 
@@ -157,7 +164,7 @@ var RANGES = {
     if (msg) {
         msg.textContent = usable.length
             ? "firmware " + fw
-            : "firmware " + fw + " — not supported (Poopsploit 9.00-12.00, P2JB 12.00-12.70)";
+            : "firmware " + fw + " — not supported (Poopsploit 7.00-12.00, P2JB 12.00-12.70)";
     }
     // focus whichever entry is actually usable
     var first = document.querySelector(".btn:not(.disabled)");
