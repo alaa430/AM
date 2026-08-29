@@ -444,6 +444,15 @@ PS4["12.52"] = Object.assign({}, PS4["12.50"], {
     kpatch: "1250.bin",
 });
 
+PS4["11.52"] = Object.assign({}, PS4["11.50"], {
+    alias_of: "11.50",
+    fw_status: "state=UNTESTED-on-hardware shares=11.50 "
+        + "webkit=assumed-identical-to-11.50 "
+        + "kernel_rvas=untested-vs-dump "
+        + "kpatch=1150.bin",
+    kpatch: "1150.bin",
+});
+
 export function offsetsFor(uaString) {
     const m = (uaString || "").match(/PlayStation\s+4[\/ ](\d+)\.(\d+)/);
     if (!m) return { key: null, off: null };
