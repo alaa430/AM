@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" manifest="cache.appcache">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>alaa mohamed 01001550618</title>
+
+<style>
+html {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background-color: #0b0d10;
+    background-image: url("background.jpg");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+html, body {
+    color: #c8ced8;
+    font: 15px/1.45 "Segoe UI", system-ui, sans-serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: transparent !important;
+}
+
+#wrap {
+    padding: 16px 18px;
+    background: transparent !important;
+}
+
+#state {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    background: transparent !important;
+}
+
+#out {
+    white-space: pre-wrap;
+    font: 12px/1.45 Consolas, monospace;
+
+    /* خلفية الكتابة شبه شفافة */
+    background: rgba(0, 0, 0, 0.12);
+
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 5px;
+    padding: 10px 12px;
+    height: calc(100vh - 141px);
+    overflow-y: auto;
+
+    color: #f0f3f7;
+    text-shadow: 0 1px 2px #000;
+}
+
+.ok {
+    color: #7fd0a0;
+}
+
+.bad {
+    color: #d08a7f;
+}
+
+.warn {
+    color: #d8c07f;
+}
+
+#brand {
+    text-align: center;
+    padding: 8px 10px;
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+#brand img {
+    width: 28px;
+    height: 28px;
+    margin-right: 8px;
+    border-radius: 50%;
+    vertical-align: middle;
+}
+
+#brand b {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    color: #e6ebf2;
+    vertical-align: middle;
+}
+</style>
+
+</head>
+
+<body>
+
+<div id="wrap">
+  <div id="state">loading poops chain...</div>
+  <div id="out"></div>
+</div>
+
+<script type="module">
+import "./chain_poops.js";
+</script>
+
+</body>
+</html>
