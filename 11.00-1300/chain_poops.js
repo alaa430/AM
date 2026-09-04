@@ -2443,11 +2443,11 @@ let allDone = false;
                 + " reached=" + (triplets ? "triplets" : committed ? "commit" : "none"));
         }
 
-        state(allDone ? "BERHASIL -- Tekan tombol PS untuk keluar"
-              : kv ? "Gagal di KERNEL R/W -- Tahan tombol PS > Power > Restart PS4"
-              : kernelBase ? "Gagal di make_karw -- Tahan tombol PS > Power > Restart PS4"
-              : triplets ? "Gagal di leak_kqueue (triple free was OK) -- Tahan tombol PS > Power > Restart PS4"
-              : committed ? "Gagal di triple free -- Tahan tombol PS > Power > Restart PS4"
+        state(allDone ? "ALL DONE"
+              : kv ? "KERNEL R/W -- REBOOT NEEDED"
+              : kernelBase ? "FAILED IN make_karw -- REBOOT"
+              : triplets ? "FAILED IN leak_kqueue (triple free was OK) -- REBOOT"
+              : committed ? "FAILED IN triple free -- REBOOT"
               : "no commit", allDone ? "ok" : kv ? "warn" : "bad");
     } catch (e) {
         mark("STEP10-FAILED", (e && e.message) ? e.message : String(e));
@@ -2481,7 +2481,7 @@ let allDone = false;
         } catch (e) { mark("DISARM-THREW", e.message); }
 
         if (rebootRequired)
-            mark("Tahan tombol PS > Power > Restart PS4", "reason=uaf-file-not-reclaimed");
+            mark("REBOOT-REQUIRED", "reason=uaf-file-not-reclaimed");
         mark("PROOF-SUMMARY-FINAL", "pass=" + passCount + " fail=" + failCount);
     }
 })();

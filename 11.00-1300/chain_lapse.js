@@ -3806,10 +3806,10 @@ function makeRpc(worker) {
                     : "") + ". See the stage 8/9/10 marks for what is left.");
             try {
                 stateEl.textContent = payloadRunning
-                    ? "BERHASIL -- Tekan tombol PS untuk keluar"
-                    : kpatched ? "ROOT + KERNEL PATCHED"
-                    : jailbroken ? "ROOT"
-                    : "REPAIRED";
+                    ? "ALL DONE"
+                    : kpatched ? "ROOT + KERNEL PATCHED -- NO REBOOT"
+                    : jailbroken ? "ROOT -- NO REBOOT NEEDED"
+                    : "REPAIRED -- NO REBOOT NEEDED";
                 stateEl.className = "ok";
             } catch (e) { }
         }
