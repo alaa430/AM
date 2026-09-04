@@ -18,54 +18,89 @@ html {
 }
 
 body {
-  #container {
-    max-width: 480px;
-    margin: 80px auto;
-    padding: 24px;
-  }
-  #brand {
-    font-size: 13px;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: transparent !important;
+    color: #c8ced8;
+    font: 15px/1.45 "Segoe UI", system-ui, sans-serif;
+}
+
+#wrap {
+    padding: 16px 18px;
+    background: transparent !important;
+}
+
+#state {
+    font-size: 44px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    background: transparent !important;
+}
+
+#det {
+    font-size: 26px;
+    color: #8b95a3;
+    margin: 0 0 4px;
+    background: transparent !important;
+}
+
+#det b {
+    color: #c8ced8;
     font-weight: 600;
-    letter-spacing: .2em;
-    margin-bottom: 32px;
-    opacity: 0.5;
-  }
-  #wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  #state {
-    font-size: 20px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-  }
-  #det {
-    font-size: 13px;
-    opacity: 0.6;
-  }
-  #det b {
-    color: #ffffff;
-    font-weight: 600;
-    opacity: 1;
-  }
-  #cache {
-    font-size: 12px;
-    opacity: 0.4;
-    margin-top: 4px;
-    min-height: 16px;
-  }
-  #cache.cacheok {
-    opacity: 0.8;
-  }
-  .ok { color: #ffffff; }
-  .bad { color: #ffffff; text-decoration: underline; }
-  .warn { color: #ffffff; }
+}
+
+#cache {
+    font-size: 24px;
+    color: #5c6672;
+    margin: 0 0 10px;
+    min-height: 14px;
+    background: transparent !important;
+}
+
+#cache.cacheok {
+    color: #7fd0a0;
+}
+
+.ok {
+    color: #7fd0a0;
+}
+
+.bad {
+    color: #d08a7f;
+}
+
+.warn {
+    color: #d8c07f;
+}
+
+#brand {
+    text-align: center;
+    padding: 8px 10px;
+    background: transparent !important;
+    border-bottom: 1px solid #1e2732;
+}
+
+#brand img {
+    width: 28px;
+    height: 28px;
+    margin-right: 8px;
+    border-radius: 50%;
+    vertical-align: middle;
+}
+
+#brand b {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    color: #e6ebf2;
+    vertical-align: middle;
+}
 </style>
 </head>
 <body>
 <div id="container">
-  <div id="brand">mansoor0x</div>
+  <div id="brand">alaa mohamed 01001550618</div>
   <div id="wrap">
     <div id="state">detecting firmware...</div>
     <div id="det"></div>
