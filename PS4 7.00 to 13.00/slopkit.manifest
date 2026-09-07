@@ -1,9 +1,9 @@
 CACHE MANIFEST 
 
 CACHE:
-../img.jpg
-../style.css
-goldhen_2.4b18.10.bin
+img.jpg
+style.css
+payload.bin
 index.html
 slopkit\chain_lapse.js
 slopkit\chain_poops.js
