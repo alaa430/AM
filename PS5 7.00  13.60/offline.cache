@@ -1,0 +1,21 @@
+CACHE MANIFEST 
+# PS5 Offline Cache 14.11.2023 16:47:04.76 
+
+index.html
+src/utils/int64.js
+src/utils/mem.js
+src/utils/rop_slave.js
+src/utils/syscalls.js
+src/firmware.js
+src/kexp.js
+src/main.js
+src/relapse_exploit.js
+src/rop.js
+src/site.js
+src/webkit.js
+payloads/elfldr-ps5-1360.elf
+payloads/kexp_2026_05_25.bin
+payloads/shadowmountplus.elf
+payloads/etaHEN.elf
+background.jpg
+offsets/10.00.js
