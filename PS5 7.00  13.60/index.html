@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" manifest="cache.appcache">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>alaa mohamed 01001550618</title>
+<style>
+html {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background-color: #0b0d10;
+    background-image: url("background.jpg");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: transparent !important;
+    color: #c8ced8;
+    font: 15px/1.45 "Segoe UI", system-ui, sans-serif;
+}
+
+#wrap {
+    padding: 16px 18px;
+    background: transparent !important;
+}
+
+#state {
+    font-size: 44px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    background: transparent !important;
+}
+
+#det {
+    font-size: 26px;
+    color: #8b95a3;
+    margin: 0 0 4px;
+    background: transparent !important;
+}
+
+#det b {
+    color: #c8ced8;
+    font-weight: 600;
+}
+
+#cache {
+    font-size: 24px;
+    color: #5c6672;
+    margin: 0 0 10px;
+    min-height: 14px;
+    background: transparent !important;
+}
+
+#cache.cacheok {
+    color: #7fd0a0;
+}
+
+.ok {
+    color: #7fd0a0;
+}
+
+.bad {
+    color: #d08a7f;
+}
+
+.warn {
+    color: #d8c07f;
+}
+
+#brand {
+    text-align: center;
+    padding: 8px 10px;
+    background: transparent !important;
+    border-bottom: 1px solid #1e2732;
+}
+
+#brand img {
+    width: 28px;
+    height: 28px;
+    margin-right: 8px;
+    border-radius: 50%;
+    vertical-align: middle;
+}
+
+#brand b {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    color: #e6ebf2;
+    vertical-align: middle;
+}
+}  </style>
+</head>
+<body>
+  <div id="console"></div>
+  <script src="./src/firmware.js"></script>
+  <script src="./src/main.js"></script>
+  <script src="./src/rop.js"></script>
+  <script src="./src/utils/syscalls.js"></script>
+  <script type="module" src="./src/site.js"></script>
+</body>
+</html>
