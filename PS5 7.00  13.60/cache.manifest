@@ -3,6 +3,10 @@ CACHE MANIFEST
 
 index.html
 relapse.html
+offsets/10.00.js
+payloads/elfldr-ps5-1360.elf
+payloads/kexp_2026_05_25.bin
+payloads/kstuff-lite_v1.11.elf
 payloads.js
 core.js
 exploit.js
