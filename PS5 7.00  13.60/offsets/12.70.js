@@ -1,5 +1,14 @@
+// 12.70 -- generated from libSceNKWebKit / libkernel_web /
+// libSceLibcInternal. file offset = rva + 0x4000
+
+// host-constructor candidates: webkitBase = nativeCtorAddr - hc
 const OFFSET_wk_host_constructor_candidates = [0x0003A888, 0x0003AAD0, 0x0003BB18];
-const OFFSET_wk_vtable_first_element     = 0x01DD0A90;
+// vtable[0] of HTMLTextAreaElement - the ICF-folded WebCore Element destructor,
+// derived from this firmware's libSceNKWebKit. main.js only reads it below 9.00,
+// so on this firmware it is a fallback that has never been exercised; it replaces
+// the WKDownloadGetTypeID export that used to be parked here, which was not a
+// vtable entry at all. Method validated 20/20 on 7.00-8.60, retail and devkit.
+const OFFSET_wk_vtable_first_element     = 0x01DD0A90; // derived: unique `mov eax,0x37; ret` slot0, verified identical in all six 12.x modules
 const OFFSET_wk_memset_import                  = 0x03510238;
 const OFFSET_wk___stack_chk_guard_import       = 0x0350DB88;
 
@@ -379,10 +388,31 @@ let syscall_map = {
 	0x2DD: 0x0001B410,
 };
 
+/* ---------------------------------------------------------------------------
+ * 12.70 libkernel_web / libSceLibcInternal + kernel-data offsets.
+ *
+ * Source: E:\ps5\p2jb\OFFSETS_12.70.txt - generated offline by rip-relative
+ * signature vote against lk/12.70.sprx. That method's 12.00 column reproduced
+ * poops's known-good offsets/12.00.js values EXACTLY, which is what validates it.
+ *
+ * FOUR SYMBOLS SHIFT BY +0x20 ON 12.70 - everything else is identical to 12.00:
+ *     pthread_create  0x21150 -> 0x21170
+ *     getpid          0x1B7D0 -> 0x1B7F0
+ *     pthread_join    0x22910 -> 0x22930   (already present above)
+ *     pthread_exit    0x21B90 -> 0x21BB0   (already present above)
+ * Two of those - pthread_create and getpid - are patched into the kexp shellcode's
+ * PIC slots by the resolver bypass, so using the 12.00 values here would write wrong
+ * function pointers into a shellcode that then runs in kernel context. They are NOT
+ * interchangeable across these firmwares even though most of the table is.
+ *
+ * Without these the 12.70 path fails in two places, both loudly rather than silently:
+ *   - the kexp resolver bypass refuses to run ("firmware profile is missing ...")
+ *   - kexp_spawn_pthread refuses ("no scePthread create/join/attr set")
+ * ------------------------------------------------------------------------- */
 const OFFSET_lk_sceKernelSendNotificationRequest = 0x000048B0;
 const OFFSET_lk_sysctlbyname                   = 0x00013BB0;
-const OFFSET_lk_pthread_create                 = 0x00021170;
-const OFFSET_lk_getpid                         = 0x0001B7F0;
+const OFFSET_lk_pthread_create                 = 0x00021170;   /* +0x20 vs 12.00 */
+const OFFSET_lk_getpid                         = 0x0001B7F0;   /* +0x20 vs 12.00 */
 
 const OFFSET_lk_scePthreadCreate               = 0x000079B0;
 const OFFSET_lk_scePthreadJoin                 = 0x0000B570;
@@ -391,6 +421,12 @@ const OFFSET_lk_scePthreadAttrSetstacksize     = 0x0000C6B0;
 const OFFSET_lk_scePthreadAttrSetdetachstate   = 0x0000C0C0;
 const OFFSET_lk_scePthreadAttrDestroy          = 0x000104C0;
 
+/* thread_list cross-validated: poops 12.00 OFFSET_lk__thread_list (0x64218) is
+ * byte-identical to p2jb_lk.js's 12.00 `thread_list`, so p2jb_lk's 12.70 value is the
+ * same symbol. NOTE the same is NOT true of worker_wait_return vs slot_expect - those
+ * are different values (12.00: 0x1FC71 vs 0x197FB) and must not be conflated.
+ * worker_wait_return is deliberately omitted: main.js falls back to
+ * OFFSET_WORKER_STACK_OFFSET (set above, 0x7FB88 for 12.70) when it is undefined. */
 const OFFSET_lk__thread_list                   = 0x00068218;
 
 const OFFSET_lc_malloc                         = 0x000060F0;
@@ -400,6 +436,11 @@ const OFFSET_lc_strcmp                         = 0x000407C0;
 const OFFSET_lc_memcmp                         = 0x00078750;
 const OFFSET_lc_vsnprintf                      = 0x0005CF50;
 
+/* kernel data, KERNEL-BASE relative (KBASE=0xffffffff80210000).
+ * Consistency check against p2jb's own DATA-base-relative table:
+ *   p2jb DATA_BASE_ALLPROC 0x02885E00 + kdata 0xFFFFFFFF80F60000 = 0xFFFFFFFF837E5E00
+ *   0xFFFFFFFF837E5E00 - ktext 0xFFFFFFFF80210000 = 0x035D5E00  <- matches exactly.
+ * So p2jb's 12.70 entry aliasing 12.00 is CORRECT, not a copy-paste slip. */
 const OFFSET_KERNEL_ALLPROC                    = 0x035D5E00;
 const OFFSET_KERNEL_SECURITY_FLAGS             = 0x01AD3064;
 const OFFSET_KERNEL_TARGETID                   = 0x01AD306D;
@@ -408,9 +449,24 @@ const OFFSET_KERNEL_UTOKEN_FLAGS               = 0x01AD30F0;
 const OFFSET_KERNEL_ROOTVNODE                  = 0x03E27510;
 const OFFSET_KERNEL_DATA                       = 0x00D50000;
 
+/* worker_wait_return - REQUIRED for the ROBUST worker-slot search.
+ * Omitting it makes main.js fall back to the FIXED OFFSET_WORKER_STACK_OFFSET, and on
+ * 12.70 that fallback hijacks the wrong slot: the first 12.70 preflight died with
+ *   "The ROP chain never executed: the return slot still holds the poison."
+ * With this defined, find_worker_return_slot() SCANS the parked worker stack for
+ * libKernelBase+this value, which is runtime-stack-depth independent.
+ * Ported 12.00 0x1FC71 -> 12.70 by 32-byte signature against lk/12.00.sprx and
+ * lk/12.70.sprx (file_off = rva + 0x4000): a SINGLE unique hit at 0x1FC91. The same
+ * port run as a control reproduced the three already-known answers exactly
+ * (pthread_join 0x22910->0x22930, getpid 0x1B7D0->0x1B7F0,
+ *  pthread_create 0x21150->0x21170), which is what validates the method.
+ * +0x20, consistent with every other shifted symbol in this region.
+ * NB this is NOT p2jb_lk.js's `slot_expect` - different value, different site
+ * (12.00: 0x1FC71 vs 0x197FB). Do not conflate them. */
 const OFFSET_lk_worker_wait_return             = 0x0001FC91;
 
-const OFFSET_kaslr_leak_static = 0x00B6EB51;
+/* ===== relapse AIO kernel R/W section (appended; KBASE=0xffffffff80210000) ===== */
+const OFFSET_kaslr_leak_static = 0x00B6EB51;   // route_output rt_msg2 leaked ret (krel)
 const OFFSET_kaslr_leak_ret    = 0x00B6EB51;
 
 window.KRW = {

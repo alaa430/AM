@@ -1,24 +1,20 @@
-# PS5 Relapse Exploit
-Supported firmware: 7.00 through 13.60.
+# relapse
 
-## Usage
-- In the network settings, set Primary DNS to `45.56.67.85` (Recommended)
-- Run `python serve.py` locally, or open https://ntfargo.github.io/Relapse-Exploit/ on the PS5.
-- The default payloads are stored in `payloads/` after a successful run, the ELF loader listens on port `9021`.
-- After elfldr starts on port `9021`, you can press R2 to send `kstuff.elf`, `shadowmountplus.elf`, then `etaHEN.elf`.
+PS5 WebKit + kernel exploit chain (relapse / aio), firmware **7.00 - 13.60**.
 
-## Stability notes
-Webkit may need several attempts, reload the page if the browser stalls. The kernel exploit may hang or panic the console, so reboot before trying again if that happens.
+Retail and testkit build. Devkits want the [relapse-dev](https://github.com/soniciso1/relapse-dev) build instead.
 
-## Exploit chain
-Browser stage uses JSC info leaks and a structured clone object pool mismatch to corrupt a typedarray. The kernel stage combines a address leak with an `aio_multi_wait` uaf race to establish kernel r/w.
+Open the page on the console and let it run. A successful run draws the payload menu
+in place and sends each ELF through the console'"'"'s own syscalls to `127.0.0.1:9021`,
+so no server-side support is needed and this works from any static host.
 
-## Credits
-ntfargo, ufm42, Sonic-Iso, Jordy, Dr. Yenyen, TheFlow, SlidyBat,  Flatz, cow, nhk, bollarz, Sleirsgoevy, EchoStretch, EarthOnion.
+Supported: 7.00, 7.01, 7.20, 7.40, 7.60, 7.61, 8.00, 8.20, 8.40, 8.60, 9.00, 9.20,
+9.40, 9.60, 10.00, 10.01, 10.20, 10.40, 11.00, 11.20, 11.60, 12.00, 12.02, 12.20,
+12.40, 12.60, 12.70, 13.00, 13.20, 13.40, 13.42, 13.60.
 
-Discord: [PS5 Research & Development](https://discord.gg/Eea73sskbC)
+10.60 and 11.40 are absent: those firmware images are missing the modules the offsets
+have to be read out of.
 
-## Disclaimer
-This project is intended for **educational and security research purposes only**. It does not endorse piracy, unauthorized access, or misuse of commercial devices. Use it only on devices you own or are authorized to test, and comply with applicable laws and regulations.
-
-The software is provided as-is, without warranty. You assume the risks of using it, including system instability, data loss, and account bans. The maintainers accept no liability for resulting damage. 
+`elf.html` is a standalone payload menu for the already-jailbroken case. It needs a
+host that runs code and can reach the console (`api/` ships PHP and node handlers),
+so it does not work on GitHub Pages - use the run page'"'"'s own menu there.

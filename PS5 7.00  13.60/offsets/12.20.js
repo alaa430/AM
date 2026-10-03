@@ -1,5 +1,14 @@
+// 12.20 -- generated from libSceNKWebKit / libkernel_web /
+// libSceLibcInternal. file offset = rva + 0x4000
+
+// host-constructor candidates: webkitBase = nativeCtorAddr - hc
 const OFFSET_wk_host_constructor_candidates = [0x0003A888, 0x0003AAD0, 0x0003BB18];
-const OFFSET_wk_vtable_first_element     = 0x01DD0A90;
+// vtable[0] of HTMLTextAreaElement - the ICF-folded WebCore Element destructor,
+// derived from this firmware's libSceNKWebKit. main.js only reads it below 9.00,
+// so on this firmware it is a fallback that has never been exercised; it replaces
+// the WKDownloadGetTypeID export that used to be parked here, which was not a
+// vtable entry at all. Method validated 20/20 on 7.00-8.60, retail and devkit.
+const OFFSET_wk_vtable_first_element     = 0x01DD0A90; // derived: unique `mov eax,0x37; ret` slot0, verified identical in all six 12.x modules
 const OFFSET_wk_memset_import                  = 0x03510238;
 const OFFSET_wk___stack_chk_guard_import       = 0x0350DB88;
 
@@ -379,6 +388,26 @@ let syscall_map = {
 	0x2DD: 0x0001B3F0,
 };
 
+/* ---------------------------------------------------------------------------
+ * p2jb offsets for 12.20.
+ *
+ * Before this block 12.20 carried WebKit offsets only, so p2jb died at load with a
+ * ReferenceError (main.js dereferences OFFSET_lk__thread_list and
+ * OFFSET_lk_worker_wait_return unguarded). Derived 2026-08-16.
+ *
+ * libkernel_web is group A (528364 bytes), the same build family as 12.00, which is
+ * hardware-proven - so 12.00 is the reference and the port was validated by first
+ * reproducing BOTH 12.00 and 12.70 from each other:
+ *   - the 16 exported functions come from the module's own NID symbol table, not from
+ *     byte signatures: 32/32 recorded values reproduced exactly
+ *   - _thread_list ported via the code that references it rip-relatively (4 agreeing
+ *     reference sites), controls passed both directions
+ *   - worker_wait_return ported by masked byte signature, unique hit, controls both ways
+ *   - OFFSET_KERNEL_* are ktext-relative; OFFSET_KERNEL_DATA is kdata_base - ktext_base
+ *     read from this firmware's own kernel PT_LOAD table (0xD50000 on all six 12.x), and
+ *     allproc was re-derived from this kernel's bytes rather than assumed frozen.
+ * UNTESTED ON HARDWARE - only 12.00 and 12.70 have been run on a console.
+ * ------------------------------------------------------------------------ */
 const OFFSET_KERNEL_ALLPROC                          = 0x035D5E00;
 const OFFSET_KERNEL_DATA                             = 0x00D50000;
 const OFFSET_KERNEL_QA_FLAGS                         = 0x01AD3088;
@@ -405,7 +434,8 @@ const OFFSET_lk_scePthreadJoin                       = 0x0000B570;
 const OFFSET_lk_sysctlbyname                         = 0x00013BB0;
 const OFFSET_lk_worker_wait_return                   = 0x0001FC71;
 
-const OFFSET_kaslr_leak_static = 0x00B6EAF1;
+/* ===== relapse AIO kernel R/W section (appended; KBASE=0xffffffff80210000) ===== */
+const OFFSET_kaslr_leak_static = 0x00B6EAF1;   // route_output rt_msg2 leaked ret (krel)
 const OFFSET_kaslr_leak_ret    = 0x00B6EAF1;
 
 window.KRW = {
@@ -456,3 +486,4 @@ window.SYMBOLS = {
         vsnprintf: 0x0005CF50,
     },
 };
+
