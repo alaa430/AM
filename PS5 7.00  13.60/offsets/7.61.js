@@ -1,14 +1,39 @@
-// PS5 7.61 offsets - generated from decrypted firmware modules
-// source: 7_Firmware 07.61.00_PS5UPDATE
+// 07.61 -- generated from libSceNKWebKit / libkernel_web /
+// libSceLibcInternal. file offset = rva + 0x4000
 
-const OFFSET_wk_host_constructor_candidates = [0x00010590, 0x00010AE8, 0x000114C0];
-const OFFSET_wk_vtable_first_element     = 0;
+// no host-constructor value for this firmware
+const OFFSET_wk_host_constructor_candidates = [];
+/* Re-derived 2026-08-21. The previous value came from a 'unique mov eax,0x37; ret'
+ * heuristic and was WRONG for this whole range - on 7.00 it pointed at 0x65C4E0,
+ * which is slot 0 of a single 3-slot vtable, not a DOM element. main.js does:
+ *   vt = read8(read8(leakval(textarea)+0x18)); base = read8(vt) - THIS
+ * so this must be the target of slot 0 of HTMLTextAreaElement's vtable. That
+ * function is a base virtual shared by exactly 214 large (>=100 slot) vtables
+ * on EVERY firmware 6.00-8.60, which is how it is identified.
+ * Cross-checked on a 7.00 devkit: the leaked vtable[0] was 0x818865720, and
+ * 0x3D720 is the only large-vtable slot0 whose value mod 0x4000 matches, giving
+ * base 0x818828000 - 16K aligned and in the user-module band. The old value
+ * produced 0x818209240, which is not page aligned, and every module base
+ * derived from it (lk, lc) came out as garbage.
+ * previous (wrong): 0x0065C7C0 */
+const OFFSET_wk_vtable_first_element     = 0x0003D720;
+
 const OFFSET_wk_memset_import                  = 0x03E1AEE0;
 const OFFSET_wk___stack_chk_guard_import       = 0x03E18910;
 
 const OFFSET_lk___stack_chk_guard              = 0x0006D1D0;
+/* __thread_list, derived from this firmware's own libkernel_web.sprx.
+ * Located by the pthread link-insert signature (identical shape on every
+ * build): mov rcx,[rip+X] ; lea rdx,[reg+0x38] ; lea rsi,[rcx+0x38] ;
+ * mov [reg+0x38],rcx ; cmove rsi,rax ; mov [rsi+8],rdx ;
+ * mov [rip+Y],reg ; mov [reg+0x40],rax ; or byte [reg+0x19c],2
+ * i.e. a doubly-linked insert with next=+0x38 / prev=+0x40, matching
+ * ChendoChap's PTHREAD_NEXT_THREAD_OFFSET. Match site on 7.61: 0x02B9C0.
+ * The method reproduces the known-good 0x64218 on 8.00-8.60 exactly,
+ * and 8.00 was confirmed on hardware (thread list slot 0x8019fc218
+ * minus lk base 0x801998000 = 0x64218). NOTE 6.xx is 0x64208, NOT 0x64218. */
 const OFFSET_lk__thread_list                   = 0x00064218;
-const OFFSET_lk_worker_wait_return             = 0x00038A11;
+
 const OFFSET_lk_pthread_create_name_np         = 0x00001CE0;
 const OFFSET_lk_pthread_join                   = 0x00032860;
 const OFFSET_lk_pthread_exit                   = 0x00022670;
@@ -30,7 +55,7 @@ let wk_gadgetmap = {
 	"pop rax": 0x000A6CAB,
 	"pop rsp": 0x0006EEE1,
 	"pop r8": 0x004C6011,
-	"pop r9": 0x002773C6,
+	"pop r9": 0x010CA0DF,
 	"mov [rdi], rsi": 0x00752B00,
 	"mov [rdi], rax": 0x00079337,
 	"mov [rdi], eax": 0x00079338,
@@ -382,69 +407,70 @@ let syscall_map = {
 	0x2D5: 0x00037690,
 };
 
-const OFFSET_KERNEL_ALLPROC                    = 0x034A9D50;
-const OFFSET_KERNEL_SECURITY_FLAGS             = 0x01718064;
-const OFFSET_KERNEL_TARGETID                   = 0x01718064 + 0x09;
-const OFFSET_KERNEL_QA_FLAGS                   = 0x01718064 + 0x24;
-const OFFSET_KERNEL_UTOKEN_FLAGS               = 0x01718064 + 0x8C;
-const OFFSET_KERNEL_ROOTVNODE                  = 0x03D17510;
-const OFFSET_KERNEL_VMSPACE_P_ROOT             = 0x1d0;
-const OFFSET_KERNEL_VMSPACE_VM_PMAP            = 0x2e8;
-const OFFSET_KERNEL_DATA                       = 0x00C50000;
+// ---- derived offline 2026-08-20 (NID / signature / xref), UNTESTED on hardware ----
+const OFFSET_lk_getpid                              = 0x000367A0;
+const OFFSET_lk_pthread_create                      = 0x00030190;
+const OFFSET_lk_sceKernelSendNotificationRequest    = 0x00008BE0;
+const OFFSET_lk_scePthreadAttrDestroy               = 0x00020570;
+const OFFSET_lk_scePthreadAttrInit                  = 0x00029630;
+const OFFSET_lk_scePthreadAttrSetdetachstate        = 0x00016F00;
+const OFFSET_lk_scePthreadAttrSetstacksize          = 0x00017700;
+const OFFSET_lk_scePthreadCreate                    = 0x0000E240;
+const OFFSET_lk_scePthreadJoin                      = 0x00014A80;
+const OFFSET_lk_sysctlbyname                        = 0x00027370;
+const OFFSET_lc_free                                = 0x00005E90;
+const OFFSET_lc_malloc                              = 0x00005E80;
+const OFFSET_lc_memcmp                              = 0x00040890;
+const OFFSET_lc_memcpy                              = 0x00003CD0;
+const OFFSET_lc_strcmp                              = 0x000408D0;
+const OFFSET_lc_vsnprintf                           = 0x0005C620;
+const OFFSET_lk_worker_wait_return                  = 0x00038A11;
+const OFFSET_KERNEL_ALLPROC                         = 0x034A9D50;
+const OFFSET_KERNEL_DATA                            = 0x00C50000;
+const OFFSET_KERNEL_QA_FLAGS                        = 0x01718088;
+/* rootvnode, derived from this firmware's own x86_kernel.elf.
+ * main.js does:  rootvnode = krw.read8(get_kaddr(OFFSET_KERNEL_ROOTVNODE))
+ * then writes it to procFd+0x10 and +0x18 to escape the sandbox, so a wrong
+ * value is a kernel read at a garbage address - it MUST be right.
+ * Signature (unique, exactly one match per kernel):
+ *     48 8B 7D A8    mov rdi, [rbp-0x58]
+ *     48 89 3D ..    mov [rip+X], rdi        <- the store to rootvnode
+ * The method reproduces the known-good values on TWO anchors we already have:
+ * 9.00 -> 0x03C7B510 and 12.00 -> 0x03E27510, both exact matches.
+ * Range-checked: value sits past OFFSET_KERNEL_DATA and inside the image. */
+const OFFSET_KERNEL_ROOTVNODE                       = 0x03D17510;
+const OFFSET_KERNEL_SECURITY_FLAGS                  = 0x01718064;
+const OFFSET_KERNEL_TARGETID                        = 0x0171806D;
+const OFFSET_KERNEL_UTOKEN_FLAGS                    = 0x017180F0;
 
-window.KRW = {
-    firmware: "7.61",
-    kernelData: OFFSET_KERNEL_DATA,
-    allproc:    OFFSET_KERNEL_ALLPROC,
-    rootvnode:  OFFSET_KERNEL_ROOTVNODE,
-    kaslr: { mode: "rtmsg2", retStatic: 0x00A84191, retLow16: 0x4191 },
-    oid: {
-        originalKind: 0x80048002,
-        writableKind: 0x70048002,
-        a: {
-            base: 0x02770808, kind: 0x0277081C, kindByte3: 0x0277081F,
-            arg1: 0x02770820, arg1Byte1: 0x02770821, arg1Value: 0x027707F8,
-            deadSink: 0x02770828,
-        },
-        b: {
-            base: 0x027706E0, kind: 0x027706F4, kindByte3: 0x027706F7,
-            arg1: 0x027706F8, arg1Value: 0x02770610, visible: 0x02770730,
-        },
-        c: {
-            base: 0x02A930E8, kind: 0x02A930FC, arg1: 0x02A93100,
-            arg1Value: 0x03C93F7C, mib: [9, 8],
-        },
-    },
-    walkCounter: { addr: 0x03C93F78, mib: [9, 7] },
-    nodeMutex: 0x01A6FED8,
-    rodataProbe: { rva: 0x0101114F, text: "_aio_submit_cmd" },
-    aio: {
-        waiterSize: 0x38, requestSize: 0x28,
-        group: { num: 0x00, state: 0x08, waiters: 0x50 },
-        idTable: { pages: 0x220, slotStride: 0x30, entryType: 0x160 },
-    },
-    proc: { pid: 0x0bc, ucred: 0x040, fd: 0x048, aioInfo: 0x0c38, dynlib: 0x3e8 },
-    kernelPid: 0,
-    ucred: { uid: 0x04, ruid: 0x08, svuid: 0x0c, ngroups: 0x10, rgid: 0x14, svgid: 0x18,
-        sceAuthId: 0x58, sceCaps: 0x60, sceCaps1: 0x68, sceAttrs: 0x80 },
-    sysCoreAuthId: { lo: 0x00000007, hi: 0x48000000 },
-    filedesc:      { files: 0x00, cdir: 0x08, rdir: 0x10, jdir: 0x18 },
-    filedescTable: { nfiles: 0x00, ofiles: 0x08, entryStride: 0x30, fileData: 0x00 },
-    pipe: { count: 0x00, in: 0x04, out: 0x08, size: 0x0c, buffer: 0x10, pair: 0xe8, defaultSize: 0x4000 },
-    dynlib: { syscallStart: 0xf0, syscallEnd: 0xf8, restrictFlags: 0x118, libkernelRef: 0x18 },
-};
-window.SYMBOLS = {
-    libkernel: {
-        getpid:                           0x000367A0,
-        sysctlbyname:                     0x00027370,
-        sceKernelSendNotificationRequest: 0x00008BE0,
-        pthread_create:                   0x00030190,
-        pthread_create_name_np:           0x00001CE0,
-        pthread_join:                     0x00032860,
-    },
-    libc: {
-        malloc: 0x00005E80, free: 0x00005E90, memcpy: 0x00003CD0,
-        memset: 0x00014E70, strcmp: 0x000408D0, memcmp: 0x00040890,
-        vsnprintf: 0x0005C620,
-    },
-};
+
+/* ---------------------------------------------------------------------------
+ * Constants zecoxao's engine reads that our own profiles never carried.
+ * Generated by scratchpad\gen_zx_profiles.py for 7.61.
+ *
+ * DERIVED from this firmware's own retail binaries (I:\americana), by a method
+ * control-gated against his shipped 7.00 profile - the control had to reproduce
+ * 0x0080C579 / 0x00064014 before any of these were emitted:
+ */
+const OFFSET_wk_stack_pivot_mov_rsp_rdi   = 0x0080C889;   // unique `mov rsp,rdi;ret`
+const OFFSET_lk_cond_wait_selector        = 0x00064014;   // `cmp dword [rip+X], 1`, RW data
+
+/* Era constants: true for the whole Safari 15.4 line (6.00-8.60). Each is a quirk we had
+ * already found independently, which is why they are asserted rather than probed. */
+const OFFSET_jsc_abv_mode_at_0x20        = true;   // size_t m_length -> m_mode sits at +0x20
+const OFFSET_wk_r9_zero_only             = false;   // pop r9 only under REX 0x47/0x4D
+const OFFSET_wk_cmp_operands_reversed    = true;   // cmp encoded 3b 01, operands reversed
+const OFFSET_wk_store_via_rax            = true;
+const OFFSET_wk_gadget_selftest          = true;
+
+/* Unused on this path, same as his 7.00. */
+const OFFSET_wk_bootstrap                 = "";
+const OFFSET_wk_vtable_trigger            = "";
+
+/* CARRIED FROM HIS 7.00 - NOT independently derived for 7.61. STACK_COOKIE is identical
+ * on his 7.00 and 12.00 so it is era-stable; the sched_yield pair is low-firmware only and
+ * his own 7.00 marks the second one "not derived". Treat these as the weakest values in
+ * this file: if a 7.61 run dies in the kernel-stack step, start here. */
+const OFFSET_KERNEL_STACK_COOKIE                = 0x00000930;
+const OFFSET_KERNEL_STACK_SYS_SCHED_YIELD_RET   = 0x00000808;
+const OFFSET_KERNEL_SYS_SCHED_YIELD_RET         = 0x00000000; // not derived

@@ -1,109 +1,11 @@
 <!DOCTYPE html>
-<html manifest="cache.manifest" lang="en">
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>Relapse</title>
-<style>
-:root {
-  --text-color-primary: #fff;
-  --text-color-secondary: #ccc;
-  --text-color-tertiary: #999;
-  --background-color-primary: #0c0c0f;
-  --surface-color-primary: #202125;
-  --surface-color-secondary: #15161a;
-  --surface-color-hover: #a2a2a6;
-  --text-color-primary-hover: #202020;
-  --text-color-secondary-hover: #444;
-  font-size: 17px;
-}
-
-html {
-    margin: 0;
-    padding: 0;
-    min-height: 100%;
-    background-color: #0b0d10;
-    background-image: url("background.jpg");
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-}
-
-
-a { color: var(--text-color-secondary); }
-a:active, a:focus { outline: 0; border: none; }
-
-.btn {
-  padding: 1rem 2rem;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  margin: .2rem;
-  cursor: pointer;
-  line-height: 2.5rem;
-  min-width: 5rem;
-  border-radius: 1.25rem;
-  width: 50%;
-  background-color: var(--surface-color-primary);
-  border: none;
-  color: var(--text-color-primary);
-  font-size: 1.3rem;
-  transition: background-color .25s ease;
-  box-sizing: border-box;
-}
-
-.btn:hover, .btn:focus {
-  background-color: var(--surface-color-hover);
-  color: var(--text-color-primary-hover);
-}
-
-.btn-secondary { padding: .5rem 2rem; font-size: 1rem; }
-
-#main-content { position: relative; box-sizing: border-box; }
-#main-content > div {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .3s ease-in-out;
-  box-sizing: border-box;
-  display: flex;
-}
-
-#pre-jb-view {
-  display: block !important;
-  padding-top: 18vh;
-  text-align: center;
-}
-
-#pre-jb-view .btn {
-  display: block;
-  width: 70%;
-  max-width: none;
-  margin: .5rem auto;
-}
-
-.selected { opacity: 1 !important; pointer-events: auto !important; }
-.position-relative { position: relative; }
-.text-center { text-align: center; }
-.fw-bold { font-weight: 800; }
-.text-secondary {
-  color: var(--text-color-secondary);
-  margin: 0;
-  padding: 0;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  font-size: .8rem;
-}
-.p-2 { padding: .5rem !important; }
-.mt-2 { margin-top: .5rem !important; }
-.mb-2 { margin-bottom: .5rem !important; }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>poopsploit</title>
+  <link rel="stylesheet" href="main.css?v=lowfw17">
+  <style>
   /* ---- creds & greetz, lifted verbatim from the poop2jb landing ---- */
 /* Credits, in slopkit2's style: a muted label over a single wrapped line of names.
    position:fixed so it pins to the bottom without joining the centred flex column
@@ -120,34 +22,45 @@ a:active, a:focus { outline: 0; border: none; }
              color:#4a4b50; line-height:1.55; }
 #basedon{ margin:9px 0 0; font-size:0.68rem; color:#3d3e43; letter-spacing:.05em;
            font-weight:400; }
-</style>
+  </style>
 </head>
 <body>
   <div class="p-2">
-    <h1 class="text-center">Relapse (7.00 - 13.60)</h1>
-	<p class="text-center" id="top-bar-text">Current Firmware: <span class="fw-bold" id="current-fw">Unknown</span></p>
+    <h1 class="text-center">poopsploit (7.00-12.00)</h1>
+    <p class="text-center" id="top-bar-text">Current Firmware: <span class="fw-bold" id="current-fw">Unknown</span></p>
   </div>
 
   <div id="main-content">
     <div id="pre-jb-view" class="selected">
-      <a tabindex="0" class="btn fw-bold" id="run-jb" href="relapse.html">Jailbreak</a>
-      <a tabindex="0" class="btn btn-secondary" id="run-sender" href="relapse.html?senderok=1">Payloads (sender)</a>
+      <a tabindex="0" class="btn fw-bold" id="run-jb"
+         href="poopsploit/poops.html?go=1&amp;auto=1&amp;production=1&amp;trigger=netcontrol&amp;attempts=8&amp;only=ps0_preflight,ps1_prepare,ps3_stage0,ps4_validate,ps5_stage1,ps6_stage2,ps8_stage3,ps9_stage4,ps10_stage5&amp;log=debug&amp;payload=1&amp;v=lowfw17">Jailbreak</a>
+      <a tabindex="0" class="btn btn-secondary" id="run-sender"
+         href="poopsploit/poops.html?go=1&amp;auto=1&amp;production=1&amp;trigger=netcontrol&amp;attempts=8&amp;only=ps0_preflight,ps1_prepare,ps3_stage0,ps4_validate,ps5_stage1,ps6_stage2,ps8_stage3,ps9_stage4,ps10_stage5&amp;log=debug&amp;payload=1&amp;reuse=1&amp;v=lowfw17">Payloads (sender)</a>
     </div>
   </div>
 
-  <div id="credits">
+<!-- CREDS & GREETZ. Styled after zecoxao's site (his hen/hen2/hen3/idlesauce pages all
+     carry the same "creds & greetz" block), but the NAMES are the operator's own list,
+     not a copy of his - his local mirror had 8 of 12 slots stripped and those were never
+     guessed. zecoxao leads. One name was dropped at the operator's request. The list is
+     de-duplicated: zecoxao and idlesauce each appeared twice across the old block and the
+     added list, and are kept once, in their first position.
+     j0rdy is deliberately NOT a greet - he gets the attribution line underneath, which is
+     credit rather than a greeting. -->
+<div id="credits">
     <span>creds &amp; greetz</span>
     <h3>
-        Karo, zecoxao, ChendoChap, abc/psfree, idlesauce, flat_z, TheFlow,
+        zecoxao, ChendoChap, abc/psfree, idlesauce, flat_z, TheFlow,
         c0w-ar, earthonion, SIStro, egycnq, abkarino, gezine, Dr.Yenyen,
         StonedModder, VoidWhisper, EchoStretch, BestPig, AlAzif, drakmor,
         hzhreal, hammer-83, ntfargo, shahrilnet, Znullptr,
-        LM, ItsJokerZz, Soniciso1
+        LM, ItsJokerZz,
         cblock, BeLegal, Lord Caio Barros
     </h3>
-    <p id="basedon">based on the Ralapse by j0rdy & soniciso1</p>
-  </div>
-    <script>
+    <p id="basedon">based on the slopkit by j0rdy</p>
+</div>
+
+  <script>
     try {
       var firmwareMatch = /PlayStation 5\/(\d+\.\d+)/.exec(navigator.userAgent);
       var firmware = firmwareMatch ? firmwareMatch[1] : "";
@@ -155,5 +68,6 @@ a:active, a:focus { outline: 0; border: none; }
     } catch (e) { }
     try { document.getElementById("run-jb").focus(); } catch (e) { }
   </script>
+
 </body>
 </html>

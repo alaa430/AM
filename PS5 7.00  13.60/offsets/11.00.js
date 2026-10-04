@@ -1,25 +1,49 @@
-// PS5 11.00 offsets - generated from decrypted firmware modules
-// source: 11_Firmware 11.00.00_PS5UPDATE
+// 11.00 -- generated from libSceNKWebKit / libkernel_web /
+// libSceLibcInternal. file offset = rva + 0x4000
 
+// host-constructor candidates: webkitBase = nativeCtorAddr - hc
 const OFFSET_wk_host_constructor_candidates = [0x0001E0D8, 0x0001E320, 0x0001F368];
-const OFFSET_wk_vtable_first_element     = 0;
+// vtable[0] of HTMLTextAreaElement - the ICF-folded WebCore Element destructor,
+// derived from this firmware's libSceNKWebKit. main.js only reads it below 9.00,
+// so on this firmware it is a fallback that has never been exercised; it replaces
+// the WKDownloadGetTypeID export that used to be parked here, which was not a
+// vtable entry at all. Method validated 20/20 on 7.00-8.60, retail and devkit.
+const OFFSET_wk_vtable_first_element     = 0x01DBB960;
 const OFFSET_wk_memset_import                  = 0x034F7DA0;
 const OFFSET_wk___stack_chk_guard_import       = 0x034F5718;
 
 const OFFSET_lk___stack_chk_guard              = 0x0006D1D0;
-const OFFSET_lk__thread_list                   = 0x00064218;
-const OFFSET_lk_worker_wait_return             = 0x0001F681;
 const OFFSET_lk_pthread_create_name_np         = 0x00021200;
 const OFFSET_lk_pthread_join                   = 0x00022310;
 const OFFSET_lk_pthread_exit                   = 0x00021590;
+// Exact retail exports used by the Stage-5 payload loader.
+const OFFSET_lk_scePthreadCreate               = 0x00007840;
+const OFFSET_lk_scePthreadJoin                 = 0x0000B210;
+const OFFSET_lk_scePthreadAttrInit             = 0x00014E70;
+const OFFSET_lk_scePthreadAttrSetstacksize     = 0x0000C2A0;
+const OFFSET_lk_scePthreadAttrSetdetachstate   = 0x0000BCB0;
+const OFFSET_lk_scePthreadAttrDestroy          = 0x000100C0;
+const OFFSET_lk_sceKernelSendNotificationRequest = 0x00004740;
+const OFFSET_lk_sysctlbyname                   = 0x000137E0;
+const OFFSET_lk_pthread_create                 = 0x00020B50;
+const OFFSET_lk_getpid                         = 0x0001B280;
+const OFFSET_lk__thread_list                   = 0x00064218;
+const OFFSET_lk_worker_wait_return             = 0x0001F681;
 const OFFSET_lk_sleep                          = 0x00027890;
 const OFFSET_lk_sceKernelGetCurrentCpu         = 0x000011F0;
 
 const OFFSET_lc_memset                         = 0x00014E80;
+const OFFSET_lc_malloc                         = 0x00005EB0;
+const OFFSET_lc_free                           = 0x00005EC0;
+const OFFSET_lc_memcpy                         = 0x00003D50;
+const OFFSET_lc_strcmp                         = 0x0003FD80;
+const OFFSET_lc_memcmp                         = 0x00076660;
+const OFFSET_lc_vsnprintf                      = 0x0005C430;
 const OFFSET_lc_setjmp                         = 0x0005AD30;
 const OFFSET_lc_longjmp                        = 0x0005AD80;
 
-const OFFSET_WORKER_STACK_OFFSET         = 0x0007FB88;
+// Fallback estimate only; main.js fingerprints the saved worker PC at runtime.
+const OFFSET_WORKER_STACK_OFFSET         = 0x0007FB68;
 
 let wk_gadgetmap = {
 	"ret": 0x000000C7,
@@ -384,69 +408,15 @@ let syscall_map = {
 	0x2DD: 0x0001AEA0,
 };
 
-const OFFSET_KERNEL_ALLPROC                    = 0x035A5D70;
-const OFFSET_KERNEL_SECURITY_FLAGS             = 0x01ABC064;
-const OFFSET_KERNEL_TARGETID                   = 0x01ABC064 + 0x09;
-const OFFSET_KERNEL_QA_FLAGS                   = 0x01ABC064 + 0x24;
-const OFFSET_KERNEL_UTOKEN_FLAGS               = 0x01ABC064 + 0x8C;
-const OFFSET_KERNEL_ROOTVNODE                  = 0x03DE7510;
-const OFFSET_KERNEL_VMSPACE_P_ROOT             = 0x1d0;
-const OFFSET_KERNEL_VMSPACE_VM_PMAP            = 0x2e8;
-const OFFSET_KERNEL_DATA                       = 0x00D30000;
-
-window.KRW = {
-    firmware: "11.00",
-    kernelData: OFFSET_KERNEL_DATA,
-    allproc:    OFFSET_KERNEL_ALLPROC,
-    rootvnode:  OFFSET_KERNEL_ROOTVNODE,
-    kaslr: { mode: "rtmsg2", retStatic: 0x00B52B61, retLow16: 0x2B61 },
-    oid: {
-        originalKind: 0x80048002,
-        writableKind: 0x70048002,
-        a: {
-            base: 0x02929E58, kind: 0x02929E6C, kindByte3: 0x02929E6F,
-            arg1: 0x02929E70, arg1Byte1: 0x02929E71, arg1Value: 0x02929E48,
-            deadSink: 0x02929E78,
-        },
-        b: {
-            base: 0x02929D30, kind: 0x02929D44, kindByte3: 0x02929D47,
-            arg1: 0x02929D48, arg1Value: 0x02929C60, visible: 0x02929D80,
-        },
-        c: {
-            base: 0x02C4CB18, kind: 0x02C4CB2C, arg1: 0x02C4CB30,
-            arg1Value: 0x03D670BC, mib: [9, 8],
-        },
-    },
-    walkCounter: { addr: 0x03D670B8, mib: [9, 7] },
-    nodeMutex: 0x01AF9F18,
-    rodataProbe: { rva: 0x011A7ABA, text: "_aio_submit_cmd\0_aio_multi_wait" },
-    aio: {
-        waiterSize: 0x38, requestSize: 0x28,
-        group: { num: 0x00, state: 0x08, waiters: 0x50 },
-        idTable: { pages: 0x220, slotStride: 0x30, entryType: 0x160 },
-    },
-    proc: { pid: 0x0bc, ucred: 0x040, fd: 0x048, aioInfo: 0x0c40, dynlib: 0x3e8 },
-    kernelPid: 0,
-    ucred: { uid: 0x04, ruid: 0x08, svuid: 0x0c, ngroups: 0x10, rgid: 0x14, svgid: 0x18,
-        sceAuthId: 0x58, sceCaps: 0x60, sceCaps1: 0x68, sceAttrs: 0x80 },
-    sysCoreAuthId: { lo: 0x00000007, hi: 0x48000000 },
-    filedesc:      { files: 0x00, cdir: 0x08, rdir: 0x10, jdir: 0x18 },
-    filedescTable: { nfiles: 0x00, ofiles: 0x08, entryStride: 0x30, fileData: 0x00 },
-    pipe: { count: 0x00, in: 0x04, out: 0x08, size: 0x0c, buffer: 0x10, pair: 0xe8, defaultSize: 0x4000 },
-    dynlib: { syscallStart: 0xf0, syscallEnd: 0xf8, restrictFlags: 0x118, libkernelRef: 0x18 },
-};
-window.SYMBOLS = {
-    libkernel: {
-        getpid:                           0x0001B280,
-        sysctlbyname:                     0x000137E0,
-        sceKernelSendNotificationRequest: 0x00004740,
-        pthread_create:                   0x00020B50,
-        pthread_create_name_np:           0x00021200,
-        pthread_join:                     0x00022310,
-    },
-    libc: {
-        malloc: 0x00005EB0, free: 0x00005EC0, memcpy: 0x00003D50,
-        memset: 0x00014E80, strcmp: 0x0003FD80, memcmp: 0x00076660,
-        vsnprintf: 0x0005C430,
-    },
-};
+// Firmware-specific kernel offsets from the validated SDK family table.
+// Text-relative except for the two invariant syscall-stack frame offsets.
+const OFFSET_KERNEL_STACK_COOKIE                = 0x00000930;
+const OFFSET_KERNEL_STACK_SYS_SCHED_YIELD_RET   = 0x00000808;
+const OFFSET_KERNEL_DATA                        = 0x00D30000;
+const OFFSET_KERNEL_SYS_SCHED_YIELD_RET         = 0x00627F22;
+const OFFSET_KERNEL_ALLPROC                     = 0x035A5D70;
+const OFFSET_KERNEL_SECURITY_FLAGS              = 0x01ABC064;
+const OFFSET_KERNEL_TARGETID                    = 0x01ABC06D;
+const OFFSET_KERNEL_QA_FLAGS                    = 0x01ABC088;
+const OFFSET_KERNEL_UTOKEN_FLAGS                = 0x01ABC0F0;
+const OFFSET_KERNEL_ROOTVNODE                   = 0x03DE7510;
