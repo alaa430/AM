@@ -1,4 +1,4 @@
-import { establishPrimitive } from "./core.js?v=10";
+import { establishPrimitive } from "./core.js";
 import { installWindowP, pairStatus } from "./mem.js";
 import { int64 } from "./int64.js";
 import { offsetsFor } from "./ps4_offsets.js";
@@ -11,11 +11,14 @@ let passCount = 0,
 let armedEver = false;
 const params = new URLSearchParams(location.search);
 const STOP_BEFORE_DOUBLE = params.get("stop") === "beforedouble";
+const TELEMETRY = params.get("telemetry") === "1";
 
 function post(tag, detail) {
+  if (!TELEMETRY) return;
   try {
     const x = new XMLHttpRequest();
     x.open("POST", "/t", true);
+    x.timeout = 2000;
     x.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     x.send(
       "PS4-JB&tag=" +
@@ -199,7 +202,7 @@ let allDone = false,
 
     const KPATCH_FILE =
       "patches/" + (off.kpatch || fwKey.replace(".", "") + ".bin");
-    const PAYLOAD_FILE = off.payload || "payload.bin";
+    const PAYLOAD_FILE = off.payload || "goldhen.bin";
     const needPatch = ["k_sysent_661", "k_jmp_rsi"].filter(
       (k) => off[k] === undefined,
     );
