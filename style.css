@@ -10,6 +10,20 @@ html {
     overflow: hidden;
 }
 
+.header-title {
+    color: #FFF;
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-shadow: 0px 0px 15px #FFB84D;
+    background: #6f707433;
+    border-radius: 55px;
+    padding: 55px 48px;
+    pointer-events: auto;
+    border: 3px solid #FFB84D; 
+
+}
+
 h1 {
     text-shadow: 0.1em 0.1em 0.2em black;
     font-size: 25px;
@@ -91,10 +105,10 @@ a {
 }
 
 .btn-ps5 {
-    background-color: #3d3f4e;
+    background-color: #0cf575;
 }
 
 .btn-ps5:hover {
     background-color: #c2c2c2;
-    color: #303030;
+    color: #0cf575;
 }
