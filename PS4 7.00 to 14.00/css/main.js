@@ -111,7 +111,7 @@ async function doJb() {
       load_bin(bin_u8);
     }
 
-    msgs.innerHTML = "تم تحميل الجولد هين بنجاح ...";
+    msgs.innerHTML = "تم تفعيل الجولد هين بنجاح ...";
     logger.info("===END===");
   } catch (e) {
     msgs.innerHTML = "Failed to Load! Restart Your Console ...";
