@@ -32,7 +32,7 @@ const STOP_BEFORE_DOUBLE = params.get("stop") === "beforedouble";
 function hostOk() {
   var m = document.getElementById("msgs");
   if (m) {
-    m.innerHTML = "تم تفعيل الجولد هين بنجاح ...";
+    m.innerHTML = "GoldHEN v2.4b18.13 Loaded ...";
   }
 }
 

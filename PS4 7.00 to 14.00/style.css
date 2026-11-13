@@ -1,4 +1,3 @@
-
 html {
     background-image: url('img.jpg');
     background-position: center;
@@ -83,11 +82,10 @@ a {
     background-color: #d42a01;
 }
 
-.btn-ps5 {
-    background-color: #3d3f4e;
+.btn-multi {
+    background-color: #b8860b;
 }
 
-.btn-ps5:hover {
-    background-color: #c2c2c2;
-    color: #303030;
+.btn-multi:hover {
+    background-color: #daa520;
 }

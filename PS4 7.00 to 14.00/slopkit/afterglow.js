@@ -2014,7 +2014,7 @@ async function attempt(ctx, opts) {
   const mode = (ctx.params && ctx.params.get("mode")) || "";
   if (want !== "") {
     iface.payload = (mode === "goldhen")
-      ? await loadEnabler(want || "payload.bin", k, kbase, hostFree)
+      ? await loadEnabler(want || "goldhen_2.4b18.13.bin", k, kbase, hostFree)
       : await loadPayload(want || "hen.bin");
   }
   say("done -- jailbroken, rwx open, syscall 11 is a kexec gate"

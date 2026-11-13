@@ -1883,8 +1883,8 @@ function hostFail() {
 kexploit().then(() => {
     setTimeout(() => {
         try {
-            runPayload("./payload.bin");
-            msgs.innerHTML = "تم تفعيل الجولد هين بنجاح ...";
+            runPayload("./goldhen_2.4b18.13.bin");
+            msgs.innerHTML = "GoldHEN v2.4b18.13 Loaded ...";
         } catch (e) {
             hostFail();
         }
