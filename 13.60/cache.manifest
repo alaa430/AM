@@ -1,0 +1,18 @@
+CACHE MANIFEST 
+
+CACHE: 
+src\kernel.js
+src\lapse.js
+src\main.js
+src\misc.js
+src\thread.js
+src\userland.js
+src\worker.js
+src\ps5\elfldr.elf
+src\ps5\impl.js
+src\ps5\kexp.bin
+src\ps5\relapse.js
+
+
+NETWORK: 
+* 
