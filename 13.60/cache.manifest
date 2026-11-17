@@ -1,16 +1,13 @@
 CACHE MANIFEST 
-# Version 1.0 - Tue 11/17/2026 19:19:54.60 
+# Version 1.0 - Tue 11/17/2026 17:56:49.26 
  
 CACHE: 
 .gitignore 
 .prettierrc 
-cache.html 
 host.py 
-img.jpg 
 index.html 
 LICENSE.txt 
 localhost.pem 
-style.css 
 src/kernel.js 
 src/lapse.js 
 src/main.js 
