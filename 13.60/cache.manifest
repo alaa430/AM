@@ -1,13 +1,8 @@
 CACHE MANIFEST 
-# Version 1.0 - Tue 11/17/2026 17:56:49.26 
- 
+
 CACHE: 
-.gitignore 
-.prettierrc 
-host.py 
+img.jpg 
 index.html 
-LICENSE.txt 
-localhost.pem 
 src/kernel.js 
 src/lapse.js 
 src/main.js 
