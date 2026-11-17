@@ -24,6 +24,18 @@ a {
     display: block;
 }
 
+#menu {
+    display: block;
+}
+
+#crypto {
+    display: none;
+}
+
+#tools {
+    display: none;
+}
+
 #lnx {
     display: none;
 }
@@ -32,8 +44,12 @@ a {
     display: none;
 }
 
+#console {
+    display: none;
+}
+
 .btn {
-    background-color: #008000;
+    background-color: #003263;
     color: white;
     width: 227px;
     height: 46px;
@@ -54,6 +70,14 @@ a {
     background-color: #0069d9;
 }
 
+.btn-alt {
+    background-color: #b10000;
+}
+
+.btn-alt:hover {
+    background-color: #f31414;
+}
+
 .btn-onln {
     background-color: #076300;
 }
@@ -70,6 +94,11 @@ a {
     background-color: #d42a01;
 }
 
-#console {
-    font-family: 'logging';
+.btn-ps5 {
+    background-color: #3d3f4e;
+}
+
+.btn-ps5:hover {
+    background-color: #c2c2c2;
+    color: #303030;
 }
