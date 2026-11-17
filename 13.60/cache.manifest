@@ -1,11 +1,11 @@
 CACHE MANIFEST 
-# Version 1.0 - Tue 11/17/2026 19:05:57.19 
+# Version 1.0 - Tue 11/17/2026 19:14:53.77 
  
 CACHE: 
 .gitignore 
 .prettierrc 
+cache.html 
 host.py 
-img.jpg 
 index.html 
 LICENSE.txt 
 localhost.pem 
