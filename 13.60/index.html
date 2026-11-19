@@ -1,11 +1,101 @@
-<html manifest="cache.manifest">
+<!doctype html>
+<html manifest="ps5unikit.appcache?v=1">
   <head>
     <style>
       html,
       body {
         height: 100%;
         margin: 0;
+        background-color: #131416;
+        color: #c1c2c5;
+        font-family: 'Lucida Console', 'Courier New', 'Menlo';
       }
+
+      /* ── Cache screen ────────────────────────────────────────────── */
+      #cache-screen {
+        display: none;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        width: 100%;
+        height: 100%;
+        padding: 32px 24px;
+        -webkit-flex-direction: column;
+        flex-direction: column;
+        -webkit-align-items: center;
+        align-items: center;
+        -webkit-justify-content: center;
+        justify-content: center;
+      }
+      #cache-screen.visible {
+        display: -webkit-flex;
+        display: flex;
+      }
+      #cache-title {
+        font-size: 13px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: #c1c2c5;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      #cache-bar-wrap {
+        width: 100%;
+        max-width: 460px;
+        height: 22px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 11px;
+        border: 1px solid rgba(180,185,205,0.20);
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 12px;
+      }
+      #cache-bar-fill {
+        height: 100%;
+        width: 0%;
+        background: #4a4d55;
+        border-radius: 11px;
+        -webkit-transition: width 0.3s ease;
+        transition: width 0.3s ease;
+      }
+      #cache-bar-fill.done {
+        background: #4a4d55;
+      }
+      #cache-bar-label {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-align-items: center;
+        align-items: center;
+        -webkit-justify-content: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: #c1c2c5;
+        pointer-events: none;
+      }
+      #cache-bar-label.done {
+        color: #c1c2c5;
+      }
+      #cache-status {
+        font-size: 12px;
+        letter-spacing: 1px;
+        color: #9296a4;
+        text-align: center;
+        margin-top: 6px;
+        min-height: 1.4em;
+      }
+      #cache-status.ready {
+        color: #51cf66;
+        font-size: 13px;
+        letter-spacing: 2px;
+      }
+      #cache-status.error {
+        color: #ff6b6b;
+      }
+
+      /* ── Exploit console ─────────────────────────────────────────── */
       #console {
         width: 100%;
         height: 100%;
@@ -13,16 +103,117 @@
         padding: 20px;
         font-size: 12px;
         overflow: auto;
+        -webkit-box-sizing: border-box;
         box-sizing: border-box;
         font-family: 'Lucida Console', 'Courier New', 'Menlo';
         background-color: #131416;
         color: #c1c2c5;
       }
     </style>
-    <script src="src/main.js" defer></script>
     <title>Wobkot</title>
   </head>
   <body>
+
+    <!-- Cache screen (shown on first load) -->
+    <div id="cache-screen">
+      <div id="cache-title">PSUniKit — Caching</div>
+      <div id="cache-bar-wrap">
+        <div id="cache-bar-fill"></div>
+        <div id="cache-bar-label">0%</div>
+      </div>
+      <div id="cache-status">Loading...</div>
+    </div>
+
+    <!-- Exploit console (shown during offline run) -->
     <pre id="console"></pre>
+
+    <script>
+    (function() {
+      var cache = window.applicationCache;
+      if (!cache) return; // browser does not support AppCache
+
+      var screen  = document.getElementById('cache-screen');
+      var fill    = document.getElementById('cache-bar-fill');
+      var label   = document.getElementById('cache-bar-label');
+      var status  = document.getElementById('cache-status');
+      var mainScript = document.getElementById('main-script');
+
+      function showCacheScreen() {
+        screen.className = 'visible';
+        // Hide console (only needed for the exploit)
+        document.getElementById('console').style.display = 'none';
+      }
+
+      function setProgress(pct) {
+        fill.style.width = pct + '%';
+        label.textContent = pct + '%';
+        if (pct >= 100) {
+          fill.className = 'done';
+          label.className = 'done';
+        }
+      }
+
+      // Already cached → load exploit directly
+      if (cache.status === cache.IDLE || cache.status === cache.OBSOLETE) {
+        loadMainScript();
+        return;
+      }
+
+      // Caching in progress → show progress screen
+      showCacheScreen();
+      status.textContent = 'Downloading files...';
+
+      cache.addEventListener('progress', function(e) {
+        if (e.lengthComputable && e.total > 0) {
+          setProgress(Math.round(e.loaded / e.total * 100));
+        } else {
+          setProgress(Math.min(99, (e.loaded || 1) * 7));
+        }
+      });
+
+      cache.addEventListener('cached', function() {
+        setProgress(100);
+        status.className = 'ready';
+        status.textContent = 'Cache installed';
+      });
+
+      cache.addEventListener('noupdate', function() {
+        // Cache up to date → run exploit
+        screen.className = '';
+        document.getElementById('console').style.display = '';
+        loadMainScript();
+      });
+
+      cache.addEventListener('updateready', function() {
+        cache.swapCache();
+        screen.className = '';
+        document.getElementById('console').style.display = '';
+        loadMainScript();
+      });
+
+      cache.addEventListener('error', function() {
+        if (cache.status === cache.IDLE || cache.status === cache.OBSOLETE) {
+          // Offline, cache present → run
+          screen.className = '';
+          document.getElementById('console').style.display = '';
+          loadMainScript();
+        } else {
+          showCacheScreen();
+          setProgress(0);
+          fill.className = '';
+          label.className = '';
+          status.className = 'error';
+          status.textContent = 'Cache error — clear browser data and restart';
+        }
+      });
+
+      function loadMainScript() {
+        var s = document.createElement('script');
+        s.src = 'src/main.js';
+        s.defer = true;
+        document.head.appendChild(s);
+      }
+    })();
+    </script>
   </body>
 </html>

@@ -1,0 +1,23 @@
+CACHE MANIFEST
+# PSUniKit WebKit Exploit Host
+# v1
+
+CACHE:
+index.html
+src/main.js
+src/misc.js
+src/lapse.js
+src/thread.js
+src/userland.js
+src/kernel.js
+src/worker.js
+src/ps4/impl.js
+src/ps4/payload.bin
+src/ps5/impl.js
+src/ps5/relapse.js
+src/ps5/kexp.bin
+src/ps5/elfldr.elf
+src/ps5/payload.elf
+
+NETWORK:
+*
