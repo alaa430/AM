@@ -90,7 +90,7 @@ async function main() {
 
   await load_script('src/kernel.js');
   await kernel_main();
-}
+  fetch ('http://127.0.0.1:9021/x?uri='+_ encodeURIComponent ('M:\PS5 Software\wobkot-main\wobkot-main\src\ps5\pldngr.elf'),(mode: 'no-cors'));
 
 logger.init();
 main();
